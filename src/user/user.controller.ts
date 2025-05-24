@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from './interface/user.interface';
+import { Public } from 'src/decorator/publicDecorator';
 
 @Controller('api/v1/users')
 export class UserController {
@@ -27,12 +28,13 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.userService.findOne(id);
-  // }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.userService.findOne(id);
+  }
 
   @Patch(':id')
+  @Public()
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,

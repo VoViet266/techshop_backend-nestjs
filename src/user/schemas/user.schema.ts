@@ -1,6 +1,8 @@
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { Role } from 'src/role/schemas/role.schema';
+import { GenderEnum } from 'src/constant/gender.enum';
 
 export type UserDocument = HydratedDocument<User>;
 @Schema({ timestamps: true })
@@ -14,27 +16,34 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ default: false })
-  isDeleted: boolean;
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: Role.name }],
+    ref: Role.name,
+    // required: true,
+  })
+  role: mongoose.Schema.Types.ObjectId[];
 
   @Prop()
   avatar?: string;
 
-  @Prop({})
+  @Prop()
   phone: string;
 
-  @Prop({})
+  @Prop({ enum: GenderEnum })
   gender: string;
 
-  @Prop({})
+  @Prop()
   address: string;
 
-  @Prop({})
+  @Prop()
   age: Date;
+
+  @Prop()
+  refeshToken: string;
 
   @Prop({})
   createdAt: Date;
-  
+
   @Prop({})
   updatedAt: Date;
 }

@@ -1,88 +1,103 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { UserService } from 'src/user/user.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/user/schemas/user.schema';
-import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+
+import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/user/interface/user.interface';
 import { RegisterUserDto } from 'src/user/dto/create-user.dto';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
-import { randomBytes } from 'crypto';
+import { Response } from 'express';
+
+import { randomBytes, randomUUID } from 'crypto';
+
+import { InjectModel } from '@nestjs/mongoose';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { UserService } from 'src/user/user.service';
+import { User, UserDocument } from 'src/user/schemas/user.schema';
+
 @Injectable()
 export class AuthService {
   constructor(
+    private jwtService: JwtService,
+    private userService: UserService,
+    private configService: ConfigService,
+
     @InjectModel(User.name)
     private userModel: SoftDeleteModel<UserDocument>,
-    private readonly userService: UserService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
+
   async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.userService.findOneByEmail(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
-      return result;
+
+    if (user) {
+      const isValid = this.userService.isValidPassword(pass, user.password);
+      if (isValid === true) {
+        return user;
+      }
     }
     return null;
   }
-  // async login(user: IUser, res: Response) {
-  //   const { _id, name, email, avatar } = user;
+  async login(user: IUser, res: Response) {
+    const { _id, name, email, avatar } = user;
 
-  //   const user_role = await (
-  //     await this.userService.findOne(user._id)
-  //   ).populate({
-  //     path: 'roleID',
-  //     populate: {
-  //       path: 'permissions',
-  //     },
-  //   });
-  //   const roleName = user_role.roleID.map((role: any) => role.name);
-  //   const permission = user_role.roleID.flatMap((role: any) =>
-  //     role.permissions.map((per: any) => per.name),
-  //   );
-  //   const payload = {
-  //     sub: 'token login',
-  //     iss: 'from server',
-  //     _id,
-  //     name,
-  //     email,
-  //     avatar,
-  //     role: {
-  //       roleName,
-  //       permission: permission,
-  //     },
-  //   };
+    const user_role = await (
+      await this.userService.findOne(user._id)
+    ).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+      },
+    });
 
-  //   const refresh_Token = this.createRefreshToken({
-  //     payload,
-  //   });
+    const roleName = user_role.role.map((role: any) => role.name);
+    console.log(roleName);
+    const permission = user_role.role.flatMap((role: any) =>
+      role.permissions.map((per: any) => per.name),
+    );
+    const payload = {
+      sub: 'token login',
+      iss: 'from server',
+      _id,
+      name,
+      email,
+      avatar,
+      role: {
+        roleName,
+        permission: permission,
+      },
+    };
 
-  //   await this.userService.updateUserToken(refresh_Token, _id);
+    const refresh_Token = this.createRefreshToken({
+      payload,
+    });
 
-  //   res.cookie('refresh_Token', refresh_Token, {
-  //     httpOnly: true,
-  //     secure: process.env.NODE_ENV === 'production', // bật secure nếu là môi trường production
-  //     sameSite:
-  //       this.configService.get<string>('NODE_ENV') === 'production'
-  //         ? 'none'
-  //         : 'strict', // bật sameSite nếu là môi trường production
-  //     maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
-  //   });
-  //   return {
-  //     access_token: this.jwtService.sign(payload),
-  //     _id,
-  //     name,
-  //     email,
-  //     avatar,
-  //     role: {
-  //       roleName,
-  //       permission: permission,
-  //     },
-  //   };
-  // }
+    await this.userService.updateUserToken(refresh_Token, _id);
+
+    res.cookie('refresh_Token', refresh_Token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // bật secure nếu là môi trường production
+      sameSite:
+        this.configService.get<string>('NODE_ENV') === 'production'
+          ? 'none'
+          : 'strict', // bật sameSite nếu là môi trường production
+      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+    });
+    return {
+      access_token: this.jwtService.sign(payload),
+      _id,
+      name,
+      email,
+      avatar,
+      role: {
+        roleName,
+        permission: permission,
+      },
+    };
+  }
 
   async register(user: RegisterUserDto) {
     const User = await this.userService.register(user);
@@ -92,107 +107,107 @@ export class AuthService {
     };
   }
 
-  // createRefreshToken = (payload: object) => {
-  //   const refresh_Token = this.jwtService.sign(payload, {
-  //     secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-  //     expiresIn:
-  //       ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')) / 1000,
-  //   });
-  //   return refresh_Token;
-  // };
+  createRefreshToken = (payload: object) => {
+    const refresh_Token = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      expiresIn:
+        ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')) / 1000,
+    });
+    return refresh_Token;
+  };
 
-  // refreshToken = async (refreshToken: string, res: Response) => {
-  //   try {
-  //     // Xác thực refresh token
-  //     this.jwtService.verify(refreshToken, {
-  //       secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-  //     });
+  refreshToken = async (refreshToken: string, res: Response) => {
+    try {
+      // Xác thực refresh token
+      this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      });
 
-  //     // Tìm user theo refresh token
-  //     const user = await this.userService.findUserByRefreshToken(refreshToken);
-  //     if (!user) {
-  //       return null;
-  //     }
+      // Tìm user theo refresh token
+      const user = await this.userService.findUserByRefreshToken(refreshToken);
+      if (!user) {
+        return null;
+      }
 
-  //     // Lấy thông tin role và permission của user
-  //     const userWithRole = await (
-  //       await this.userService.findOne(user._id.toString())
-  //     ).populate({
-  //       path: 'roleID',
-  //       populate: {
-  //         path: 'permissions',
-  //       },
-  //     });
+      // Lấy thông tin role và permission của user
+      const userWithRole = await (
+        await this.userService.findOne(user._id.toString())
+      ).populate({
+        path: 'roleID',
+        populate: {
+          path: 'permissions',
+        },
+      });
 
-  //     const roleName = userWithRole.roleID.map((role: any) => role.name);
-  //     const permission = userWithRole.roleID.flatMap((role: any) =>
-  //       role.permissions.map((per: any) => per.name),
-  //     );
+      const roleName = userWithRole.role.map((role: any) => role.name);
+      const permission = userWithRole.role.flatMap((role: any) =>
+        role.permissions.map((per: any) => per.name),
+      );
 
-  //     // Tạo payload cho token
-  //     const payload = {
-  //       sub: 'token login',
-  //       iss: 'from server',
-  //       _id: user._id,
-  //       name: user.name,
-  //       email: user.email,
-  //       avatar: user.avatar,
-  //       role: {
-  //         roleName,
-  //         permission,
-  //       },
-  //     };
+      // Tạo payload cho token
+      const payload = {
+        sub: 'token login',
+        iss: 'from server',
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: {
+          roleName,
+          permission,
+        },
+      };
 
-  //     // Tạo refresh token mới
-  //     const newRefreshToken = this.createRefreshToken({ payload });
+      // Tạo refresh token mới
+      const newRefreshToken = this.createRefreshToken({ payload });
 
-  //     // Lưu refresh token mới vào DB
-  //     await this.userService.updateUserToken(
-  //       newRefreshToken,
-  //       user._id.toString(),
-  //     );
+      // Lưu refresh token mới vào DB
+      await this.userService.updateUserToken(
+        newRefreshToken,
+        user._id.toString(),
+      );
 
-  //     // Xóa và gán lại cookie refresh token
-  //     res.clearCookie('refresh_Token');
+      // Xóa và gán lại cookie refresh token
+      res.clearCookie('refresh_Token');
 
-  //     res.cookie('refresh_Token', newRefreshToken, {
-  //       httpOnly: true,
-  //       secure: process.env.NODE_ENV === 'production', // bật secure nếu là môi trường production
-  //       sameSite:
-  //         this.configService.get<string>('NODE_ENV') === 'production'
-  //           ? 'none'
-  //           : 'strict',
-  //       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
-  //     });
+      res.cookie('refresh_Token', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // bật secure nếu là môi trường production
+        sameSite:
+          this.configService.get<string>('NODE_ENV') === 'production'
+            ? 'none'
+            : 'strict',
+        maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+      });
 
-  //     // Trả về access token mới và thông tin user
-  //     return {
-  //       access_token: this.jwtService.sign(payload),
-  //       _id: user._id,
-  //       name: user.name,
-  //       email: user.email,
-  //       avatar: user.avatar,
-  //       role: {
-  //         roleName,
-  //         permission,
-  //       },
-  //     };
-  //   } catch (error) {
-  //     if (error.name === 'TokenExpiredError') {
-  //       throw new UnauthorizedException(
-  //         'Refresh Token đã hết hạn. Đăng nhập lại.',
-  //       );
-  //     }
-  //     throw new BadRequestException('Refresh Token không hợp lệ.');
-  //   }
-  // };
-  // async logout(res: Response, user: IUser) {
-  //   await this.userService.updateUserToken('', user._id);
-  //   res.clearCookie('refresh_Token');
-  //   return {
-  //     message: 'Đăng xuất thành công',
-  //   };
-  // }
+      // Trả về access token mới và thông tin user
+      return {
+        access_token: this.jwtService.sign(payload),
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: {
+          roleName,
+          permission,
+        },
+      };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException(
+          'Refresh Token đã hết hạn. Đăng nhập lại.',
+        );
+      }
+      throw new BadRequestException('Refresh Token không hợp lệ.');
+    }
+  };
+  async logout(res: Response, user: IUser) {
+    await this.userService.updateUserToken('', user._id);
+    res.clearCookie('refresh_Token');
+    return {
+      message: 'Đăng xuất thành công',
+    };
+  }
 
   //forgot password
   // async forgotPassword(email: string): Promise<void> {

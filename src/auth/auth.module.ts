@@ -4,18 +4,18 @@ import { AuthController } from './auth.controller';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as ms from 'ms';
+import ms from 'ms';
 import { LocalStrategy } from './passport/local.strategy';
 import { JwtStrategy } from './passport/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { RoleModule } from 'src/role/role.module';
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
   imports: [
     UserModule,
     PassportModule,
     ConfigModule,
+    RoleModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,6 +27,8 @@ import { PassportModule } from '@nestjs/passport';
       }),
     }),
   ],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
+  controllers: [AuthController],
   exports: [AuthService],
 })
 export class AuthModule {}

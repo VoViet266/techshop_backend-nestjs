@@ -1,26 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Role, RoleDocument } from './schemas/role.schema';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { IUser } from 'src/user/interface/user.interface';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class RoleService {
-  create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role';
+  constructor(
+    @InjectModel(Role.name)
+    private roleModel: SoftDeleteModel<RoleDocument>,
+  ) {}
+  async create(createRoleDto: CreateRoleDto, user: IUser) {
+    let role = await this.roleModel.create({
+      ...createRoleDto,
+    });
+
+    return role;
   }
+
+  // findOne(id: number) {
+  //   return `This action returns a #${id} role`;
+  // }
 
   findAll() {
-    return `This action returns all role`;
+    return this.roleModel.find().populate({
+      path: 'permissions',
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
+  update(id: string, updateRoleDto: UpdateRoleDto) {
+    return this.roleModel.updateOne(
+      { _id: id },
+      {
+        $addToSet: {
+          permissions: {
+            $each: updateRoleDto.permissions,
+          },
+        },
+      },
+    );
+  }
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('not found role');
+    }
+    return (await this.roleModel.findById(id)).populate({
+      path: 'permissions',
+      select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
+    });
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  remove(id: string) {
+    return this.roleModel.deleteOne({ _id: id });
   }
 }

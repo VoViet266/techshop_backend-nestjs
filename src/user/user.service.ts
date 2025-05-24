@@ -52,17 +52,20 @@ export class UserService {
   }
 
   updateUserToken = async (refreshToken: string, _id: string) => {
-    return await this.userModel.updateOne({ _id }, { refreshToken });
+    return await this.userModel.updateOne(
+      { _id },
+      { refreshToken: refreshToken },
+    );
   };
   findOne(id: string) {
-    return this.userModel.findOne({ _id: id }).populate('roleID').exec();
+    return this.userModel.findOne({ _id: id }).populate('role').exec();
   }
   findOneByEmail(username: string) {
     return this.userModel.findOne({ email: username });
   }
   findAll() {
     return this.userModel.find().populate({
-      path: 'roleID',
+      path: 'role',
       populate: {
         path: 'permissions',
       },

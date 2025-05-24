@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './config/mongodb.config';
 import { RoleModule } from './role/role.module';
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { RoleModule } from './role/role.module';
     }),
     MongooseModule.forRootAsync(MongooseConfigService),
     RoleModule,
+    PermissionModule,
   ],
 
   controllers: [AppController],

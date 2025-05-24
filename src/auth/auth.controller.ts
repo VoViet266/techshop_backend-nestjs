@@ -7,21 +7,38 @@ import {
   Param,
   Delete,
   Req,
-  Res,
   BadRequestException,
+  UseGuards,
+  Request,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+
 import { ResponseMessage } from 'src/decorator/messageDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 import { User } from 'src/decorator/userDecorator';
 import { Public } from 'src/decorator/publicDecorator';
+import { LocalAuthGuard } from 'src/common/guards/local.guard';
+import { RegisterUserDto } from 'src/user/dto/create-user.dto';
+import { Response } from 'express';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+  @UseGuards(LocalAuthGuard)
+  @ResponseMessage('Đăng nhập thành công')
+  @Public()
+  @Post('/login')
+  handleLogin(@Request() req: any, @Res({ passthrough: true }) res: Response) {
+    return this.authService.login(req.user, res);
+  }
 
+  @Public()
+  @Post('/register')
+  @ResponseMessage('Đăng ký thành công')
+  async register(@Body() register: RegisterUserDto) {
+    return this.authService.register(register);
+  }
   @ResponseMessage('Lấy thông tin tài khoản thành công')
   @Get('/account')
   handleGetAccount(@User() user: IUser) {
