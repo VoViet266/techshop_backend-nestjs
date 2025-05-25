@@ -35,6 +35,13 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const configService = app.get(ConfigService);
+  app.enableCors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    credentials: true,
+  });
   await app.listen(configService.get<string>('PORT'));
   console.log(
     `Application is running on: ${configService.get<string>('BASE_URL')}${configService.get<string>('PORT')}`,
