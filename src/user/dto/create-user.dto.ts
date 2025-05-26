@@ -6,7 +6,7 @@ export class CreateUserDto {
   password: string;
   phone: string;
   address: string;
-  role: string;
+  role: object[];
   status: string;
   createdAt: Date;
   updatedAt: Date;

@@ -6,12 +6,18 @@ import { UserDocument, User as userModel } from './schemas/user.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { IUser } from './interface/user.interface';
+import mongoose from 'mongoose';
+import { Role, RoleDocument } from 'src/role/schemas/role.schema';
+import { RolesUser } from 'src/constant/roles.enum';
+import { console } from 'inspector';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(userModel.name)
     private readonly userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Role.name)
+    private readonly roleModel: SoftDeleteModel<RoleDocument>,
   ) {}
   hashPassword = (password: string) => {
     const salt = genSaltSync(10);
@@ -23,10 +29,23 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
+    let roleId: any = createUserDto.role;
+    if (!createUserDto.role) {
+      const roleDefault = await this.roleModel.findOne({
+        name: RolesUser.Customer,
+      });
+      console.log(roleDefault);
+      if (!roleDefault) {
+        throw new UnauthorizedException('Default role not found');
+      }
+      roleId = roleDefault._id;
+    }
+
     const hashedPassword = this.hashPassword(createUserDto.password);
     return await this.userModel.create({
       ...createUserDto,
       password: hashedPassword,
+      role: roleId,
     });
   }
 

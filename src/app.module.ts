@@ -11,6 +11,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './config/mongodb.config';
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
+import { StoreModule } from './store/store.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { PermissionModule } from './permission/permission.module';
     MongooseModule.forRootAsync(MongooseConfigService),
     RoleModule,
     PermissionModule,
+    StoreModule,
+    InventoryModule,
   ],
 
   controllers: [AppController],

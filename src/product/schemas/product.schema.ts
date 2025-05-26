@@ -1,43 +1,40 @@
-import { HydratedDocument } from 'mongoose';
-import { Schema as MongooseSchema } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Brand } from 'src/brand/entities/brand.schema';
 import { Category } from 'src/category/entities/category.schema';
 export type ProductDocument = HydratedDocument<Products>;
-export type VariantDocument = HydratedDocument<Variants>;
-export type CamerasDocument = HydratedDocument<Cameras>;
-export type ConnectivitiesDocument = HydratedDocument<Connectivities>;
-@Schema()
-export class Variants {
-  @Prop({ required: true })
-  name: string;
+export type VariantDocument = HydratedDocument<Variant>;
+export type CamerasDocument = HydratedDocument<Camera>;
+export type ConnectivitiesDocument = HydratedDocument<Connectivity>;
 
-  @Prop({ required: true })
-  price: number;
-
-  @Prop({ required: true })
-  color: string;
-
-  @Prop({ required: true })
-  ram: string;
-
-  @Prop({ required: true })
-  stock: number;
-
-  @Prop({ required: true })
-  storage: string;
+// Embedded schemas for better performance
+@Schema({ _id: false })
+export class ProductSpecs {
+  @Prop()
+  displaySize: string;
 
   @Prop()
-  image: string[];
+  displayType: string;
 
-  @Prop({ default: true })
-  isActive: boolean;
+  @Prop()
+  processor: string;
+
+  @Prop()
+  operatingSystem: string;
+
+  @Prop()
+  battery: string;
+
+  @Prop()
+  weight: string;
+
+  @Prop()
+  dimensions: string;
 }
 
-@Schema({
-  timestamps: true,
-})
-export class Connectivities {
+@Schema({ _id: false })
+export class Connectivity {
   @Prop()
   wifi: string;
 
@@ -45,71 +42,222 @@ export class Connectivities {
   bluetooth: string;
 
   @Prop()
-  network: string;
+  cellular: string;
 
-  @Prop()
+  @Prop({ default: false })
   nfc: boolean;
 
-  @Prop()
+  @Prop({ default: false })
   gps: boolean;
 
   @Prop()
-  usb: string;
+  ports: string[];
 }
 
-@Schema({
-  timestamps: true,
-})
-export class Cameras {
-  @Prop()
-  frontCamera: string;
+@Schema({ _id: false })
+export class Camera {
+  @Prop({ type: Object })
+  front: {
+    resolution: string;
+    features: string[];
+  };
+
+  @Prop({ type: Object })
+  rear: {
+    resolution: string;
+    features: string[];
+    lensCount: number;
+  };
 
   @Prop()
-  rearCamera: string;
-
-  @Prop()
-  videoRecording: string;
+  videoRecording: string[];
 }
+
+@Schema()
+export class Variant {
+  @Prop()
+  sku: string; // Stock Keeping Unit for better inventory tracking
+
+  @Prop()
+  name: string;
+
+  @Prop({
+    min: 0,
+  })
+  price: number;
+
+  @Prop({
+    min: 0,
+  })
+  compareAtPrice: number; // For showing discounts
+
+  @Prop({ type: Object })
+  color: {
+    name: string;
+    hex: string; // Color hex code
+  };
+
+  @Prop({ type: Object })
+  memory: {
+    ram: string;
+    storage: string;
+  };
+
+  @Prop({
+    type: [String],
+    // validate: {
+    //   validator: function (v: string[]) {
+    //     return v && v.length > 0;
+    //   },
+    //   message: 'At least one image is required',
+    // },
+  })
+  images: string[];
+
+  @Prop({ default: 0 })
+  weight: number; // For shipping calculations
+
+  @Prop({ default: true })
+  isActive: boolean;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+}
+
 @Schema({
   timestamps: true,
 })
 export class Products {
-  @Prop({ required: true, unique: true })
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    trim: true,
+  })
   name: string;
 
-  @Prop()
-  price: number;
+  @Prop({
+    required: true,
+    index: true,
+    trim: true,
+  })
+  slug: string; // URL-friendly version of name
 
-  @Prop()
+  @Prop({ trim: true })
   description: string;
 
   @Prop({
-    type: MongooseSchema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: Category.name,
     required: true,
+    index: true,
   })
-  category: MongooseSchema.Types.ObjectId;
+  category: mongoose.Schema.Types.ObjectId;
 
   @Prop({
-    type: MongooseSchema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: Brand.name,
     required: true,
+    index: true,
   })
-  brand: MongooseSchema.Types.ObjectId;
+  brand: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: Variants.name })
-  variants: MongooseSchema.Types.ObjectId[];
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Connectivities.name })
-  connectivities: MongooseSchema.Types.ObjectId;
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: Cameras.name })
-  cameras: MongooseSchema.Types.ObjectId;
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: Variant.name,
+  })
+  variants: Variant[];
 
-  @Prop({ default: true })
+  @Prop({ type: ProductSpecs })
+  specifications: ProductSpecs;
+
+  @Prop({ type: Connectivity })
+  connectivity: Connectivity;
+
+  @Prop({ type: Camera })
+  camera: Camera;
+
+  @Prop({
+    type: [String],
+    index: true,
+  })
+  tags: string[]; // For search and filtering
+
+  @Prop({
+    default: 0,
+    min: 0,
+  })
+  viewCount: number;
+
+  @Prop({
+    default: 0,
+    min: 0,
+    max: 5,
+  })
+  averageRating: number;
+
+  @Prop({
+    default: 0,
+    min: 0,
+  })
+  reviewCount: number;
+
+  @Prop({
+    default: true,
+    index: true,
+  })
   isActive: boolean;
+
+  @Prop({
+    default: false,
+    index: true,
+  })
+  isFeatured: boolean;
+
+  @Prop({
+    default: false,
+    index: true,
+  })
+  isDeleted: boolean;
+
+  @Prop({ type: Date })
+  deletedAt: Date;
+
+  // Audit fields
+  @Prop({
+    type: {
+      _id: mongoose.Schema.Types.ObjectId,
+      email: String,
+      name: String,
+    },
+    required: true,
+  })
+  createdBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+    name: string;
+  };
+
+  @Prop({
+    type: {
+      _id: mongoose.Schema.Types.ObjectId,
+      email: String,
+      name: String,
+    },
+  })
+  updatedBy: {
+    _id: mongoose.Schema.Types.ObjectId;
+    email: string;
+    name: string;
+  };
 }
 
-export const VariantSchema = SchemaFactory.createForClass(Variants);
-export const ConnectivitiesSchema =
-  SchemaFactory.createForClass(Connectivities);
-export const CamerasSchema = SchemaFactory.createForClass(Cameras);
 export const ProductSchema = SchemaFactory.createForClass(Products);
+export const VariantSchema = SchemaFactory.createForClass(Variant);
+
+// Compound indexes for better query performance
+ProductSchema.index({ category: 1, brand: 1, isActive: 1 });
+ProductSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
+ProductSchema.index({ tags: 1, isActive: 1 });
+ProductSchema.index({ 'variants.sku': 1 }, { unique: true });
+ProductSchema.index({ slug: 1 }, { unique: true });

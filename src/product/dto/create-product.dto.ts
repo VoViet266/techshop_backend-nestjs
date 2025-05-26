@@ -1,36 +1,245 @@
-export class CreateVariantDto {
-  name: string;
-  price: number;
-  color: string;
-  ram: string;
-  stock: number;
-  storage?: string;
-  image?: string[];
+import { IsString, IsOptional, IsBoolean, IsNumber, IsArray, ValidateNested, IsMongoId, IsObject, Min, Max, ArrayMinSize } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class ProductSpecsDto {
+  @IsString()
+  @IsOptional()
+  displaySize?: string;
+
+  @IsString()
+  @IsOptional()
+  displayType?: string;
+
+  @IsString()
+  @IsOptional()
+  processor?: string;
+
+  @IsString()
+  @IsOptional()
+  operatingSystem?: string;
+
+  @IsString()
+  @IsOptional()
+  battery?: string;
+
+  @IsString()
+  @IsOptional()
+  weight?: string;
+
+  @IsString()
+  @IsOptional()
+  dimensions?: string;
 }
 
-export class CreateCamerasDto {
-  frontCamera?: string;
-  rearCamera?: string;
-  videoRecording?: string;
-}
-
-export class CreateConnectivitiesDto {
+export class ConnectivityDto {
+  @IsString()
+  @IsOptional()
   wifi?: string;
+
+  @IsString()
+  @IsOptional()
   bluetooth?: string;
-  network?: string;
+
+  @IsString()
+  @IsOptional()
+  cellular?: string;
+
+  @IsBoolean()
+  @IsOptional()
   nfc?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
   gps?: boolean;
-  usb?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  ports?: string[];
+}
+
+export class CameraFrontDto {
+  @IsString()
+  resolution: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  features: string[];
+}
+
+export class CameraRearDto {
+  @IsString()
+  resolution: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  features: string[];
+
+  @IsNumber()
+  lensCount: number;
+}
+
+export class CameraDto {
+  @ValidateNested()
+  @Type(() => CameraFrontDto)
+  front: CameraFrontDto;
+
+  @ValidateNested()
+  @Type(() => CameraRearDto)
+  rear: CameraRearDto;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  videoRecording?: string[];
+}
+
+export class VariantColorDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  hex: string;
+}
+
+export class VariantMemoryDto {
+  @IsString()
+  ram: string;
+
+  @IsString()
+  storage: string;
+}
+
+export class VariantDto {
+  @IsString()
+  sku: string;
+
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @Min(0)
+  price: number;
+
+  // @IsNumber()
+  // @Min(0)
+  // compareAtPrice: number;
+
+  @ValidateNested()
+  @Type(() => VariantColorDto)
+  color: VariantColorDto;
+
+  @ValidateNested()
+  @Type(() => VariantMemoryDto)
+  memory: VariantMemoryDto;
+
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMinSize(1)
+  images: string[];
+
+  @IsNumber()
+  @IsOptional()
+  weight?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsOptional()
+  createdAt?: Date;
 }
 
 export class CreateProductDto {
+  @IsString()
   name: string;
-  price: number
+
+  @IsString()
+  slug: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
-  category: string; // ObjectId
-  brand: string; // ObjectId
-  variants: CreateVariantDto;
-  cameras: CreateCamerasDto;
-  connectivities: CreateConnectivitiesDto;
+
+  @IsString()
+  @IsOptional()
+  shortDescription?: string;
+
+  @IsMongoId()
+  category: string;
+
+  @IsMongoId()
+  brand: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VariantDto)
+  @ArrayMinSize(1)
+  variants: VariantDto[];
+
+  @ValidateNested()
+  @Type(() => ProductSpecsDto)
+  @IsOptional()
+  specifications?: ProductSpecsDto;
+
+  @ValidateNested()
+  @Type(() => ConnectivityDto)
+  @IsOptional()
+  connectivity?: ConnectivityDto;
+
+  @ValidateNested()
+  @Type(() => CameraDto)
+  @IsOptional()
+  camera?: CameraDto;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  viewCount?: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  @IsOptional()
+  averageRating?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  reviewCount?: number;
+
+  @IsBoolean()
+  @IsOptional()
   isActive?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isFeatured?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isDeleted?: boolean;
+
+  @IsOptional()
+  deletedAt?: Date;
+
+  @IsObject()
+  createdBy: {
+    _id: string;
+    email: string;
+    name: string;
+  };
+
+  @IsObject()
+  @IsOptional()
+  updatedBy?: {
+    _id: string;
+    email: string;
+    name: string;
+  };
 }
