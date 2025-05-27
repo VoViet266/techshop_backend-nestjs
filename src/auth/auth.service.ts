@@ -18,6 +18,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { UserService } from 'src/user/user.service';
 import { User, UserDocument } from 'src/user/schemas/user.schema';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,8 @@ export class AuthService {
     private userService: UserService,
     private configService: ConfigService,
 
-   
+    private mailService: MailService, // Assuming MailService is part of UserService
+
     @InjectModel(User.name)
     private userModel: SoftDeleteModel<UserDocument>,
   ) {}
@@ -210,5 +212,47 @@ export class AuthService {
     };
   }
 
+  // forgot password
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userService.findOneByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Email không tồn tại trong hệ thống.');
+    }
 
+    // Tạo token mới
+    const token = randomBytes(3).toString('hex');
+    // Thời gian hết hạn của token là 1 phút
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getMinutes() + 1);
+
+    // Lưu token và thời gian hết hạn vào user
+    // Lưu token và thời gian hết hạn vào user
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = expiresAt;
+    await user.save();
+
+    // Gửi email với token
+    await this.mailService.sendResetPasswordEmail(email, token);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await this.userModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn.');
+    }
+
+    // Mã hóa mật khẩu mới
+
+    const hashedPassword = this.userService.hashPassword(newPassword);
+
+    // Cập nhật mật khẩu mới và xóa thông tin reset password
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+  }
 }
