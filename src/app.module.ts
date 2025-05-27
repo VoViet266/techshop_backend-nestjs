@@ -15,6 +15,8 @@ import { StoreModule } from './store/store.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { BannerModule } from './banner/banner.module';
 import { MailModule } from './mail/mail.module';
+import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { MailModule } from './mail/mail.module';
     InventoryModule,
     BannerModule,
     MailModule,
+    CartModule,
+    OrderModule,
   ],
 
   controllers: [AppController],
