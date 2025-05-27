@@ -5,8 +5,7 @@ import { ConfigService } from '@nestjs/config';
 export class AppService {
   constructor(private readonly configService: ConfigService) {}
   getHello(): string {
-    const test = this.configService.get<string>('JWT_ACCESS_EXPIRE');
-    console.log('test', test);
-    return 'Hello World!';
+    const appName = this.configService.get<string>('APP_NAME') || 'Application';
+    return `Welcome to ${appName}!`;
   }
 }

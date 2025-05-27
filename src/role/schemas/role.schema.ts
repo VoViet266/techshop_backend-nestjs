@@ -10,10 +10,9 @@ export class Role {
   @Prop()
   description: string;
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId }],
-    ref: Permission.name,
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: Permission.name }],
   })
-  permissions: string[];
+  permissions: mongoose.Schema.Types.ObjectId[];
 
   @Prop({ default: Date.now })
   createdAt: Date;

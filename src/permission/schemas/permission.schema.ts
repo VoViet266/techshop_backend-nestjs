@@ -6,7 +6,7 @@ import { PermissionsEnum } from 'src/constant/permission.enum';
 export type PermissionDocument = HydratedDocument<Permission>;
 @Schema({ timestamps: true })
 export class Permission {
-  @Prop({ required: true, unique: true, enum: PermissionsEnum })
+  @Prop({ required: true, unique: true })
   name: string; // Tên permission, ví dụ: "READ", "WRITE"
 
   @Prop({ required: true })

@@ -12,22 +12,47 @@ export class StoreService {
     private readonly storeModel: SoftDeleteModel<StoreDocument>,
   ) {}
   create(createStoreDto: CreateStoreDto) {
+    // Check if a store with the same name already exists
+    const existingStore = this.storeModel.findOne({
+      name: createStoreDto.name,
+    });
+    if (existingStore) {
+      throw new Error(`Store with name ${createStoreDto.name} already exists`);
+    }
     return this.storeModel.create(createStoreDto);
   }
 
   findAll() {
-    return `This action returns all store`;
+    return this.storeModel.find().sort({ createdAt: -1 }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} store`;
+  findOne(id: string) {
+    return this.storeModel.findById(id).exec();
   }
 
-  update(id: number, updateStoreDto: UpdateStoreDto) {
-    return `This action updates a #${id} store`;
+  async update(id: string, updateStoreDto: UpdateStoreDto) {
+    const storeExists = await this.storeModel.findById(id);
+    if (!storeExists) {
+      throw new Error(`Store with id ${id} does not exist`);
+    }
+
+    const updatedStore = await this.storeModel.updateOne(
+      { _id: id },
+      { $set: updateStoreDto },
+      { new: true },
+    );
+    if (!updatedStore) {
+      throw new Error(`Không thể cập nhật cửa hàng với id ${id}`);
+    }
+    return updatedStore;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} store`;
+  remove(id: string) {
+    const storeExists = this.storeModel.findById(id);
+    if (!storeExists) {
+      throw new Error(`Store with id ${id} does not exist`);
+    }
+
+    return this.storeModel.softDelete({ _id: id });
   }
 }

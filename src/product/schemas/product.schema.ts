@@ -1,8 +1,8 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Brand } from 'src/brand/entities/brand.schema';
-import { Category } from 'src/category/entities/category.schema';
+import { Brand } from 'src/brand/schemas/brand.schema';
+import { Category } from 'src/category/schemas/category.schema';
 export type ProductDocument = HydratedDocument<Products>;
 export type VariantDocument = HydratedDocument<Variant>;
 export type CamerasDocument = HydratedDocument<Camera>;
@@ -73,7 +73,10 @@ export class Camera {
   videoRecording: string[];
 }
 
-@Schema()
+@Schema({
+  timestamps: true,
+  _id: true, // Ensure each variant has a unique ID
+})
 export class Variant {
   @Prop()
   sku: string; // Stock Keeping Unit for better inventory tracking
@@ -91,26 +94,19 @@ export class Variant {
   })
   compareAtPrice: number; // For showing discounts
 
-  @Prop({ type: Object })
-  color: {
-    name: string;
-    hex: string; // Color hex code
-  };
+  @Prop()
+  colorName: string;
 
-  @Prop({ type: Object })
-  memory: {
-    ram: string;
-    storage: string;
-  };
+  @Prop()
+  colorHex: string; // Color hex code
+
+  @Prop()
+  ram: string;
+  @Prop()
+  storage: string;
 
   @Prop({
     type: [String],
-    // validate: {
-    //   validator: function (v: string[]) {
-    //     return v && v.length > 0;
-    //   },
-    //   message: 'At least one image is required',
-    // },
   })
   images: string[];
 

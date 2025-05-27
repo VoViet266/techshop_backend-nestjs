@@ -13,6 +13,8 @@ import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import { StoreModule } from './store/store.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { BannerModule } from './banner/banner.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { InventoryModule } from './inventory/inventory.module';
     PermissionModule,
     StoreModule,
     InventoryModule,
+    BannerModule,
+    MailModule,
   ],
 
   controllers: [AppController],

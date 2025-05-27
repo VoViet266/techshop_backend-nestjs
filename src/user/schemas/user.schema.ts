@@ -39,6 +39,12 @@ export class User {
   @Prop()
   refeshToken: string;
 
+  @Prop()
+  resetPasswordToken: string;
+
+  @Prop()
+  resetPasswordExpires: Date;
+
   @Prop({})
   createdAt: Date;
 

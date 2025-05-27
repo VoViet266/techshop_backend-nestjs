@@ -53,7 +53,6 @@ export class InventoryService {
       variants: createInventoryDto.variant.map((variant) => ({
         variantId: variant.variantId,
         quantity: variant.quantity,
-        // price: variant.price || 0,
       })),
     };
 
@@ -65,18 +64,33 @@ export class InventoryService {
       .find()
       .populate('product', 'name  ')
       .populate('store', 'name location')
-      .exec();
+      .lean();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} inventory`;
+  findOne(id: string) {
+    return this.inventoryModel
+      .findById(id)
+      .populate('product', 'name')
+      .populate('store', 'name location')
+      .lean();
   }
 
-  update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    return `This action updates a #${id} inventory`;
+  update(id: string, updateInventoryDto: UpdateInventoryDto) {
+    return this.inventoryModel.findByIdAndUpdate(
+      { _id: id },
+      updateInventoryDto,
+      {
+        new: true,
+      },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} inventory`;
+  async remove(id: string) {
+    return await this.inventoryModel.softDelete({ _id: id }).then((result) => {
+      if (!result) {
+        throw new BadRequestException(`Không tìm thấy tồn kho với ID ${id}`);
+      }
+      return { message: 'Tồn kho đã được xóa thành công' };
+    });
   }
 }
