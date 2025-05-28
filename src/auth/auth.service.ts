@@ -218,15 +218,15 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Email không tồn tại trong hệ thống.');
     }
-
-    // Tạo token mới
     const token = randomBytes(3).toString('hex');
-    // Thời gian hết hạn của token là 1 phút
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getMinutes() + 1);
 
-    // Lưu token và thời gian hết hạn vào user
-    // Lưu token và thời gian hết hạn vào user
+    const expiresAt = new Date();
+    // theo múi giờ Việt Nam
+    expiresAt.toLocaleDateString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+    expiresAt.setMinutes(expiresAt.getMinutes() + 1);
+
     user.resetPasswordToken = token;
     user.resetPasswordExpires = expiresAt;
     await user.save();
@@ -238,21 +238,52 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<void> {
     const user = await this.userModel.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      throw new BadRequestException('Token không hợp lệ hoặc đã hết hạn.');
+      throw new BadRequestException('Token không hợp lệ.');
     }
 
-    // Mã hóa mật khẩu mới
+    if (
+      user.resetPasswordExpires &&
+      user.resetPasswordExpires.getTime() <= Date.now()
+    ) {
+      await this.userModel.updateOne(
+        { resetPasswordToken: token },
+        {
+          $unset: {
+            resetPasswordToken: 1,
+            resetPasswordExpires: 1,
+          },
+        },
+      );
+      throw new BadRequestException('Token đã hết hạn.');
+    }
+
+    if (newPassword.length < 8) {
+      throw new BadRequestException('Mật khẩu phải có ít nhất 8 ký tự.');
+    }
 
     const hashedPassword = this.userService.hashPassword(newPassword);
-
-    // Cập nhật mật khẩu mới và xóa thông tin reset password
-    user.password = hashedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    return this.userModel
+      .updateOne(
+        { _id: user._id },
+        {
+          password: hashedPassword,
+        },
+        {
+          $unset: {
+            resetPasswordToken: 1,
+            resetPasswordExpires: 1,
+          },
+        },
+      )
+      .then(() => {
+        console.log('Mật khẩu đã được cập nhật thành công.');
+      })
+      .catch((error) => {
+        console.error('Lỗi khi cập nhật mật khẩu:', error);
+        throw new BadRequestException('Không thể cập nhật mật khẩu.');
+      });
   }
 }

@@ -75,7 +75,6 @@ export class Camera {
 
 @Schema({
   timestamps: true,
-  _id: true, // Ensure each variant has a unique ID
 })
 export class Variant {
   @Prop()

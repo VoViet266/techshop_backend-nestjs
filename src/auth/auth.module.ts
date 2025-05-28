@@ -9,6 +9,7 @@ import { LocalStrategy } from './passport/local.strategy';
 import { JwtStrategy } from './passport/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { RoleModule } from 'src/role/role.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { RoleModule } from 'src/role/role.module';
     PassportModule,
     ConfigModule,
     RoleModule,
+    MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -6,6 +6,8 @@ export class CreateUserDto {
   password: string;
   phone: string;
   address: string;
+  age: number;
+  avatar: string;
   role: object[];
   status: string;
   createdAt: Date;
@@ -29,13 +31,15 @@ export class RegisterUserDto {
     message: 'Email không được để trống',
   })
   email: string;
+
   address: string;
+
+  age: number;
   role: string[];
   //   @IsEnum(Gender, {
   //     message: 'Giới tính không hợp lệ',
   //   })
   gender: string;
-  age: string;
   phone: string;
   refeshToken: string;
 }

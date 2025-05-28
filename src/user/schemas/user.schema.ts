@@ -27,14 +27,14 @@ export class User {
   @Prop()
   phone: string;
 
-  @Prop({ enum: GenderEnum })
+  @Prop()
   gender: string;
 
   @Prop()
   address: string;
 
   @Prop()
-  age: Date;
+  age: number;
 
   @Prop()
   refeshToken: string;

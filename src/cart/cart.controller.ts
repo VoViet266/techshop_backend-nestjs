@@ -1,18 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
+import { User } from 'src/decorator/userDecorator';
+import { IUser } from 'src/user/interface/user.interface';
+import { Public } from 'src/decorator/publicDecorator';
 
-@Controller('cart')
+@Controller('api/v1/carts')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Post()
-  create(@Body() createCartDto: CreateCartDto) {
-    return this.cartService.create(createCartDto);
+  create(@Body() createCartDto: CreateCartDto, @User() user: IUser) {
+    return this.cartService.create(createCartDto, user);
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.cartService.findAll();
   }

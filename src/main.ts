@@ -22,12 +22,11 @@ async function bootstrap() {
   app.use(cookieParser());
   // Cần phải xác thực token mới cho phép truy cập vào các api khác
   const reflector = app.get(Reflector);
-  app
-    .useGlobalGuards
-    // new JwtAuthGuard(reflector),
-    // new RolesGuard(reflector),
-    // new PermissionsGuard(reflector),
-    ();
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
+
+  // new RolesGuard(reflector),
+  // new PermissionsGuard(reflector),
+
   app.use(express.json()); // Giải mã JSON
   app.use(express.urlencoded({ extended: true })); // Giải mã x-www-form-urlencoded
   app.useGlobalPipes(new ValidationPipe());
