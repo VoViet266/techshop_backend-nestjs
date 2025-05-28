@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Products, Variant } from 'src/product/schemas/product.schema';
 import { Store } from 'src/store/schemas/store.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
+import { min } from 'class-validator';
 
 export type InventoryDocument = HydratedDocument<Inventory>;
 @Schema({
@@ -34,13 +35,16 @@ export class Inventory {
           ref: 'Variant',
           required: true,
         },
-        quantity: { type: Number, required: true },
+        stock: { type: Number },
+        cost: { type: Number, default: 0, min: 0 },
       },
     ],
   })
   variants: {
     variantId: mongoose.Schema.Types.ObjectId;
-    quantity: number;
+    stock: number;
+    // Giá vốn để tính lợi nhuận
+    cost: number;
   }[];
 
   // Mức tồn kho tối thiểu để cảnh báo
@@ -57,12 +61,6 @@ export class Inventory {
   })
   maxStockLevel: number;
 
-  // Giá vốn để tính lợi nhuận
-  @Prop({
-    default: 0,
-    min: 0,
-  })
-  cost: number;
   // Thời gian nhập hàng gần nhất
   @Prop({ type: Date })
   lastRestockedAt: Date;

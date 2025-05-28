@@ -8,14 +8,13 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class CartItemDto {
   @IsMongoId()
   product: string;
 
   @IsString()
-  variant: string;
+  variant: Types.ObjectId | string;
 
   @IsNumber()
   @Min(1)

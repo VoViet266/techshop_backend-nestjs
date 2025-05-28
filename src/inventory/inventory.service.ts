@@ -40,7 +40,7 @@ export class InventoryService {
       variantId: variant,
     }));
     if (
-      !createInventoryDto.variant.every((variant) =>
+      !createInventoryDto.variants.every((variant) =>
         v.some((vItem) => vItem.variantId.toString() === variant.variantId),
       )
     ) {
@@ -50,9 +50,10 @@ export class InventoryService {
     }
     const inventoryData = {
       ...createInventoryDto,
-      variants: createInventoryDto.variant.map((variant) => ({
+      variants: createInventoryDto.variants.map((variant) => ({
         variantId: variant.variantId,
-        quantity: variant.quantity,
+        stock: variant.stock,
+        cost: variant.cost,
       })),
     };
 

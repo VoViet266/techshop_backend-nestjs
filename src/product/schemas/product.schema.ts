@@ -78,11 +78,9 @@ export class Camera {
 })
 export class Variant {
   @Prop()
-  sku: string; // Stock Keeping Unit for better inventory tracking
-
-  @Prop()
   name: string;
 
+  //gia ban
   @Prop({
     min: 0,
   })

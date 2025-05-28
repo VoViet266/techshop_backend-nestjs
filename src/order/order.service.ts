@@ -1,11 +1,131 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Order, OrderDocument } from './schemas/order.schema';
+import { ProductDocument, Products } from 'src/product/schemas/product.schema';
+import { Cart, CartDocument } from 'src/cart/schemas/cart.schema';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { IUser } from 'src/user/interface/user.interface';
+import {
+  Inventory,
+  InventoryDocument,
+} from 'src/inventory/schemas/inventory.schema';
 
 @Injectable()
 export class OrderService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @InjectModel(Order.name)
+    private readonly orderModel: SoftDeleteModel<OrderDocument>,
+    @InjectModel(Products.name)
+    private readonly productModel: SoftDeleteModel<ProductDocument>,
+    @InjectModel(Cart.name)
+    private readonly cartModel: SoftDeleteModel<CartDocument>,
+
+    @InjectModel(Inventory.name)
+    private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
+
+    //   @InjectModel(Variant.name)
+    // private readonly variantModel: SoftDeleteModel<VariantDocument>
+  ) {}
+
+  async create(createOrderDto: CreateOrderDto, user: IUser) {
+    //Tìm sản phẩm trong giỏ hàng của user
+    const userCart = await this.cartModel.findOne({ user: user._id });
+    if (!userCart || userCart.items.length === 0) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Giỏ hàng của bạn đang trống!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    //Kiểm tra sản phẩm trong giỏ hàng có tồn tại trong db không
+    const cartProductIds = userCart.items.map((p) => p.product);
+
+    createOrderDto.items = userCart.items.map((item) => {
+      return {
+        product: item.product.toString(),
+        quantity: item.quantity,
+        variant: item.variant.toString(),
+        price: item.price,
+      };
+    });
+
+    let totalPrice = 0;
+    for (const item of createOrderDto.items) {
+      const productDoc = await this.inventoryModel.findOne({
+        product: item.product,
+      });
+      if (!productDoc) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: `Không tìm thấy sản phẩm`,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      const variant = productDoc.variants.find(
+        (v) => v.variantId.toString() === item.variant,
+      );
+      if (variant.stock < item.quantity) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: `Không đủ hàng cho sản phẩm `,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (!variant) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: `Không tìm thấy biến thể cho sản phẩm }`,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      if (variant.stock < item.quantity) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: `Không đủ hàng cho biến thể ${variant.variantId}`,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      totalPrice += item.price * item.quantity;
+      const updatedStockVariants = productDoc.variants.map((v) => {
+        if (v.variantId.toString() === item.variant.toString()) {
+          v.stock = Math.max(v.stock - item.quantity, 0);
+        }
+        return v;
+      });
+
+      await this.inventoryModel.findOneAndUpdate(
+        { _id: productDoc._id },
+        { variants: updatedStockVariants },
+        { new: true },
+      );
+    }
+
+    createOrderDto.totalPrice = totalPrice;
+    const newOrder = await this.orderModel.create({
+      ...createOrderDto,
+      user: user._id,
+      createdBy: {
+        id: user._id,
+        email: user.email,
+      },
+    });
+    //Xóa giỏ hàng sau khi tạo đơn hàng
+    await this.cartModel.findOneAndDelete({ user: user._id });
+    return newOrder;
   }
 
   findAll() {

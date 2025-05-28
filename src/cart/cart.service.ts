@@ -4,10 +4,14 @@ import { UpdateCartDto } from './dto/update-cart.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from './schemas/cart.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { ProductDocument, Products } from 'src/product/schemas/product.schema';
+import {
+  ProductDocument,
+  Products,
+  Variant,
+  VariantDocument,
+} from 'src/product/schemas/product.schema';
 import { IUser } from 'src/user/interface/user.interface';
-import mongoose, { Types } from 'mongoose';
-import { User } from 'src/user/schemas/user.schema';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class CartService {
@@ -16,6 +20,8 @@ export class CartService {
     private readonly cartModel: SoftDeleteModel<CartDocument>,
     @InjectModel(Products.name)
     private readonly productModel: SoftDeleteModel<ProductDocument>,
+    @InjectModel(Variant.name)
+    private readonly variantModel: SoftDeleteModel<VariantDocument>,
   ) {}
   async create(createCartDto: CreateCartDto, user: IUser) {
     // Tìm giỏ hàng của user
@@ -44,11 +50,14 @@ export class CartService {
       const variantExists = product.variants.some(
         (v) => v.toString() === newItem.variant,
       );
+
+
       if (!variantExists) {
         throw new NotFoundException(
           `Biến thể ${newItem.variant} không tồn tại trong sản phẩm ${product._id}`,
         );
       }
+      const variant = this.variantModel.findById(newItem.variant);
 
       // Tìm xem item trong giỏ hàng đã có sản phẩm + biến thể
       const itemIndex = cart.items.findIndex(
@@ -59,17 +68,14 @@ export class CartService {
 
       if (itemIndex > -1) {
         cart.items[itemIndex].quantity += newItem.quantity;
-        // cart.totalPrice = cart.items.[itemIndex].quantity * va
+        cart.totalPrice =
+          cart.items[itemIndex].quantity * (await variant).price;
       } else {
-        const variantObj = product.variants.find(
-          (v) => v.toString() === newItem.variant,
-        );
-        const price = variantObj.price ?? 0;
         cart.items.push({
-          product: new mongoose.Schema.Types.ObjectId(newItem.product),
-          variant: new mongoose.Schema.Types.ObjectId(newItem.variant),
+          product: new Types.ObjectId(newItem.product),
+          variant: new Types.ObjectId(newItem.variant),
           quantity: newItem.quantity,
-          price: price,
+          price: (await variant).price,
         });
       }
     }
@@ -87,20 +93,19 @@ export class CartService {
   }
 
   findAll() {
-    return this.cartModel
-      .find()
-      .populate({
-        path: 'user',
-        select: 'email name ',
-      })
-      .populate({
-        path: 'items.product',
-        select: 'name slug',
-      })
-      .populate({
-        path: 'items.variant',
-        select: 'sku name price color memory',
-      });
+    return this.cartModel.find();
+    // .populate({
+    //   path: 'user',
+    //   select: 'email name ',
+    // })
+    // .populate({
+    //   path: 'items.product',
+    //   select: 'name slug',
+    // })
+    // .populate({
+    //   path: 'items.variant',
+    //   select: 'sku name price color memory',
+    // });
   }
 
   findOne(id: number) {
@@ -116,7 +121,7 @@ export class CartService {
       })
       .populate({
         path: 'items.variant',
-        select: 'sku name price color memory',
+        select: 'name price color memory',
       });
   }
 

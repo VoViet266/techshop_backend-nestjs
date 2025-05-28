@@ -1,10 +1,11 @@
-class VariantSkuDto {
+class VariantDto {
   variantId: string;
-  quantity: number;
+  stock: number;
+  cost: number;
 }
 
 export class CreateInventoryDto {
   store: string;
   product: string;
-  variant: VariantSkuDto[];
+  variants: VariantDto[];
 }

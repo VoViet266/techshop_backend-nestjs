@@ -8,18 +8,18 @@ export type CartDocument = HydratedDocument<Cart>;
 @Schema({ _id: false })
 export class CartItem {
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
+    type: Types.ObjectId,
     ref: Products.name,
     required: true,
   })
-  product: mongoose.Schema.Types.ObjectId;
+  product: Types.ObjectId;
 
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
+    type: Types.ObjectId,
     ref: Variant.name,
     required: true,
   })
-  variant: mongoose.Schema.Types.ObjectId;
+  variant: Types.ObjectId;
 
   @Prop({ required: true, default: 1 })
   quantity: number;
