@@ -1,4 +1,16 @@
-import { IsString, IsOptional, IsBoolean, IsNumber, IsArray, ValidateNested, IsMongoId, IsObject, Min, Max, ArrayMinSize } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  IsArray,
+  ValidateNested,
+  IsMongoId,
+  IsObject,
+  Min,
+  Max,
+  ArrayMinSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ProductSpecsDto {
@@ -103,10 +115,8 @@ export class VariantColorDto {
 }
 
 export class VariantMemoryDto {
-  @IsString()
   ram: string;
 
-  @IsString()
   storage: string;
 }
 
@@ -153,9 +163,6 @@ export class VariantDto {
 export class CreateProductDto {
   @IsString()
   name: string;
-
-  @IsString()
-  slug: string;
 
   @IsString()
   @IsOptional()

@@ -91,16 +91,18 @@ export class Variant {
   })
   compareAtPrice: number; // For showing discounts
 
-  @Prop()
-  colorName: string;
-
-  @Prop()
-  colorHex: string; // Color hex code
-
-  @Prop()
-  ram: string;
-  @Prop()
-  storage: string;
+  @Prop({
+    type: Object,
+  })
+  color: {
+    colorName: string;
+    colorHex: string;
+  };
+  @Prop({ type: Object })
+  memory: {
+    ram: string;
+    storage: string;
+  };
 
   @Prop({
     type: [String],

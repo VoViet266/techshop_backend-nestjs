@@ -15,6 +15,7 @@ import {
   InventoryDocument,
 } from 'src/inventory/schemas/inventory.schema';
 import { console } from 'inspector';
+import slugify from 'slugify';
 
 @Injectable()
 export class ProductService {
@@ -31,8 +32,14 @@ export class ProductService {
     const createdVariants = await this.variantModel.insertMany(
       createProductDto.variants,
     );
+    const slug = slugify(createProductDto.name, {
+      lower: true,
+      strict: true,
+      locale: 'vi',
+    });
     const createdProduct = await this.productModel.create({
       ...createProductDto,
+      slug: slug,
       variants: createdVariants.map((variant) => variant._id),
     });
     return createdProduct;
@@ -42,8 +49,18 @@ export class ProductService {
     return this.productModel.find();
   }
 
-  async findOne(id: string) {
-    return this.productModel.findById(id);
+  async findOneById(id: string) {
+    return (await this.productModel.findById({ _id: id })).populate({
+      path: 'variants',
+      select: 'name price color memory',
+    });
+  }
+
+  async findOneBySlug(sl: string) {
+    return await this.productModel.findOne({ slug: sl }).populate({
+      path: 'variants',
+      select: 'name price color memory',
+    });
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {

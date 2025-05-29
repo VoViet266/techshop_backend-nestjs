@@ -10,6 +10,8 @@ import {
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Public } from 'src/decorator/publicDecorator';
+import { ResponseMessage } from 'src/decorator/messageDecorator';
 
 @Controller('api/v1/products')
 export class ProductController {
@@ -17,18 +19,26 @@ export class ProductController {
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
-    console.log(createProductDto);
     return this.productService.create(createProductDto);
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.productService.findAll();
   }
 
   @Get(':id')
+  @Public()
+  @ResponseMessage('Lấy sản phẩm thành công')
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(id);
+    return this.productService.findOneById(id);
+  }
+  @Get('slug/:slug')
+  @Public()
+  @ResponseMessage('Lấy sản phẩm thành công')
+  findOneBySlug(@Param('slug') slug: string) {
+    return this.productService.findOneBySlug(slug);
   }
 
   @Patch(':id')
