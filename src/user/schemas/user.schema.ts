@@ -4,6 +4,27 @@ import { Role } from 'src/role/schemas/role.schema';
 import { GenderEnum } from 'src/constant/gender.enum';
 
 export type UserDocument = HydratedDocument<User>;
+
+@Schema({ _id: false })
+export class Address {
+  @Prop()
+  street: string;
+
+  @Prop()
+  city: string;
+
+  @Prop()
+  district: string;
+
+  @Prop()
+  province: string;
+
+  @Prop({ default: false })
+  isDefault?: boolean;
+}
+
+export const AddressSchema = SchemaFactory.createForClass(Address);
+
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
@@ -30,8 +51,8 @@ export class User {
   @Prop()
   gender: string;
 
-  @Prop()
-  address: string;
+  @Prop({ type: [AddressSchema], default: [] })
+  address: Address[];
 
   @Prop()
   age: number;
