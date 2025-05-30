@@ -1,7 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document, HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import {
+  PaymentMethod,
+  PaymentStatus,
+  RefundStatus,
+} from '../../constant/payment.enum';
 import { Order } from 'src/order/schemas/order.schema';
 import { User } from 'src/user/schemas/user.schema';
+// Removed unused import for PaymentService
 
 export type PaymentDocument = HydratedDocument<Payment>;
 @Schema({ timestamps: true })
@@ -23,11 +29,11 @@ export class Payment {
   @Prop({ required: true })
   amount: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: PaymentMethod })
   paymentMethod: string;
 
-  @Prop({ required: true, default: 'pending' })
-  paymentStatus: 'pending' | 'success' | 'failed';
+  @Prop({ required: true, default: PaymentStatus.PENDING, enum: PaymentStatus })
+  paymentStatus: string;
 
   @Prop()
   transactionCode: string;
@@ -35,8 +41,8 @@ export class Payment {
   @Prop()
   transactionDate: Date;
 
-  @Prop({ default: 'none' })
-  refundStatus: 'none' | 'processing' | 'completed' | 'failed';
+  // @Prop({ default: RefundStatus.NONE, enum: RefundStatus })
+  // refundStatus: RefundStatus;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

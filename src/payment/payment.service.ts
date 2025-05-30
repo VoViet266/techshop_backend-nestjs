@@ -16,7 +16,7 @@ export class PaymentService {
   }
 
   async findAll() {
-    return this.paymentModel.find().exec();
+    return this.paymentModel.find().populate('user').populate('order');
   }
 
   async findOne(id: string) {

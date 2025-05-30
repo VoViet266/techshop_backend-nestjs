@@ -1,4 +1,13 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsNumber, IsArray, IsDate } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsArray,
+  IsDate,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Name không được để trống' })
@@ -19,7 +28,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  address: string;
+  address: string[];
 
   @IsOptional()
   @IsNumber({}, { message: 'Age phải là số' })
@@ -65,7 +74,7 @@ export class RegisterUserDto {
 
   @IsOptional()
   @IsString()
-  address: string;
+  address: string[];
 
   @IsOptional()
   @IsNumber({}, { message: 'Age phải là số' })
