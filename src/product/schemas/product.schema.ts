@@ -114,7 +114,6 @@ export class Variant {
 
   @Prop({ default: true })
   isActive: boolean;
-
 }
 
 @Schema({
@@ -253,5 +252,4 @@ export const VariantSchema = SchemaFactory.createForClass(Variant);
 ProductSchema.index({ category: 1, brand: 1, isActive: 1 });
 ProductSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
 ProductSchema.index({ tags: 1, isActive: 1 });
-ProductSchema.index({ 'variants.sku': 1 }, { unique: true });
 ProductSchema.index({ slug: 1 }, { unique: true });

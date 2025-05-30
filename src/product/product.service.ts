@@ -19,6 +19,7 @@ import slugify from 'slugify';
 import aqp from 'api-query-params';
 import { Category } from 'src/category/schemas/category.schema';
 import { Brand } from 'src/brand/schemas/brand.schema';
+import path from 'path';
 
 @Injectable()
 export class ProductService {
@@ -118,8 +119,8 @@ export class ProductService {
   // }
 
   async findAll(currentPage: number, limit: number, qs: string) {
-    console.log(currentPage, limit);
     const { filter, sort, population } = aqp(qs);
+    console.log('filter:', filter);
     delete filter.page;
     delete filter.limit;
 
@@ -128,43 +129,54 @@ export class ProductService {
 
     let result: object[];
     let totalItems: number;
-
     if (filter.category || filter.brand) {
       const matchConditions: any = {};
-
       if (filter.category) {
         matchConditions['category.name'] = {
           $regex: filter.category,
           $options: 'i',
         };
+        // matchConditions['category.name'] = filter.category;
       }
+
       if (filter.brand) {
         matchConditions['brand.name'] = {
           $regex: filter.brand,
           $options: 'i',
         };
       }
-
       const aggregatePipeline = [
         {
           $lookup: {
-            from: Category.name,
+            from: 'categories',
             localField: 'category',
             foreignField: '_id',
             as: 'category',
           },
         },
         {
+          $unwind: {
+            path: '$category',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
           $lookup: {
-            from: Brand.name,
+            from: 'brands',
             localField: 'brand',
             foreignField: '_id',
             as: 'brand',
           },
         },
         {
+          $unwind: {
+            path: '$brand',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
           $lookup: {
-            from: Variant.name,
+            from: 'variants',
             localField: 'variants',
             foreignField: '_id',
             as: 'variant',
@@ -177,24 +189,14 @@ export class ProductService {
             description: 1,
             discount: 1,
             category: {
-              _id: { $arrayElemAt: ['$category._id', 0] },
-              name: { $arrayElemAt: ['$category.name', 0] },
+              _id: '$category._id',
+              name: '$category.name',
             },
             brand: {
-              _id: { $arrayElemAt: ['$brand._id', 0] },
-              name: { $arrayElemAt: ['$brand.name', 0] },
-              description: { $arrayElemAt: ['$brand.description', 0] },
-              logo: { $arrayElemAt: ['$brand.logo', 0] },
+              _id: '$brand._id',
+              name: '$brand.name',
             },
-
-            variant: {
-              _id: { $arrayElemAt: ['$variants._id', 0] },
-              color: { $arrayElemAt: ['$variants.color', 0] },
-              size: { $arrayElemAt: ['$variants.size', 0] },
-              stock: { $arrayElemAt: ['$variants.stock', 0] },
-              price: { $arrayElemAt: ['$variants.price', 0] },
-              images: { $arrayElemAt: ['$variants.images', 0] },
-            },
+            variant: 1,
           },
         },
         {
@@ -218,7 +220,7 @@ export class ProductService {
         .sort(sort as any)
         .populate(population)
         .populate('variants')
-        .populate('category', 'name')
+        .populate('category', 'name description')
         .populate('brand', 'name description logo')
         .exec();
     }
@@ -237,13 +239,6 @@ export class ProductService {
 
   async findOneById(id: string) {
     return await this.productModel.findById({ _id: id }).populate({
-      path: 'variants',
-      select: 'name price color memory images',
-    });
-  }
-
-  async findOneBySlug(sl: string) {
-    return await this.productModel.findOne({ slug: sl }).populate({
       path: 'variants',
       select: 'name price color memory images',
     });

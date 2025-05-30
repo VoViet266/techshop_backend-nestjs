@@ -32,9 +32,7 @@ export class ProductController {
     @Query('page') currentPage: string,
     @Query('limit') limit: string,
     @Query() qs: string,
-    @User() user: IUser,
   ) {
-    console.log(currentPage, limit);
     return this.productService.findAll(+currentPage, +limit, qs);
   }
 
@@ -51,12 +49,7 @@ export class ProductController {
   //   return this.productService.autocompleteSearch(query);
   // }
 
-  @Get('slug/:slug')
-  @Public()
-  @ResponseMessage('Lấy sản phẩm thành công')
-  findOneBySlug(@Param('slug') slug: string) {
-    return this.productService.findOneBySlug(slug);
-  }
+
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {

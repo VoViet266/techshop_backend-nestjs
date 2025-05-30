@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -53,7 +57,7 @@ export class UserService {
     const { name, email, password, age, gender, address } = user;
     const isExitEmail = await this.userModel.findOne({ email });
     if (isExitEmail) {
-      throw new UnauthorizedException(
+      throw new ConflictException(
         `Email: ${email} đã tồn tại trên hệ thống xin vui lòng chọn email khác`,
       );
     }
