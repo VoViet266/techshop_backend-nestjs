@@ -21,12 +21,8 @@ export class OrderService {
     private readonly productModel: SoftDeleteModel<ProductDocument>,
     @InjectModel(Cart.name)
     private readonly cartModel: SoftDeleteModel<CartDocument>,
-
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
-
-    //   @InjectModel(Variant.name)
-    // private readonly variantModel: SoftDeleteModel<VariantDocument>
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {

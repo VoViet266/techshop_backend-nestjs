@@ -3,8 +3,9 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Brand } from 'src/brand/schemas/brand.schema';
 import { Category } from 'src/category/schemas/category.schema';
+import { Variant } from './variant.schema';
 export type ProductDocument = HydratedDocument<Products>;
-export type VariantDocument = HydratedDocument<Variant>;
+
 export type CamerasDocument = HydratedDocument<Camera>;
 export type ConnectivitiesDocument = HydratedDocument<Connectivity>;
 
@@ -71,49 +72,6 @@ export class Camera {
 
   @Prop()
   videoRecording: string[];
-}
-
-@Schema({
-  timestamps: true,
-})
-export class Variant {
-  @Prop()
-  name: string;
-
-  //gia ban
-  @Prop({
-    min: 0,
-  })
-  price: number;
-
-  @Prop({
-    min: 0,
-  })
-  compareAtPrice: number; // For showing discounts
-
-  @Prop({
-    type: Object,
-  })
-  color: {
-    colorName: string;
-    colorHex: string;
-  };
-  @Prop({ type: Object })
-  memory: {
-    ram: string;
-    storage: string;
-  };
-
-  @Prop({
-    type: [String],
-  })
-  images: string[];
-
-  @Prop({ default: 0 })
-  weight: number; // For shipping calculations
-
-  @Prop({ default: true })
-  isActive: boolean;
 }
 
 @Schema({
@@ -246,7 +204,6 @@ export class Products {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Products);
-export const VariantSchema = SchemaFactory.createForClass(Variant);
 
 // Compound indexes for better query performance
 ProductSchema.index({ category: 1, brand: 1, isActive: 1 });

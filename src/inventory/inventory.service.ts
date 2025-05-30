@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
@@ -18,8 +19,8 @@ export class InventoryService {
   constructor(
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
-    @InjectModel(Products.name) // Assuming 'Products' is the name of the product model
-    private readonly productModel: SoftDeleteModel<ProductDocument>, // Replace 'any' with the actual ProductDocument type if available
+    @InjectModel(Products.name)
+    private readonly productModel: SoftDeleteModel<ProductDocument>,
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
@@ -27,7 +28,7 @@ export class InventoryService {
       createInventoryDto.product,
     );
     if (!product) {
-      throw new BadRequestException('Sản phẩm không tồn tại');
+      throw new NotFoundException('Sản phẩm không tồn tại');
     }
     const existingInventory = await this.inventoryModel.findOne({
       store: createInventoryDto.store,
@@ -76,7 +77,11 @@ export class InventoryService {
       .lean();
   }
 
-  update(id: string, updateInventoryDto: UpdateInventoryDto) {
+  async update(id: string, updateInventoryDto: UpdateInventoryDto) {
+    const inventoryExisting = await this.inventoryModel.findOne({ _id: id });
+    if (!inventoryExisting) {
+      throw new NotFoundException(`Không tìm thấy tồn kho với ID ${id}`);
+    }
     return this.inventoryModel.findByIdAndUpdate(
       { _id: id },
       updateInventoryDto,
@@ -89,7 +94,7 @@ export class InventoryService {
   async remove(id: string) {
     return await this.inventoryModel.softDelete({ _id: id }).then((result) => {
       if (!result) {
-        throw new BadRequestException(`Không tìm thấy tồn kho với ID ${id}`);
+        throw new NotFoundException(`Không tìm thấy tồn kho với ID ${id}`);
       }
       return { message: 'Tồn kho đã được xóa thành công' };
     });

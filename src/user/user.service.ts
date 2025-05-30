@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
@@ -38,9 +39,8 @@ export class UserService {
       const roleDefault = await this.roleModel.findOne({
         name: RolesUser.Customer,
       });
-      console.log(roleDefault);
       if (!roleDefault) {
-        throw new UnauthorizedException('Default role not found');
+        throw new NotFoundException('Không tìm thấy quyền');
       }
       roleId = roleDefault._id;
     }

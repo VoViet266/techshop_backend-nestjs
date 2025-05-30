@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-import { Products, Variant } from 'src/product/schemas/product.schema';
+import { Products } from 'src/product/schemas/product.schema';
 import { Store } from 'src/store/schemas/store.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { min } from 'class-validator';
+import { Variant } from 'src/product/schemas/variant.schema';
 
 export type InventoryDocument = HydratedDocument<Inventory>;
 @Schema({
@@ -32,7 +33,7 @@ export class Inventory {
       {
         variantId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Variant',
+          ref: Variant.name,
           required: true,
         },
         stock: { type: Number },

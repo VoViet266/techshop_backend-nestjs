@@ -4,14 +4,10 @@ import { UpdateCartDto } from './dto/update-cart.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cart, CartDocument } from './schemas/cart.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import {
-  ProductDocument,
-  Products,
-  Variant,
-  VariantDocument,
-} from 'src/product/schemas/product.schema';
+import { ProductDocument, Products } from 'src/product/schemas/product.schema';
 import { IUser } from 'src/user/interface/user.interface';
 import { Types } from 'mongoose';
+import { Variant, VariantDocument } from 'src/product/schemas/variant.schema';
 
 @Injectable()
 export class CartService {

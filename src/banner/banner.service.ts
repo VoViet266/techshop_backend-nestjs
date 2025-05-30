@@ -1,11 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Banner, BannerDocument } from './schemas/banner.schema';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 
 @Injectable()
 export class BannerService {
+  constructor(
+    @InjectModel(Banner.name)
+    private readonly bannerModel: SoftDeleteModel<BannerDocument>,
+  ) {}
   create(createBannerDto: CreateBannerDto) {
-    return 'This action adds a new banner';
+    return this.bannerModel.create(createBannerDto);
   }
 
   findAll() {

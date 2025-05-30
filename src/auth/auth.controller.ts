@@ -21,10 +21,14 @@ import { Public } from 'src/decorator/publicDecorator';
 import { LocalAuthGuard } from 'src/common/guards/local.guard';
 import { RegisterUserDto } from 'src/user/dto/create-user.dto';
 import { Response } from 'express';
+import { UserService } from 'src/user/user.service';
 
 @Controller('api/v1/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
   @UseGuards(LocalAuthGuard)
   @ResponseMessage('Đăng nhập thành công')
   @Public()
@@ -37,7 +41,7 @@ export class AuthController {
   @Post('/register')
   @ResponseMessage('Đăng ký thành công')
   async register(@Body() register: RegisterUserDto) {
-    return this.authService.register(register);
+    return this.userService.register(register);
   }
   @ResponseMessage('Lấy thông tin tài khoản thành công')
   @Get('/account')

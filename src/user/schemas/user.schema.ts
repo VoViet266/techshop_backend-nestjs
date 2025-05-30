@@ -45,14 +45,28 @@ export class User {
   @Prop()
   avatar?: string;
 
-  @Prop()
+  @Prop({
+    trim: true,
+    validate: {
+      validator: function (v: string) {
+        return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
+      },
+      message: 'Invalid phone number format',
+    },
+  })
   phone: string;
 
-  @Prop()
+  @Prop({ enum: GenderEnum })
   gender: string;
 
   @Prop({ type: [AddressSchema], default: [] })
   address: Address[];
+
+  @Prop({
+    enum: ['GUEST', 'NEW', 'MEMBER', 'VIP'],
+    default: 'GUEST',
+  })
+  userType: string;
 
   @Prop()
   age: number;

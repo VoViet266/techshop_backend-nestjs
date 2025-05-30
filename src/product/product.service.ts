@@ -3,11 +3,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import {
-  ConnectivitiesDocument,
   Products,
   ProductDocument,
-  VariantDocument,
-  Variant,
 } from './schemas/product.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import {
@@ -17,9 +14,7 @@ import {
 import { console } from 'inspector';
 import slugify from 'slugify';
 import aqp from 'api-query-params';
-import { Category } from 'src/category/schemas/category.schema';
-import { Brand } from 'src/brand/schemas/brand.schema';
-import path from 'path';
+import { Variant, VariantDocument } from './schemas/variant.schema';
 
 @Injectable()
 export class ProductService {

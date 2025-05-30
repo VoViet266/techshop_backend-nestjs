@@ -1,5 +1,4 @@
 import { CartItemDto } from 'src/cart/dto/create-cart.dto';
-import { Variant } from 'src/product/schemas/product.schema';
 
 export class CreateOrderDto {
   user: string;

@@ -102,13 +102,6 @@ export class AuthService {
     };
   }
 
-  async register(user: RegisterUserDto) {
-    const User = await this.userService.register(user);
-    return {
-      _id: User?._id,
-      createdAt: User?.createdAt,
-    };
-  }
 
   createRefreshToken = (payload: object) => {
     const refresh_Token = this.jwtService.sign(payload, {
