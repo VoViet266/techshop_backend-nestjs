@@ -51,7 +51,6 @@ export class CartService {
         (v) => v.toString() === newItem.variant,
       );
 
-
       if (!variantExists) {
         throw new NotFoundException(
           `Biến thể ${newItem.variant} không tồn tại trong sản phẩm ${product._id}`,
@@ -93,19 +92,20 @@ export class CartService {
   }
 
   findAll() {
-    return this.cartModel.find();
-    // .populate({
-    //   path: 'user',
-    //   select: 'email name ',
-    // })
-    // .populate({
-    //   path: 'items.product',
-    //   select: 'name slug',
-    // })
-    // .populate({
-    //   path: 'items.variant',
-    //   select: 'sku name price color memory',
-    // });
+    return this.cartModel
+      .find()
+      .populate({
+        path: 'user',
+        select: 'email name ',
+      })
+      .populate({
+        path: 'items.product',
+        select: 'name slug',
+      })
+      .populate({
+        path: 'items.variant',
+        select: 'sku name price color memory',
+      });
   }
 
   findOne(id: number) {

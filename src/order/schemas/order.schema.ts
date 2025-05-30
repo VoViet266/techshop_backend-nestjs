@@ -48,6 +48,7 @@ export class Order {
     // default: OrderStatus.pending,
   })
   status: string;
+
   @Prop({ type: String, required: true })
   shippingAddress: string;
 

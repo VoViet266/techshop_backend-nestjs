@@ -115,8 +115,6 @@ export class Variant {
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({ default: Date.now })
-  createdAt: Date;
 }
 
 @Schema({
@@ -141,6 +139,8 @@ export class Products {
   @Prop({ trim: true })
   description: string;
 
+  @Prop({ type: Number, default: 0 })
+  discount: number;
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Category.name,
@@ -218,7 +218,6 @@ export class Products {
   @Prop({ type: Date })
   deletedAt: Date;
 
-  // Audit fields
   @Prop({
     type: {
       _id: mongoose.Schema.Types.ObjectId,

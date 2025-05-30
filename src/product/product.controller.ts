@@ -6,12 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Public } from 'src/decorator/publicDecorator';
 import { ResponseMessage } from 'src/decorator/messageDecorator';
+import { User } from 'src/decorator/userDecorator';
+import { IUser } from 'src/user/interface/user.interface';
 
 @Controller('api/v1/products')
 export class ProductController {
@@ -24,8 +27,15 @@ export class ProductController {
 
   @Get()
   @Public()
-  findAll() {
-    return this.productService.findAll();
+  @ResponseMessage('Lấy danh sách sản phẩm thành công')
+  findAll(
+    @Query('page') currentPage: string,
+    @Query('limit') limit: string,
+    @Query() qs: string,
+    @User() user: IUser,
+  ) {
+    console.log(currentPage, limit);
+    return this.productService.findAll(+currentPage, +limit, qs);
   }
 
   @Get(':id')
@@ -34,6 +44,13 @@ export class ProductController {
   findOne(@Param('id') id: string) {
     return this.productService.findOneById(id);
   }
+  // @Public()
+  // @ResponseMessage('Tìm kiếm sản phẩm thành công')
+  // @Get('/search')
+  // async autocomplete(@Query('q') query: string) {
+  //   return this.productService.autocompleteSearch(query);
+  // }
+
   @Get('slug/:slug')
   @Public()
   @ResponseMessage('Lấy sản phẩm thành công')
