@@ -63,6 +63,7 @@ export class User {
   @Prop()
   age: number;
 
+
   @Prop()
   totalSpent: string;
 

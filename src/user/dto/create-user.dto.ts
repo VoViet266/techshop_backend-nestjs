@@ -50,14 +50,6 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   status: string;
-
-  @IsOptional()
-  @IsDate()
-  createdAt: Date;
-
-  @IsOptional()
-  @IsDate()
-  updatedAt: Date;
 }
 
 export class RegisterUserDto {
