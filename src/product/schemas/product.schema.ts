@@ -10,7 +10,7 @@ export type CamerasDocument = HydratedDocument<Camera>;
 export type ConnectivitiesDocument = HydratedDocument<Connectivity>;
 
 // Embedded schemas for better performance
-@Schema({ _id: false })
+@Schema({ _id: false, strict: true })
 export class ProductSpecs {
   @Prop()
   displaySize: string;
@@ -34,7 +34,7 @@ export class ProductSpecs {
   dimensions: string;
 }
 
-@Schema({ _id: false })
+@Schema({ _id: false, strict: true })
 export class Connectivity {
   @Prop()
   wifi: string;
@@ -55,7 +55,7 @@ export class Connectivity {
   ports: string[];
 }
 
-@Schema({ _id: false })
+@Schema({ _id: false, strict: true })
 export class Camera {
   @Prop({ type: Object })
   front: {
@@ -91,7 +91,7 @@ export class Products {
     index: true,
     trim: true,
   })
-  slug: string; // URL-friendly version of name
+  slug: string; 
 
   @Prop({ trim: true })
   description: string;

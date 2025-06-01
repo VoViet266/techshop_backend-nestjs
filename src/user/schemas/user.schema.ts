@@ -4,7 +4,16 @@ import { Role } from 'src/role/schemas/role.schema';
 import { GenderEnum } from 'src/constant/gender.enum';
 
 export type UserDocument = HydratedDocument<User>;
-
+const AddressSchema = new mongoose.Schema(
+  {
+    addressDetail: { type: String, required: true },
+    default: { type: Boolean, default: false },
+  },
+  {
+    _id: false,
+    strict: true, // Cấm field lạ như isDeleted, deletedAt nếu không khai báo
+  },
+);
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
@@ -39,8 +48,11 @@ export class User {
   @Prop({ enum: GenderEnum })
   gender: string;
 
-  @Prop({ type: [String], default: [] })
-  address: [string];
+  @Prop({ type: [AddressSchema], default: [] })
+  address: {
+    addressDetail: string;
+    default: boolean;
+  }[];
 
   @Prop({
     enum: ['GUEST', 'NEW', 'MEMBER', 'VIP'],
@@ -50,6 +62,12 @@ export class User {
 
   @Prop()
   age: number;
+
+  @Prop()
+  totalSpent: string;
+
+  @Prop()
+  totalOrders: number;
 
   @Prop()
   refeshToken: string;

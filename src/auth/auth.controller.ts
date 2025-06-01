@@ -41,6 +41,7 @@ export class AuthController {
   @Post('/register')
   @ResponseMessage('Đăng ký thành công')
   async register(@Body() register: RegisterUserDto) {
+    console.log(register);
     return this.userService.register(register);
   }
   @ResponseMessage('Lấy thông tin tài khoản thành công')

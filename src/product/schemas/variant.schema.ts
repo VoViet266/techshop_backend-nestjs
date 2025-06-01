@@ -3,6 +3,7 @@ import { HydratedDocument } from 'mongoose';
 export type VariantDocument = HydratedDocument<Variant>;
 @Schema({
   timestamps: true,
+  strict: true,
 })
 export class Variant {
   @Prop()
@@ -13,6 +14,8 @@ export class Variant {
     min: 0,
   })
   price: number;
+
+
 
   @Prop({
     min: 0,

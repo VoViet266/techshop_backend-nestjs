@@ -116,13 +116,10 @@ export class VariantColorDto {
 
 export class VariantMemoryDto {
   ram: string;
-
   storage: string;
 }
 
 export class VariantDto {
-  @IsString()
-  sku: string;
 
   @IsString()
   name: string;
@@ -227,26 +224,4 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   isFeatured?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  isDeleted?: boolean;
-
-  @IsOptional()
-  deletedAt?: Date;
-
-  @IsObject()
-  createdBy: {
-    _id: string;
-    email: string;
-    name: string;
-  };
-
-  @IsObject()
-  @IsOptional()
-  updatedBy?: {
-    _id: string;
-    email: string;
-    name: string;
-  };
 }

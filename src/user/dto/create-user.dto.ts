@@ -9,6 +9,11 @@ import {
   IsDate,
 } from 'class-validator';
 
+export class ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Name không được để trống' })
   @IsString()
@@ -72,17 +77,15 @@ export class RegisterUserDto {
   @IsNotEmpty({ message: 'Email không được để trống' })
   email: string;
 
-  @IsOptional()
-  @IsString()
-  address: string[];
+  address: {
+    addressDetail: string;
+    default: boolean;
+  }[];
 
   @IsOptional()
   @IsNumber({}, { message: 'Age phải là số' })
   age: number;
 
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
   role: string[];
 
   @IsOptional()
@@ -92,8 +95,4 @@ export class RegisterUserDto {
   @IsOptional()
   @IsString()
   phone: string;
-
-  @IsOptional()
-  @IsString()
-  refeshToken: string;
 }

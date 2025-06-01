@@ -43,6 +43,7 @@ export class Store {
     },
   })
   email: string;
+  
 
   @Prop({
     default: true,

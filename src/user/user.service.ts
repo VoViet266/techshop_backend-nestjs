@@ -4,7 +4,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  RegisterUserDto,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserDocument, User as userModel } from './schemas/user.schema';
@@ -74,6 +78,31 @@ export class UserService {
     return newRegister;
   }
 
+  changePassword = async (changePassword: ChangePasswordDto, user: IUser) => {
+    const userExist = await this.userModel.findById(user._id);
+    if (!userExist) {
+      throw new NotFoundException('User không tồn tại');
+    }
+    const isMatch = this.isValidPassword(
+      changePassword.oldPassword,
+      userExist.password,
+    );
+    if (!isMatch) {
+      throw new UnauthorizedException('Mật khẩu cũ không chính xác');
+    }
+    if (changePassword.newPassword !== changePassword.confirmPassword) {
+      throw new ConflictException(
+        'Mật khẩu mới và xác nhận mật khẩu không khớp',
+      );
+    }
+    const hashedNewPassword = this.hashPassword(changePassword.newPassword);
+    await this.userModel.updateOne(
+      { _id: user._id },
+      { password: hashedNewPassword },
+    );
+    return 'Mật Khẩu đã cập nhật thành công';
+  };
+
   updateUserToken = async (refreshToken: string, _id: string) => {
     return await this.userModel.updateOne(
       { _id },
@@ -97,14 +126,14 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto) {
     const userExist = await this.userModel.findOne({ _id: id });
     if (!userExist) {
-      throw new UnauthorizedException(`User with id ${id} not found`);
+      throw new NotFoundException(`User with id ${id} not found`);
     }
     if (updateUserDto.email && updateUserDto.email !== userExist.email) {
       const isExitEmail = await this.userModel.findOne({
         email: updateUserDto.email,
       });
       if (isExitEmail) {
-        throw new UnauthorizedException(
+        throw new NotFoundException(
           `Email: ${updateUserDto.email} đã tồn tại trên hệ thống xin vui lòng chọn email khác`,
         );
       }
