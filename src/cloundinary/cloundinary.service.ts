@@ -38,7 +38,9 @@ export class CloundinaryService {
     });
   }
 
-  async deleteImage(publicId: string): Promise<string> {
+  async deleteImage(url: string): Promise<string> {
+    // Trích xuất public ID từ URL video
+    const publicId = url.split('/').slice(-2).join('/').split('.')[0];
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
         console.log(result);

@@ -33,7 +33,7 @@ export class CloundinaryController {
     return this.cloundinaryService.getImage(publicId);
   }
   @Delete('image')
-  async deleteFile(@Query('publicId') publicId: string) {
-    return await this.cloundinaryService.deleteImage(publicId);
+  async deleteFile(@Query('url') url: string) {
+    return await this.cloundinaryService.deleteImage(url);
   }
 }
