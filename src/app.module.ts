@@ -19,6 +19,7 @@ import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { PromotionModule } from './promotion/promotion.module';
+import { CloundinaryModule } from './cloundinary/cloundinary.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PromotionModule } from './promotion/promotion.module';
     OrderModule,
     PaymentModule,
     PromotionModule,
+    CloundinaryModule,
   ],
 
   controllers: [AppController],

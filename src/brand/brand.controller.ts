@@ -10,6 +10,7 @@ import {
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
+import { Public } from 'src/decorator/publicDecorator';
 
 @Controller('api/v1/brands')
 export class BrandController {
@@ -21,11 +22,13 @@ export class BrandController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.brandService.findAll();
   }
 
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.brandService.findOne(+id);
   }

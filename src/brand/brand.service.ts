@@ -23,7 +23,7 @@ export class BrandService {
   }
 
   findAll() {
-    return this.brandModel.find().sort({ createdAt: -1 }).lean();
+    return this.brandModel.find().lean();
   }
 
   async findOne(id: number) {
