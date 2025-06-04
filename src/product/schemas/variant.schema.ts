@@ -15,12 +15,10 @@ export class Variant {
   })
   price: number;
 
-
-
   @Prop({
     min: 0,
   })
-  compareAtPrice: number; // For showing discounts
+  compareAtPrice: number; // Original price for displaying discounts
 
   @Prop({
     type: Object,

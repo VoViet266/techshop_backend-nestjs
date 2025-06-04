@@ -15,7 +15,9 @@ import { CloundinaryService } from './cloundinary.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Public } from 'src/decorator/publicDecorator';
 import { v2 as cloudinary } from 'cloudinary';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('api/v1/upload')
 export class CloundinaryController {
   constructor(private readonly cloundinaryService: CloundinaryService) {}

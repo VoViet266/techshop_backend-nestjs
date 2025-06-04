@@ -25,11 +25,8 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: Role.name }],
-    ref: Role.name,
-  })
-  role: mongoose.Schema.Types.ObjectId[];
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
+  role: mongoose.Schema.Types.ObjectId;
 
   @Prop()
   avatar?: string;
@@ -62,7 +59,6 @@ export class User {
 
   @Prop()
   age: number;
-
 
   @Prop()
   totalSpent: string;

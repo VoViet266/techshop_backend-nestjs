@@ -20,6 +20,7 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { PromotionModule } from './promotion/promotion.module';
 import { CloundinaryModule } from './cloundinary/cloundinary.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { CloundinaryModule } from './cloundinary/cloundinary.module';
     PaymentModule,
     PromotionModule,
     CloundinaryModule,
+    FileModule,
   ],
 
   controllers: [AppController],

@@ -12,35 +12,21 @@ export class MulterConfigService implements MulterOptionsFactory {
   getRootPath = () => {
     return process.cwd();
   };
-  ensureExists(targetDirectory: string) {
-    fs.mkdir(targetDirectory, { recursive: true }, (error) => {
-      if (!error) {
-        console.log('Directory successfully created, or it already exists.');
-        return;
-      }
-      switch (error.code) {
-        case 'EEXIST':
-          // Error:
-          // Requested location already exists, but it's not a directory.
-          break;
-        case 'ENOTDIR':
-          // Error:
-          // The parent hierarchy contains a file with the same name as the dir
-          // you're trying to create.
-          break;
-        default:
-          // Some other error like permission denied.
-          console.error(error);
-          break;
-      }
-    });
+  ensureExistsSync(targetDirectory: string) {
+    try {
+      fs.mkdirSync(targetDirectory, { recursive: true });
+      console.log('Directory successfully created, or it already exists.');
+    } catch (error) {
+      console.error('Error creating directory:', error);
+    }
   }
   createMulterOptions(): MulterModuleOptions {
     return {
       storage: diskStorage({
         destination: (req, file, cb) => {
-          this.ensureExists(`public/uploads`);
-          cb(null, join(this.getRootPath(), `public/uploads`));
+          const uploadPath = join(this.getRootPath(), 'public/uploads');
+          this.ensureExistsSync(uploadPath); // dùng hàm sync
+          cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
           //get image extension

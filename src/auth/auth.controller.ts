@@ -23,18 +23,24 @@ import { RegisterUserDto } from 'src/user/dto/create-user.dto';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { LoginDto } from 'src/product/dto/create-product.dto';
 
 @Controller('api/v1/auth')
+@ApiBearerAuth('access-token')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
   ) {}
+
   @UseGuards(LocalAuthGuard)
   @ResponseMessage('Đăng nhập thành công')
   @Public()
   @Post('/login')
+  @ApiBody({ type: LoginDto })
   handleLogin(@Request() req: any, @Res({ passthrough: true }) res: Response) {
+    console.log(req.user);
     return this.authService.login(req.user, res);
   }
 

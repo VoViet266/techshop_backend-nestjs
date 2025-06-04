@@ -10,8 +10,10 @@ import {
 import { BannerService } from './banner.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('api/v1/banner')
+@ApiBearerAuth('access-token')
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
 

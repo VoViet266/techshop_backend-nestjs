@@ -13,9 +13,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Public } from 'src/decorator/publicDecorator';
 import { ResponseMessage } from 'src/decorator/messageDecorator';
-import { User } from 'src/decorator/userDecorator';
-import { IUser } from 'src/user/interface/user.interface';
-
+import { ApiBearerAuth } from '@nestjs/swagger';
+@ApiBearerAuth('access-token')
 @Controller('api/v1/products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
@@ -48,8 +47,6 @@ export class ProductController {
   // async autocomplete(@Query('q') query: string) {
   //   return this.productService.autocompleteSearch(query);
   // }
-
-
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {

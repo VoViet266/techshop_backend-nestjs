@@ -13,7 +13,8 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 import { Public } from 'src/decorator/publicDecorator';
-
+import { ApiBearerAuth } from '@nestjs/swagger';
+@ApiBearerAuth('access-token')
 @Controller('api/v1/orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}

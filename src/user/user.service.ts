@@ -19,6 +19,7 @@ import mongoose from 'mongoose';
 import { Role, RoleDocument } from 'src/role/schemas/role.schema';
 import { RolesUser } from 'src/constant/roles.enum';
 import { console } from 'inspector';
+import { populate } from 'dotenv';
 
 @Injectable()
 export class UserService {
@@ -110,7 +111,18 @@ export class UserService {
     );
   };
   findOne(id: string) {
-    return this.userModel.findOne({ _id: id }).populate('role').exec();
+    return this.userModel
+      .findOne({ _id: id })
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'permissions',
+        },
+      })
+      .exec();
+  }
+  findOneByID(id: string) {
+    return this.userModel.findById(id);
   }
   findOneByEmail(username: string) {
     return this.userModel.findOne({ email: username });

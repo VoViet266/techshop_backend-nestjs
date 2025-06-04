@@ -8,6 +8,8 @@ import {
   InventorySchema,
 } from 'src/inventory/schemas/inventory.schema';
 import { Variant, VariantSchema } from './schemas/variant.schema';
+import { Category, CategorySchema } from 'src/category/schemas/category.schema';
+import { Brand, BrandSchema } from 'src/brand/schemas/brand.schema';
 
 @Module({
   controllers: [ProductController],
@@ -17,6 +19,8 @@ import { Variant, VariantSchema } from './schemas/variant.schema';
       { name: Products.name, schema: ProductSchema },
       { name: Inventory.name, schema: InventorySchema },
       { name: Variant.name, schema: VariantSchema },
+      { name: Category.name, schema: CategorySchema },
+      { name: Brand.name, schema: BrandSchema },
     ]),
   ],
 })

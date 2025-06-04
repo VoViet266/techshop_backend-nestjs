@@ -10,7 +10,8 @@ import {
 import { PromotionService } from './promotion.service';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
-
+import { ApiBearerAuth } from '@nestjs/swagger';
+@ApiBearerAuth('access-token')
 @Controller('api/v1/promotion')
 export class PromotionController {
   constructor(private readonly promotionService: PromotionService) {}

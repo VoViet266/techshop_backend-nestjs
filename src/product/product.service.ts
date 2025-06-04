@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  Products,
-  ProductDocument,
-} from './schemas/product.schema';
+import { Products, ProductDocument } from './schemas/product.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import {
   Inventory,
@@ -15,6 +12,12 @@ import { console } from 'inspector';
 import slugify from 'slugify';
 import aqp from 'api-query-params';
 import { Variant, VariantDocument } from './schemas/variant.schema';
+import { Brand, BrandDocument } from 'src/brand/schemas/brand.schema';
+import {
+  Category,
+  CategoryDocument,
+} from 'src/category/schemas/category.schema';
+import * as mongooseDelete from 'mongoose-delete';
 
 @Injectable()
 export class ProductService {
@@ -25,11 +28,20 @@ export class ProductService {
     private readonly variantModel: SoftDeleteModel<VariantDocument>,
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
+
+    @InjectModel(Brand.name)
+    private readonly brandModel: SoftDeleteModel<BrandDocument>,
+    @InjectModel(Category.name)
+    private readonly categoryModel: SoftDeleteModel<CategoryDocument>,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
     const createdVariants = await this.variantModel.insertMany(
-      createProductDto.variants,
+      createProductDto.variants.map((variant) => ({
+        ...variant,
+        compareAtPrice:
+          variant.price + (variant.price * createProductDto.discount) / 100,
+      })),
     );
     const slug = slugify(createProductDto.name, {
       lower: true,
@@ -246,6 +258,6 @@ export class ProductService {
   }
 
   async remove(id: string) {
-    return this.productModel.findByIdAndDelete(id);
+    return this.productModel.softDelete({ _id: id });
   }
 }

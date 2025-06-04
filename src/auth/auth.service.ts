@@ -46,21 +46,18 @@ export class AuthService {
   }
   async login(user: IUser, res: Response) {
     const { _id, name, email, avatar } = user;
-
-    const user_role = await (
-      await this.userService.findOne(user._id)
+    const userWithRole = await (
+      await this.userService.findOneByID(user._id)
     ).populate({
       path: 'role',
       populate: {
         path: 'permissions',
       },
     });
+    const role: any = userWithRole.role;
+    const roleName = role?.name;
+    const permission = role?.permissions?.map((per: any) => per.name);
 
-    const roleName = user_role.role.map((role: any) => role.name);
-    console.log(roleName);
-    const permission = user_role.role.flatMap((role: any) =>
-      role.permissions.map((per: any) => per.name),
-    );
     const payload = {
       sub: 'token login',
       iss: 'from server',
@@ -70,25 +67,24 @@ export class AuthService {
       avatar,
       role: {
         roleName,
-        permission: permission,
+        permission,
       },
     };
 
-    const refresh_Token = this.createRefreshToken({
-      payload,
-    });
+    const refresh_Token = this.createRefreshToken({ payload });
 
     await this.userService.updateUserToken(refresh_Token, _id);
 
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // bật secure nếu là môi trường production
+      secure: process.env.NODE_ENV === 'production',
       sameSite:
         this.configService.get<string>('NODE_ENV') === 'production'
           ? 'none'
-          : 'strict', // bật sameSite nếu là môi trường production
+          : 'strict',
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
     });
+
     return {
       access_token: this.jwtService.sign(payload),
       _id,
@@ -97,11 +93,10 @@ export class AuthService {
       avatar,
       role: {
         roleName,
-        permission: permission,
+        permission,
       },
     };
   }
-
 
   createRefreshToken = (payload: object) => {
     const refresh_Token = this.jwtService.sign(payload, {
@@ -120,25 +115,21 @@ export class AuthService {
       });
 
       // Tìm user theo refresh token
-      const user = await this.userService.findUserByRefreshToken(refreshToken);
-      if (!user) {
-        return null;
-      }
-
-      // Lấy thông tin role và permission của user
-      const userWithRole = await (
-        await this.userService.findOne(user._id.toString())
+      const user = await (
+        await this.userService.findUserByRefreshToken(refreshToken)
       ).populate({
-        path: 'roleID',
+        path: 'role',
         populate: {
           path: 'permissions',
         },
       });
 
-      const roleName = userWithRole.role.map((role: any) => role.name);
-      const permission = userWithRole.role.flatMap((role: any) =>
-        role.permissions.map((per: any) => per.name),
-      );
+      if (!user) {
+        return null;
+      }
+      const role: any = user.role;
+      const roleName = role?.name;
+      const permission = role?.permissions?.map((per: any) => per.name);
 
       // Tạo payload cho token
       const payload = {

@@ -4,12 +4,12 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Brand } from 'src/brand/schemas/brand.schema';
 import { Category } from 'src/category/schemas/category.schema';
 import { Variant } from './variant.schema';
+import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
 export type ProductDocument = HydratedDocument<Products>;
 
 export type CamerasDocument = HydratedDocument<Camera>;
 export type ConnectivitiesDocument = HydratedDocument<Connectivity>;
 
-// Embedded schemas for better performance
 @Schema({ _id: false, strict: true })
 export class ProductSpecs {
   @Prop()
@@ -29,9 +29,6 @@ export class ProductSpecs {
 
   @Prop()
   weight: string;
-
-  @Prop()
-  dimensions: string;
 }
 
 @Schema({ _id: false, strict: true })
@@ -61,6 +58,7 @@ export class Camera {
   front: {
     resolution: string;
     features: string[];
+    videoRecording: string[];
   };
 
   @Prop({ type: Object })
@@ -68,10 +66,8 @@ export class Camera {
     resolution: string;
     features: string[];
     lensCount: number;
+    videoRecording: string[];
   };
-
-  @Prop()
-  videoRecording: string[];
 }
 
 @Schema({
@@ -91,13 +87,21 @@ export class Products {
     index: true,
     trim: true,
   })
-  slug: string; 
+  slug: string;
+
+  // @Prop({
+  //   required: true,
+  //   unique: true,
+  //   trim: true,
+  // })
+  // sku: string;
 
   @Prop({ trim: true })
   description: string;
 
   @Prop({ type: Number, default: 0 })
   discount: number;
+
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Category.name,
@@ -210,3 +214,5 @@ ProductSchema.index({ category: 1, brand: 1, isActive: 1 });
 ProductSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
 ProductSchema.index({ tags: 1, isActive: 1 });
 ProductSchema.index({ slug: 1 }, { unique: true });
+
+ProductSchema.plugin(softDeletePlugin); // Không cần options
