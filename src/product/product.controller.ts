@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -14,6 +15,9 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Public } from 'src/decorator/publicDecorator';
 import { ResponseMessage } from 'src/decorator/messageDecorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { PoliciesGuard } from 'src/casl/policies.guard';
+import { CheckPolicies } from 'src/decorator/policies.decorator';
+import { Actions, Subjects } from 'src/constant/permission.enum';
 @ApiBearerAuth('access-token')
 @Controller('api/v1/products')
 export class ProductController {
@@ -25,7 +29,8 @@ export class ProductController {
   }
 
   @Get()
-  @Public()
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Product))
   @ResponseMessage('Lấy danh sách sản phẩm thành công')
   findAll(
     @Query('page') currentPage: string,

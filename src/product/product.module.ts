@@ -10,6 +10,7 @@ import {
 import { Variant, VariantSchema } from './schemas/variant.schema';
 import { Category, CategorySchema } from 'src/category/schemas/category.schema';
 import { Brand, BrandSchema } from 'src/brand/schemas/brand.schema';
+import { CaslModule } from 'src/casl/casl.module';
 
 @Module({
   controllers: [ProductController],
@@ -22,6 +23,7 @@ import { Brand, BrandSchema } from 'src/brand/schemas/brand.schema';
       { name: Category.name, schema: CategorySchema },
       { name: Brand.name, schema: BrandSchema },
     ]),
+    CaslModule,
   ],
 })
 export class ProductModule {}

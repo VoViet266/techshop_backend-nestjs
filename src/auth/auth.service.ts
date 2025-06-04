@@ -34,7 +34,13 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.userService.findOneByEmail(username);
+    const user = await this.userService
+      .findOneByEmail(username)
+      .populate({
+        path: 'role',
+        populate: { path: 'permissions', select: 'module action' },
+      })
+      .exec();
 
     if (user) {
       const isValid = this.userService.isValidPassword(pass, user.password);
@@ -52,11 +58,16 @@ export class AuthService {
       path: 'role',
       populate: {
         path: 'permissions',
+        select: 'name module action',
       },
     });
     const role: any = userWithRole.role;
     const roleName = role?.name;
-    const permission = role?.permissions?.map((per: any) => per.name);
+    const permission = role?.permissions?.map((per: any) => ({
+      name: per.name,
+      module: per.module,
+      action: per.action,
+    }));
 
     const payload = {
       sub: 'token login',

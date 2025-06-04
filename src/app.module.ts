@@ -21,6 +21,7 @@ import { PaymentModule } from './payment/payment.module';
 import { PromotionModule } from './promotion/promotion.module';
 import { CloundinaryModule } from './cloundinary/cloundinary.module';
 import { FileModule } from './file/file.module';
+import { CaslModule } from './casl/casl.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { FileModule } from './file/file.module';
     PromotionModule,
     CloundinaryModule,
     FileModule,
+    CaslModule,
   ],
 
   controllers: [AppController],

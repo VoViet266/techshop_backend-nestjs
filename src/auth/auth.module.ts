@@ -29,6 +29,7 @@ import { GoogleStrategy } from './passport/google.straregy';
         },
       }),
     }),
+    
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
   controllers: [AuthController],
