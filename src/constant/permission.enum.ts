@@ -13,4 +13,5 @@ export enum Subjects {
   User = 'user',
   Role = 'role',
   Permission = 'permission',
+  Inventory = 'inventory',
 }

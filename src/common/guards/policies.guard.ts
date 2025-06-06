@@ -6,11 +6,11 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { CHECK_POLICIES_KEY } from 'src/decorator/policies.decorator';
-import { PolicyHandler } from './policy.interface';
+import { PolicyHandler } from '../../casl/policy.interface';
 import {
   AppAbility,
   CaslAbilityFactory,
-} from './casl-ability.factory/casl-ability.factory';
+} from '../../casl/casl-ability.factory/casl-ability.factory';
 
 @Injectable()
 export class PoliciesGuard implements CanActivate {

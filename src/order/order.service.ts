@@ -124,8 +124,8 @@ export class OrderService {
     return newOrder;
   }
 
-  findAll() {
-    return `This action returns all order`;
+  findAll(user: IUser) {
+    return this.orderModel.find({ user: user._id });
   }
 
   findOne(id: number) {

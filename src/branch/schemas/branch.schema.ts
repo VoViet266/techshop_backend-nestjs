@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type StoreDocument = HydratedDocument<Store>;
+export type BranchDocument = HydratedDocument<Branch>;
 
 @Schema({
   timestamps: true,
 })
-export class Store {
+export class Branch {
   @Prop({
     required: true,
     unique: true,
@@ -23,12 +23,12 @@ export class Store {
 
   @Prop({
     trim: true,
-    validate: {
-      validator: function (v: string) {
-        return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
-      },
-      message: 'Invalid phone number format',
-    },
+    // validate: {
+    //   validator: function (v: string) {
+    //     return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
+    //   },
+    //   message: 'Invalid phone number format',
+    // },
   })
   phone: string;
 
@@ -43,7 +43,6 @@ export class Store {
     },
   })
   email: string;
-  
 
   @Prop({
     default: true,
@@ -58,8 +57,8 @@ export class Store {
   deletedAt: Date;
 }
 
-export const StoreSchema = SchemaFactory.createForClass(Store);
+export const BranchSchema = SchemaFactory.createForClass(Branch);
 
 // Indexes for better performance
-StoreSchema.index({ name: 1, isActive: 1 });
-StoreSchema.index({ isDeleted: 1, isActive: 1 });
+BranchSchema.index({ name: 1, isActive: 1 });
+BranchSchema.index({ isDeleted: 1, isActive: 1 });

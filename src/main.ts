@@ -21,15 +21,15 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
 
   app.use(cookieParser());
-  // Cần phải xác thực token mới cho phép truy cập vào các api khác
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   // new RolesGuard(reflector),
   // new PermissionsGuard(reflector),
 
-  app.use(express.json()); // Giải mã JSON
-  app.use(express.urlencoded({ extended: true })); // Giải mã x-www-form-urlencoded
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
@@ -44,22 +44,21 @@ async function bootstrap() {
   });
   // Cấu hình Swagger
   const config = new DocumentBuilder()
-    .setTitle('My API')
-    .setDescription('API mô tả cho ứng dụng của bạn')
+    .setTitle('API TechShop')
+    .setDescription('API mô tả Techshop')
     .setVersion('1.0')
     .addBearerAuth(
       {
         type: 'http',
         scheme: 'bearer',
-        bearerFormat: 'JWT', // Có thể để hoặc không, tùy bạn
+        bearerFormat: 'JWT',
         description: 'Nhập JWT token',
       },
-      'access-token', // tên security scheme, tùy bạn đặt
+      'access-token',
     )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-
   SwaggerModule.setup('api', app, document);
 
   await app.listen(configService.get<string>('PORT'));
@@ -68,6 +67,7 @@ async function bootstrap() {
   );
 }
 bootstrap();
+//sử dụng webpack
 declare const module: any;
 if (module.hot) {
   module.hot.accept();

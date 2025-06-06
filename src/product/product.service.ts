@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import * as fs from 'fs';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -18,6 +19,8 @@ import {
   CategoryDocument,
 } from 'src/category/schemas/category.schema';
 import * as mongooseDelete from 'mongoose-delete';
+import csvParser from 'csv-parser';
+import { ImportProductFromCsvDto } from './dto/import-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -55,79 +58,154 @@ export class ProductService {
     });
     return createdProduct;
   }
-  // async autocompleteSearch(query: string) {
-  //   const result = await this.productModel.aggregate([
-  //     {
-  //       $search: {
-  //         index: 'product_search',
-  //         compound: {
-  //           should: [
-  //             {
-  //               autocomplete: {
-  //                 query: query,
-  //                 path: ['name', 'description', 'tags'],
-  //                 fuzzy: { maxEdits: 1, prefixLength: 1 },
-  //                 tokenOrder: 'sequential',
-  //               },
-  //             },
-  //             {
-  //               text: {
-  //                 query: query,
-  //                 path: 'description',
-  //                 fuzzy: { maxEdits: 1 },
-  //               },
-  //             },
-  //           ],
-  //           minimumShouldMatch: 1, // Ít nhất 1 điều kiện phải đúng
-  //         },
-  //       },
-  //     },
-  //     { $limit: 10 },
-  //     // {
-  //     //   $lookup: {
-  //     //     from: 'categories',
-  //     //     localField: 'category',
-  //     //     foreignField: '_id',
-  //     //     as: 'category',
-  //     //   },
-  //     // },
-  //     // {
-  //     //   $lookup: {
-  //     //     from: 'brands',
-  //     //     localField: 'brand',
-  //     //     foreignField: '_id',
-  //     //     as: 'brand',
-  //     //   },
-  //     // },
-  //     // {
-  //     //   $project: {
-  //     //     name: 1,
-  //     //     description: 1,
-  //     //     price: 1,
-  //     //     stock: 1,
-  //     //     discount: 1,
-  //     //     images: 1,
-  //     //     // category: {
-  //     //     //   _id: { $arrayElemAt: ['$category._id', 0] },
-  //     //     //   name: { $arrayElemAt: ['$category.name', 0] },
-  //     //     // },
-  //     //     // brand: {
-  //     //     //   _id: { $arrayElemAt: ['$brand._id', 0] },
-  //     //     //   name: { $arrayElemAt: ['$brand.name', 0] },
-  //     //     //   description: { $arrayElemAt: ['$brand.description', 0] },
-  //     //     //   logo: { $arrayElemAt: ['$brand.logo', 0] },
-  //     //     // },
-  //     //     variant: 1,
-  //     //   },
-  //     // },
-  //   ]);
 
-  //   return result;
-  // }
+  async insertManyProduct(createProductDtos: CreateProductDto[]) {
+    const productsToInsert = await Promise.all(
+      createProductDtos.map(async (createProductDto) => {
+        const createdVariants = await this.variantModel.insertMany(
+          createProductDto.variants.map((variant) => ({
+            ...variant,
+            compareAtPrice:
+              variant.price + (variant.price * createProductDto.discount) / 100,
+          })),
+        );
+        const slug = slugify(createProductDto.name, {
+          lower: true,
+          strict: true,
+          locale: 'vi',
+        });
+        return {
+          ...createProductDto,
+          slug: slug,
+          variants: createdVariants.map((variant) => variant._id),
+        };
+      }),
+    );
+    const createdProducts =
+      await this.productModel.insertMany(productsToInsert);
+    return createdProducts;
+  }
+  async importProductsFromCsv(filePath: string): Promise<any> {
+    const rows: any[] = [];
+
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (row) => {
+          rows.push(row);
+        })
+        .on('end', () => resolve(null))
+        .on('error', (err) => reject(err));
+    });
+
+    const products = [];
+
+    // Xử lý async tuần tự hoặc song song ở đây
+    for (const row of rows) {
+      try {
+        const product = {
+          name: row.name,
+          slug: slugify(row.name, {
+            lower: true,
+            strict: true,
+            locale: 'vi',
+          }),
+          description: row.description,
+          category: row.category,
+          brand: row.brand,
+          discount: Number(row.discount),
+          isActive: row.isActive === 'true',
+          isFeatured: row.isFeatured === 'true',
+          tags: row.tags?.split(';').map((tag) => tag.trim()),
+        };
+
+        products.push(product);
+      } catch (err) {
+        throw new Error('Error processing row: ' + err.message);
+      }
+    }
+
+    // Insert tất cả products vào DB
+    const inserted = await this.productModel.insertMany(products);
+
+    return { success: true, insertedCount: inserted.length };
+  }
+
+  async autocompleteSearch(query: string) {
+    const result = await this.productModel.aggregate([
+      {
+        $search: {
+          index: 'product_tech_search',
+          compound: {
+            should: [
+              {
+                autocomplete: {
+                  query: query,
+                  path: 'name',
+                  fuzzy: { maxEdits: 2, prefixLength: 2 },
+                  tokenOrder: 'sequential',
+                },
+              },
+              {
+                text: {
+                  query: query,
+                  path: 'name',
+                  fuzzy: { maxEdits: 2 },
+                },
+              },
+            ],
+            minimumShouldMatch: 1,
+          },
+        },
+      },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'category',
+        },
+      },
+      {
+        $lookup: {
+          from: 'brands',
+          localField: 'brand',
+          foreignField: '_id',
+          as: 'brand',
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          slug: 1,
+          description: 1,
+          discount: 1,
+          tags: 1,
+          category: {
+            _id: '$category._id',
+            name: '$category.name',
+          },
+          brand: {
+            _id: '$brand._id',
+            name: '$brand.name',
+          },
+          variants: 1,
+          isActive: 1,
+          isFeatured: 1,
+          averageRating: 1,
+          reviewCount: 1,
+        },
+      },
+    ]);
+    if (result.length === 0) {
+      return ` không tìm thấy sản phẩm với query ${query}`;
+    }
+    return result;
+  }
 
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population } = aqp(qs);
-    console.log('filter:', filter);
     delete filter.page;
     delete filter.limit;
 
@@ -143,7 +221,6 @@ export class ProductService {
           $regex: filter.category,
           $options: 'i',
         };
-        // matchConditions['category.name'] = filter.category;
       }
 
       if (filter.brand) {
@@ -258,6 +335,23 @@ export class ProductService {
   }
 
   async remove(id: string) {
+    const product = await this.productModel.findById(id);
+    console.log(product.variants);
+    if (!product) {
+      throw new BadRequestException('Sản phẩm không tồn tại');
+    }
+    // Kiểm tra xem sản phẩm có tồn tại trong kho không
+    const inventory = await this.inventoryModel.findOne({ product: id });
+    if (!inventory) {
+      throw new BadRequestException(
+        'Không thể xóa sản phẩm vì nó đang có trong kho',
+      );
+    }
+
+    product.variants.map(async (v) => {
+      return await this.variantModel.findByIdAndDelete(v);
+    });
+    await this.inventoryModel.deleteMany({ product: id });
     return this.productModel.softDelete({ _id: id });
   }
 }

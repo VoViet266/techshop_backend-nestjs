@@ -21,7 +21,6 @@ import { ResponseMessage } from 'src/decorator/messageDecorator';
 import { Public } from 'src/decorator/publicDecorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
-@ApiBearerAuth('access-token')
 @Controller('api/v1/upload')
 export class FileController {
   private readonly Base_URL: string;
@@ -32,32 +31,21 @@ export class FileController {
     this.PORT = this.configService.get<string>('PORT');
   }
 
-  // @Post('upload')
-  // @ResponseMessage('Upload file thành công')
-  // @UseInterceptors(FileInterceptor('file'))
-  // uploadFile(
-  //   @UploadedFile(
-  //     new ParseFilePipeBuilder()
-  //       .addFileTypeValidator({
-  //         fileType: /^image\/(png|jpe?g|gif|webp)$/,
-  //       })
-  //       .addMaxSizeValidator({
-  //         maxSize: 1024 * 2000,
-  //       })
-  //       .build({
-  //         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-  //       }),
-  //   )
-  //   file: Express.Multer.File,
-  //   @Req() request: Request,
-  // ) {
-  //   const filePath = `${this.Base_URL}${this.PORT}/uploads/${file.filename}`;
-  //   console.log(filePath);
-  //   return {
-  //     filePath: filePath,
-  //     filename: file.filename,
-  //   };
-  // }
+  @Post('')
+  @Public()
+  @ResponseMessage('Upload file thành công')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFile(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @Req() request: Request,
+  ) {
+    const filePath = `${this.Base_URL}${this.PORT}/uploads/${file.filename}`;
+    return {
+      filePath: file.path,
+      filename: file.filename,
+    };
+  }
 
   // @Delete('delete/:filename')
   // @Public()
@@ -96,23 +84,7 @@ export class FileController {
 
     // Chuyển dữ liệu từ Excel thành JSON
     const data = XLSX.utils.sheet_to_json(sheet);
-    // TODO: Lưu vào DB nếu cần
-    const tt = data.map((row) => this.unflattenObject(row));
+
     return { message: 'Upload thành công', data };
-  }
-  public unflattenObject(flat: Record<string, any>) {
-    const result = {};
-    for (const key in flat) {
-      const keys = key.split(/[\.\[\]]/).filter((k) => k !== '');
-      keys.reduce((acc, cur, i) => {
-        if (i === keys.length - 1) {
-          acc[cur] = flat[key];
-          return;
-        }
-        acc[cur] = acc[cur] || (isNaN(Number(keys[i + 1])) ? {} : []);
-        return acc[cur];
-      }, result);
-    }
-    return result;
   }
 }

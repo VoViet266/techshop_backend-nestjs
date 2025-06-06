@@ -127,6 +127,16 @@ export class CameraRearDto {
   @ApiProperty({ example: 3, description: 'Số lượng ống kính' })
   @IsNumber()
   lensCount: number;
+  
+
+  @ApiPropertyOptional({
+    example: ['4K', 'Slow motion'],
+    description: 'Tính năng quay video',
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  videoRecording?: string[];
 }
 
 export class CameraDto {
@@ -140,13 +150,6 @@ export class CameraDto {
   @Type(() => CameraRearDto)
   rear: CameraRearDto;
 
-  @ApiPropertyOptional({
-    example: ['4K', 'Slow motion'],
-    description: 'Tính năng quay video',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
   videoRecording?: string[];
 }
 
@@ -208,24 +211,6 @@ export class VariantDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
-
-  @ApiPropertyOptional({
-    example: '2023-01-01T00:00:00Z',
-    description: 'Ngày tạo',
-  })
-  @IsOptional()
-  createdAt?: Date;
-}
-
-export class LoginDto {
-  @ApiProperty({ example: 'user@example.com', description: 'Email đăng nhập' })
-  @IsEmail({}, { message: 'Email không hợp lệ' })
-  email: string;
-
-  @ApiProperty({ example: 'password123', description: 'Mật khẩu đăng nhập' })
-  @IsNotEmpty({ message: 'Password không được để trống' })
-  @IsString()
-  password: string;
 }
 
 export class CreateProductDto {
@@ -241,11 +226,8 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({
-    example: '60d5f9c2e1a5a3a3f0d6e0f1',
-    description: 'ID danh mục',
-    type: String,
-  })
+  slug: string;
+
   @IsMongoId()
   category: string;
 
@@ -261,7 +243,7 @@ export class CreateProductDto {
     type: [VariantDto],
     description: 'Danh sách biến thể sản phẩm',
   })
-  variants: VariantDto[];
+  variants?: VariantDto[];
 
   @ApiProperty({ example: 10, description: 'Giảm giá (%)' })
   @IsNumber()
@@ -297,40 +279,26 @@ export class CreateProductDto {
   @IsOptional()
   tags?: string[];
 
-  @ApiPropertyOptional({ example: 1000, description: 'Số lượt xem' })
   @IsNumber()
   @Min(0)
   @IsOptional()
   viewCount?: number;
 
-  @ApiPropertyOptional({
-    example: 4.5,
-    description: 'Đánh giá trung bình (0-5)',
-  })
   @IsNumber()
   @Min(0)
   @Max(5)
   @IsOptional()
   averageRating?: number;
 
-  @ApiPropertyOptional({ example: 120, description: 'Số lượt đánh giá' })
   @IsNumber()
   @Min(0)
   @IsOptional()
   reviewCount?: number;
 
-  @ApiPropertyOptional({
-    example: true,
-    description: 'Trạng thái kích hoạt sản phẩm',
-  })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
 
-  @ApiPropertyOptional({
-    example: false,
-    description: 'Sản phẩm nổi bật hay không',
-  })
   @IsBoolean()
   @IsOptional()
   isFeatured?: boolean;

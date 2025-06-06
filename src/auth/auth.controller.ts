@@ -19,12 +19,11 @@ import { IUser } from 'src/user/interface/user.interface';
 import { User } from 'src/decorator/userDecorator';
 import { Public } from 'src/decorator/publicDecorator';
 import { LocalAuthGuard } from 'src/common/guards/local.guard';
-import { RegisterUserDto } from 'src/user/dto/create-user.dto';
+import { LoginDto, RegisterUserDto } from 'src/user/dto/create-user.dto';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { LoginDto } from 'src/product/dto/create-product.dto';
 
 @Controller('api/v1/auth')
 @ApiBearerAuth('access-token')
@@ -40,7 +39,6 @@ export class AuthController {
   @Post('/login')
   @ApiBody({ type: LoginDto })
   handleLogin(@Request() req: any, @Res({ passthrough: true }) res: Response) {
-    console.log(req.user);
     return this.authService.login(req.user, res);
   }
 

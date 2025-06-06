@@ -44,8 +44,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         phone: '',
         address: [],
         age: 0,
-        role: "",
+        branch: '',
+        role: '',
         status: '',
+        refreshToken: '',
       });
     }
 

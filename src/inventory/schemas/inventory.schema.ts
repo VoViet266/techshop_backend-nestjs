@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 import { Products } from 'src/product/schemas/product.schema';
-import { Store } from 'src/store/schemas/store.schema';
+import { Branch } from 'src/branch/schemas/branch.schema';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { min } from 'class-validator';
 import { Variant } from 'src/product/schemas/variant.schema';
@@ -13,11 +13,11 @@ export type InventoryDocument = HydratedDocument<Inventory>;
 export class Inventory {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
-    ref: Store.name,
+    ref: Branch.name,
     required: true,
     index: true,
   })
-  store: mongoose.Schema.Types.ObjectId;
+  branch: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -29,6 +29,7 @@ export class Inventory {
 
   @Prop({
     required: true,
+    _id: false,
     type: [
       {
         variantId: {
@@ -93,8 +94,8 @@ export const InventorySchema = SchemaFactory.createForClass(Inventory);
 
 // // Tạo các chỉ mục (index) cho schema để tối ưu truy vấn
 InventorySchema.index(
-  { store: 1, product: 1, variantSku: 1 },
+  { branch: 1, product: 1, variantSku: 1 },
   { unique: true },
 );
-InventorySchema.index({ store: 1, product: 1, quantity: 1, isActive: 1 });
+InventorySchema.index({ branch: 1, product: 1, quantity: 1, isActive: 1 });
 InventorySchema.index({ quantity: 1, minStockLevel: 1, isActive: 1 });

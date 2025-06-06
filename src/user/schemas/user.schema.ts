@@ -2,6 +2,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Role } from 'src/role/schemas/role.schema';
 import { GenderEnum } from 'src/constant/gender.enum';
+import { Branch } from 'src/branch/schemas/branch.schema';
 
 export type UserDocument = HydratedDocument<User>;
 const AddressSchema = new mongoose.Schema(
@@ -56,6 +57,12 @@ export class User {
     default: 'GUEST',
   })
   userType: string;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Branch.name,
+  })
+  branch?: mongoose.Schema.Types.ObjectId;
 
   @Prop()
   age: number;

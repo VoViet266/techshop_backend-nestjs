@@ -9,10 +9,9 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory, InventoryDocument } from './schemas/inventory.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import path from 'path';
 import { ProductDocument, Products } from 'src/product/schemas/product.schema';
-import { Store } from 'src/store/schemas/store.schema';
-import { console } from 'inspector';
+import { Actions } from 'src/constant/permission.enum';
+import { RolesUser } from 'src/constant/roles.enum';
 
 @Injectable()
 export class InventoryService {
@@ -31,7 +30,7 @@ export class InventoryService {
       throw new NotFoundException('Sản phẩm không tồn tại');
     }
     const existingInventory = await this.inventoryModel.findOne({
-      store: createInventoryDto.store,
+      store: createInventoryDto.branch,
       product: createInventoryDto.product,
     });
     if (existingInventory) {
@@ -61,19 +60,32 @@ export class InventoryService {
     return await this.inventoryModel.create(inventoryData);
   }
 
-  async findAll() {
-    return await this.inventoryModel
-      .find()
+  // async findAll() {
+  //   return await this.inventoryModel
+  //     .find()
+  //
+  // }
+  async findAll(user: any) {
+    if (user.role?.roleName === RolesUser.Admin) {
+      return this.inventoryModel
+        .find()
+        .populate('product', 'name')
+        .populate('branch', 'name location')
+        .populate('variants.variantId', 'name sku') // Populate the variantId field inside variants
+        .lean();
+    }
+    return this.inventoryModel
+      .find({ branch: user.branch })
       .populate('product', 'name  ')
-      .populate('store', 'name location')
+      .populate('branch', 'name location')
+      .populate('variants.variantId', 'name sku')
       .lean();
   }
-
   findOne(id: string) {
     return this.inventoryModel
       .findById(id)
       .populate('product', 'name')
-      .populate('store', 'name location')
+      .populate('branch', 'name location')
       .lean();
   }
 

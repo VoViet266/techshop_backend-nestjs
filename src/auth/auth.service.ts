@@ -62,6 +62,7 @@ export class AuthService {
       },
     });
     const role: any = userWithRole.role;
+    const branch = userWithRole.branch;
     const roleName = role?.name;
     const permission = role?.permissions?.map((per: any) => ({
       name: per.name,
@@ -76,6 +77,7 @@ export class AuthService {
       name,
       email,
       avatar,
+      branch,
       role: {
         roleName,
         permission,
@@ -84,7 +86,7 @@ export class AuthService {
 
     const refresh_Token = this.createRefreshToken({ payload });
 
-    await this.userService.updateUserToken(refresh_Token, _id);
+    await this.userService.updateUserToken(refresh_Token, _id.toString());
 
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
@@ -102,6 +104,7 @@ export class AuthService {
       name,
       email,
       avatar,
+      branch,
       role: {
         roleName,
         permission,
@@ -160,10 +163,7 @@ export class AuthService {
       const newRefreshToken = this.createRefreshToken({ payload });
 
       // Lưu refresh token mới vào DB
-      await this.userService.updateUserToken(
-        newRefreshToken,
-        user._id.toString(),
-      );
+      await this.userService.updateUserToken(newRefreshToken, user._id.toString());
 
       // Xóa và gán lại cookie refresh token
       res.clearCookie('refresh_Token');
@@ -200,7 +200,7 @@ export class AuthService {
     }
   };
   async logout(res: Response, user: IUser) {
-    await this.userService.updateUserToken('', user._id);
+    await this.userService.updateUserToken('', user._id.toString());
     res.clearCookie('refresh_Token');
     return {
       message: 'Đăng xuất thành công',

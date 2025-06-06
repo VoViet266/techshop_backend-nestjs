@@ -122,7 +122,7 @@ export class Products {
     type: [mongoose.Schema.Types.ObjectId],
     ref: Variant.name,
   })
-  variants: Variant[];
+  variants?: Variant[];
 
   @Prop({ type: ProductSpecs })
   specifications: ProductSpecs;
@@ -185,7 +185,6 @@ export class Products {
       email: String,
       name: String,
     },
-    required: true,
   })
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId;

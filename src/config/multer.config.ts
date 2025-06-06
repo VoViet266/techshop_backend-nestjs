@@ -14,8 +14,10 @@ export class MulterConfigService implements MulterOptionsFactory {
   };
   ensureExistsSync(targetDirectory: string) {
     try {
-      fs.mkdirSync(targetDirectory, { recursive: true });
-      console.log('Directory successfully created, or it already exists.');
+      if (!fs.existsSync(targetDirectory)) {
+        fs.mkdirSync(targetDirectory, { recursive: true });
+        console.log(`Directory created: ${targetDirectory}`);
+      }
     } catch (error) {
       console.error('Error creating directory:', error);
     }

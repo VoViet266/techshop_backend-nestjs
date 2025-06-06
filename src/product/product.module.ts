@@ -11,6 +11,8 @@ import { Variant, VariantSchema } from './schemas/variant.schema';
 import { Category, CategorySchema } from 'src/category/schemas/category.schema';
 import { Brand, BrandSchema } from 'src/brand/schemas/brand.schema';
 import { CaslModule } from 'src/casl/casl.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { MulterConfigService } from 'src/config/multer.config';
 
 @Module({
   controllers: [ProductController],
@@ -23,6 +25,9 @@ import { CaslModule } from 'src/casl/casl.module';
       { name: Category.name, schema: CategorySchema },
       { name: Brand.name, schema: BrandSchema },
     ]),
+    MulterModule.registerAsync({
+      useClass: MulterConfigService,
+    }),
     CaslModule,
   ],
 })

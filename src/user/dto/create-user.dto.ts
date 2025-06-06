@@ -57,11 +57,13 @@ export class CreateUserDto {
   @IsString({ each: true })
   address?: string[];
 
+  branch: string;
+
   @ApiPropertyOptional({ example: 25 })
   @IsOptional()
   @IsNumber({}, { message: 'Age phải là số' })
   age?: number;
-
+  refreshToken: string;
   @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
   @IsOptional()
   @IsString()
@@ -138,4 +140,14 @@ export class RegisterUserDto {
   @IsOptional()
   @IsString()
   phone?: string;
+}
+export class LoginDto {
+  @ApiProperty({ example: 'user@example.com', description: 'Email đăng nhập' })
+  @IsEmail({}, { message: 'Email không hợp lệ' })
+  email: string;
+
+  @ApiProperty({ example: 'password123', description: 'Mật khẩu đăng nhập' })
+  @IsNotEmpty({ message: 'Password không được để trống' })
+  @IsString()
+  password: string;
 }

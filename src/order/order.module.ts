@@ -11,6 +11,7 @@ import {
 } from 'src/inventory/schemas/inventory.schema';
 import { Products, ProductSchema } from 'src/product/schemas/product.schema';
 import { Cart, CartSchema } from 'src/cart/schemas/cart.schema';
+import { CaslModule } from 'src/casl/casl.module';
 
 @Module({
   controllers: [OrderController],
@@ -27,6 +28,7 @@ import { Cart, CartSchema } from 'src/cart/schemas/cart.schema';
     ]),
     ProductModule,
     CartModule,
+    CaslModule,
   ],
 })
 export class OrderModule {}

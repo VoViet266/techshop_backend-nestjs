@@ -1,9 +1,19 @@
-import { IsString, IsNumber, IsMongoId, IsArray, ValidateNested, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsMongoId,
+  IsArray,
+  ValidateNested,
+  Min,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export class VariantDto {
-  @ApiProperty({ example: '64a2b3c4d5e6f7890a1b2c3d', description: 'ID biến thể sản phẩm' })
+  @ApiProperty({
+    example: '64a2b3c4d5e6f7890a1b2c3d',
+    description: 'ID biến thể sản phẩm',
+  })
   @IsMongoId()
   variantId: string;
 
@@ -19,15 +29,24 @@ export class VariantDto {
 }
 
 export class CreateInventoryDto {
-  @ApiProperty({ example: '64a2b3c4d5e6f7890a1b2c3e', description: 'ID cửa hàng' })
+  @ApiProperty({
+    example: '64a2b3c4d5e6f7890a1b2c3e',
+    description: 'ID cửa hàng',
+  })
   @IsMongoId()
-  store: string;
+  branch: string;
 
-  @ApiProperty({ example: '64a2b3c4d5e6f7890a1b2c3f', description: 'ID sản phẩm' })
+  @ApiProperty({
+    example: '64a2b3c4d5e6f7890a1b2c3f',
+    description: 'ID sản phẩm',
+  })
   @IsMongoId()
   product: string;
 
-  @ApiProperty({ type: [VariantDto], description: 'Danh sách biến thể sản phẩm' })
+  @ApiProperty({
+    type: [VariantDto],
+    description: 'Danh sách biến thể sản phẩm',
+  })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => VariantDto)

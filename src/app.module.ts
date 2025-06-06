@@ -11,7 +11,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MongooseConfigService } from './config/mongodb.config';
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
-import { StoreModule } from './store/store.module';
+import { BranchModule } from './branch/branch.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { BannerModule } from './banner/banner.module';
 import { MailModule } from './mail/mail.module';
@@ -37,7 +37,7 @@ import { CaslModule } from './casl/casl.module';
     MongooseModule.forRootAsync(MongooseConfigService),
     RoleModule,
     PermissionModule,
-    StoreModule,
+    BranchModule,
     InventoryModule,
     BannerModule,
     MailModule,

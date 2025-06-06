@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -14,6 +15,9 @@ import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 import { Public } from 'src/decorator/publicDecorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { PoliciesGuard } from 'src/common/guards/policies.guard';
+import { CheckPolicies } from 'src/decorator/policies.decorator';
+import { Actions, Subjects } from 'src/constant/permission.enum';
 @ApiBearerAuth('access-token')
 @Controller('api/v1/orders')
 export class OrderController {
@@ -25,9 +29,11 @@ export class OrderController {
   }
 
   @Get()
-  findAll() {
-    return this.orderService.findAll();
-  }
+@UseGuards(PoliciesGuard)
+@CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Order))
+findAll(@User() user: IUser) {
+  return this.orderService.findAll(user); // 👈 Truyền user xuống service
+}
 
   @Get(':id')
   findOne(@Param('id') id: string) {

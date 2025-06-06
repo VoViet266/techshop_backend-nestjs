@@ -104,9 +104,10 @@ export class UserService {
     return 'Mật Khẩu đã cập nhật thành công';
   };
 
-  updateUserToken = async (refreshToken: string, _id: string) => {
+  updateUserToken = async (refreshToken: string, id: string) => {
+    console.log(id);
     return await this.userModel.updateOne(
-      { _id },
+      { _id: id },
       { refreshToken: refreshToken },
     );
   };

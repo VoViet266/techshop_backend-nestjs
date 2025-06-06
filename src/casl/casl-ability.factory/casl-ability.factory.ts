@@ -11,16 +11,12 @@ import {
 import { Actions, Subjects } from 'src/constant/permission.enum';
 import { RolesUser } from 'src/constant/roles.enum';
 
-// export type Actions = 'manage' | 'create' | 'read' | 'update' | 'delete';
-// export type Subjects = 'Product' | 'Order' | 'User' | 'all';
-
 export type AppAbility = MongoAbility<[Actions, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
   createForUser(user: any) {
     const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
-
     const permissions = user.role?.permission || [];
     permissions.forEach((perm: any) => {
       const action = perm.action.toLowerCase();
@@ -36,6 +32,9 @@ export class CaslAbilityFactory {
     if (user.role?.roleName === RolesUser.Admin) {
       can(Actions.Manage, 'all');
     }
+    // Cho phép user chỉ đọc order của chính mình
+    can(Actions.Read, Subjects.Inventory, { branch: user.branch });
+    can(Actions.Read, Subjects.Order, { user: user._id });
 
     return build({
       detectSubjectType: (item) =>

@@ -6,11 +6,18 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { PoliciesGuard } from 'src/common/guards/policies.guard';
+import { CheckPolicies } from 'src/decorator/policies.decorator';
+import { Actions, Subjects } from 'src/constant/permission.enum';
+import { User } from 'src/decorator/userDecorator';
+import { use } from 'passport';
+import { IUser } from 'src/user/interface/user.interface';
 @ApiBearerAuth('access-token')
 @Controller('api/v1/inventories')
 export class InventoryController {
@@ -22,8 +29,10 @@ export class InventoryController {
   }
 
   @Get()
-  findAll() {
-    return this.inventoryService.findAll();
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
+  findAll(@User() user: IUser) {
+    return this.inventoryService.findAll(user);
   }
 
   @Get(':id')
