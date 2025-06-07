@@ -9,7 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
-import { CreateInventoryDto } from './dto/create-inventory.dto';
+import {
+  CreateInventoryDto,
+  CreateStockMovementDto,
+  CreateTransferDto,
+} from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
@@ -51,5 +55,20 @@ export class InventoryController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.inventoryService.remove(id);
+  }
+
+  @Post('import')
+  async importStock(@Body() dto: CreateStockMovementDto, @User() user: IUser) {
+    return this.inventoryService.importStock(dto, user);
+  }
+
+  @Post('export')
+  async exportStock(@Body() dto: CreateStockMovementDto, @User() user: IUser) {
+    return this.inventoryService.exportStock(dto, user);
+  }
+
+  @Post('transfer')
+  async transferStock(@Body() dto: CreateTransferDto, @User() user: IUser) {
+    return this.inventoryService.transferStock(dto, user);
   }
 }

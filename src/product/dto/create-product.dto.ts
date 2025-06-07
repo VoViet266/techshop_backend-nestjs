@@ -9,8 +9,6 @@ import {
   Min,
   Max,
   ArrayMinSize,
-  IsNotEmpty,
-  IsEmail,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -48,14 +46,6 @@ export class ProductSpecsDto {
   @IsString()
   @IsOptional()
   weight?: string;
-
-  @ApiPropertyOptional({
-    example: '160 x 75 x 8 mm',
-    description: 'Kích thước thiết bị',
-  })
-  @IsString()
-  @IsOptional()
-  dimensions?: string;
 }
 
 export class ConnectivityDto {
@@ -127,7 +117,6 @@ export class CameraRearDto {
   @ApiProperty({ example: 3, description: 'Số lượng ống kính' })
   @IsNumber()
   lensCount: number;
-  
 
   @ApiPropertyOptional({
     example: ['4K', 'Slow motion'],
@@ -149,8 +138,6 @@ export class CameraDto {
   @ValidateNested()
   @Type(() => CameraRearDto)
   rear: CameraRearDto;
-
-  videoRecording?: string[];
 }
 
 export class VariantColorDto {

@@ -12,7 +12,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { isValidObjectId, ObjectId } from 'mongoose';
 
-
 export class CartItemDto {
   @ApiProperty({
     example: '64a2b3c4d5e6f7890a1b2c3d',
@@ -44,15 +43,13 @@ export class CreateOrderDto {
   items: CartItemDto[];
 
   @ApiProperty({ example: 1500 })
-
   totalPrice: number;
 
   @ApiProperty({ example: 'pending', description: 'Trạng thái đơn hàng' })
-
+  branch: string;
   status: string;
 
   @ApiProperty({ example: '123 Đường ABC, Quận 1, TP.HCM' })
-
   shippingAddress: string;
 
   @ApiProperty({

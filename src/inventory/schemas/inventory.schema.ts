@@ -32,21 +32,16 @@ export class Inventory {
     _id: false,
     type: [
       {
-        variantId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: Variant.name,
-          required: true,
-        },
+        variantId: { type: mongoose.Types.ObjectId, ref: 'Variant' },
         stock: { type: Number },
         cost: { type: Number, default: 0, min: 0 },
       },
     ],
   })
   variants: {
-    variantId: mongoose.Schema.Types.ObjectId;
+    variantId: mongoose.Types.ObjectId;
     stock: number;
-    // Giá vốn để tính lợi nhuận
-    cost: number;
+    cost?: number;
   }[];
 
   // Mức tồn kho tối thiểu để cảnh báo
@@ -93,9 +88,6 @@ export class Inventory {
 export const InventorySchema = SchemaFactory.createForClass(Inventory);
 
 // // Tạo các chỉ mục (index) cho schema để tối ưu truy vấn
-InventorySchema.index(
-  { branch: 1, product: 1, variantSku: 1 },
-  { unique: true },
-);
+
 InventorySchema.index({ branch: 1, product: 1, quantity: 1, isActive: 1 });
 InventorySchema.index({ quantity: 1, minStockLevel: 1, isActive: 1 });

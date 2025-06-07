@@ -4,7 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateInventoryDto } from './dto/create-inventory.dto';
+import {
+  CreateInventoryDto,
+  CreateStockMovementDto,
+  CreateTransferDto,
+} from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory, InventoryDocument } from './schemas/inventory.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,6 +16,17 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { ProductDocument, Products } from 'src/product/schemas/product.schema';
 import { Actions } from 'src/constant/permission.enum';
 import { RolesUser } from 'src/constant/roles.enum';
+import {
+  StockMovement,
+  StockMovementDocument,
+} from './schemas/stock-movement.schema';
+import { Transfer, TransferDocument } from './schemas/transfer.schema';
+import mongoose, { Types } from 'mongoose';
+import {
+  TransactionStatus,
+  TransactionType,
+} from 'src/constant/transaction.enum';
+import { IUser } from 'src/user/interface/user.interface';
 
 @Injectable()
 export class InventoryService {
@@ -20,6 +35,10 @@ export class InventoryService {
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
     @InjectModel(Products.name)
     private readonly productModel: SoftDeleteModel<ProductDocument>,
+    @InjectModel(StockMovement.name)
+    private movementModel: SoftDeleteModel<StockMovementDocument>,
+    @InjectModel(Transfer.name)
+    private transferModel: SoftDeleteModel<TransferDocument>,
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
@@ -53,18 +72,13 @@ export class InventoryService {
       variants: createInventoryDto.variants.map((variant) => ({
         variantId: variant.variantId,
         stock: variant.stock,
-        cost: variant.cost,
+        cost: variant.cost || 0, // Ensure cost is included and defaults to 0 if missing
       })),
     };
 
     return await this.inventoryModel.create(inventoryData);
   }
 
-  // async findAll() {
-  //   return await this.inventoryModel
-  //     .find()
-  //
-  // }
   async findAll(user: any) {
     if (user.role?.roleName === RolesUser.Admin) {
       return this.inventoryModel
@@ -110,5 +124,154 @@ export class InventoryService {
       }
       return { message: 'Tồn kho đã được xóa thành công' };
     });
+  }
+
+  async importStock(dto: CreateStockMovementDto, user: IUser) {
+    const { branchId, productId, variants } = dto;
+    let inventory = await this.inventoryModel.findOne({
+      branch: branchId,
+      product: productId,
+    });
+
+    if (!inventory) {
+      // Tạo mới document Inventory nếu chưa có
+      inventory = await this.inventoryModel.create({
+        branch: branchId,
+        product: productId,
+        variants: [],
+        isActive: true,
+      });
+      if (!inventory) {
+        throw new BadRequestException('Không thể tạo tồn kho mới');
+      }
+    }
+
+    // Cập nhật variants
+    variants.forEach(({ variantId, stock}) => {
+      const variant = inventory.variants.find(
+        (v) => v.variantId.toString() === variantId,
+      );
+
+      if (variant) {
+        variant.stock += stock;
+      } else {
+        inventory.variants.push({
+          variantId: new mongoose.Types.ObjectId(variantId),
+          stock: stock,
+        });
+      }
+    });
+
+    inventory.lastRestockedAt = new Date();
+
+    await inventory.save();
+    await this.movementModel.create({
+      type: TransactionType.IMPORT,
+      branchId,
+      productId,
+      variants,
+      createdBy: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+    return { message: 'Nhập kho thành công', inventory };
+  }
+
+  async exportStock(dto: CreateStockMovementDto, user: IUser) {
+    const { branchId, productId, variants } = dto;
+
+    const inventory = await this.inventoryModel.findOne({
+      branch: branchId,
+      product: productId,
+    });
+
+    if (!inventory) {
+      throw new NotFoundException('Không tìm thấy tồn kho');
+    }
+
+    // Kiểm tra tồn kho đủ
+    for (const { variantId, stock } of variants) {
+      const variant = inventory.variants.find(
+        (v) => v.variantId.toString() === variantId,
+      );
+      if (!variant || variant.stock < stock) {
+        throw new NotFoundException(`Tồn kho biến thể ${variantId} không đủ`);
+      }
+    }
+
+    // Trừ tồn kho
+    variants.forEach(({ variantId, stock }) => {
+      const variant = inventory.variants.find(
+        (v) => v.variantId.toString() === variantId,
+      );
+      // nếu variant tồn tại thì trừ đi số lượng tồn kho
+      if (variant) {
+        variant.stock -= stock;
+      }
+    });
+
+    await inventory.save();
+    //
+    await this.movementModel.create({
+      type: TransactionType.EXPORT,
+      branchId,
+      productId,
+      variants,
+    });
+    return { message: 'Xuất kho thành công', inventory };
+  }
+
+  async transferStock(createTransferDto: CreateTransferDto, user: IUser) {
+    const { fromBranchId, toBranchId, items } = createTransferDto;
+    const productId = items[0].productId; // Extract productId from the first item
+    const variants = items.map((item) => ({
+      variantId: item.variant.toString(),
+      stock: item.quantity,
+    }));
+
+    // // Xuất kho từ chi nhánh gửi
+    const exportStock = await this.exportStock(
+      {
+        branchId: fromBranchId,
+        productId,
+        variants,
+      },
+      user,
+    );
+    if (!exportStock) {
+      throw new BadRequestException('Không thể xuất kho từ chi nhánh gửi');
+    }
+
+    // // Nhập kho chi nhánh nhận
+
+    const importStock = await this.importStock(
+      {
+        branchId: toBranchId,
+        productId,
+        variants,
+      },
+      user,
+    );
+    if (!importStock) {
+      throw new BadRequestException('Không thể nhập kho vào chi nhánh nhận');
+    }
+
+    await this.transferModel.create({
+      ...createTransferDto,
+      items: items.map((item) => ({
+        productId: item.productId,
+        variant: item.variant,
+        quantity: item.quantity,
+      })),
+      status: TransactionStatus.RECEIVED,
+      createdBy: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+    return { message: 'Chuyển kho thành công' };
   }
 }

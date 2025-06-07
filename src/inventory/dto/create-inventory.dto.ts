@@ -52,3 +52,24 @@ export class CreateInventoryDto {
   @Type(() => VariantDto)
   variants: VariantDto[];
 }
+export class CreateStockMovementDto {
+  branchId: string; // id chi nhánh
+  productId: string; // id sản phẩm
+  variants: {
+    variantId: string; // id biến thể sản phẩm
+    stock: number; // số lượng tồn kho của biến thể
+    cost?: number; // giá vốn của biến thể (tùy chọn)
+  }[]; // danh sách biến thể và số lượng tương ứng
+}
+
+export class CreateTransferDto {
+  fromBranchId: string; // chi nhánh gửi
+  toBranchId: string; // chi nhánh nhận
+  items: {
+    productId: string; // id sản phẩm
+    variant: string; // id biến thể sản phẩm
+    quantity: number; // số lượng chuyển
+  }[]; // danh sách sản phẩm và số lượng tương ứng
+  status: string;
+  note?: string; // ghi chú chuyển kho (tùy chọn)
+}

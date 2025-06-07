@@ -11,6 +11,7 @@ import {
   Inventory,
   InventoryDocument,
 } from 'src/inventory/schemas/inventory.schema';
+import { InventoryService } from 'src/inventory/inventory.service';
 
 @Injectable()
 export class OrderService {
@@ -23,6 +24,7 @@ export class OrderService {
     private readonly cartModel: SoftDeleteModel<CartDocument>,
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {
@@ -38,9 +40,6 @@ export class OrderService {
       );
     }
 
-    //Kiểm tra sản phẩm trong giỏ hàng có tồn tại trong db không
-    const cartProductIds = userCart.items.map((p) => p.product);
-
     createOrderDto.items = userCart.items.map((item) => {
       return {
         product: item.product.toString(),
@@ -52,62 +51,76 @@ export class OrderService {
 
     let totalPrice = 0;
     for (const item of createOrderDto.items) {
-      const productDoc = await this.inventoryModel.findOne({
-        product: item.product,
-      });
-      if (!productDoc) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: `Không tìm thấy sản phẩm`,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      const variant = productDoc.variants.find(
-        (v) => v.variantId.toString() === item.variant,
+      await this.inventoryService.exportStock(
+        {
+          branchId: createOrderDto.branch,
+          productId: item.product,
+          variants: [
+            {
+              variantId: item.variant,
+              stock: item.quantity,
+            },
+          ],
+        },
+        user,
       );
-      if (variant.stock < item.quantity) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: `Không đủ hàng cho sản phẩm `,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      if (!variant) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: `Không tìm thấy biến thể cho sản phẩm }`,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      if (variant.stock < item.quantity) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: `Không đủ hàng cho biến thể ${variant.variantId}`,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      // const productDoc = await this.inventoryModel.findOne({
+      //   product: item.product,
+      //   branch: branch,
+      // });
+      // if (!productDoc) {
+      //   throw new HttpException(
+      //     {
+      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      //       message: `Không tìm thấy sản phẩm`,
+      //     },
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //   );
+      // }
+      // const variant = productDoc.variants.find(
+      //   (v) => v.variantId.toString() === item.variant,
+      // );
+      // if (variant.stock < item.quantity) {
+      //   throw new HttpException(
+      //     {
+      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      //       message: `Không đủ hàng cho sản phẩm `,
+      //     },
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //   );
+      // }
+      // if (!variant) {
+      //   throw new HttpException(
+      //     {
+      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      //       message: `Không tìm thấy biến thể cho sản phẩm }`,
+      //     },
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //   );
+      // }
+      // if (variant.stock < item.quantity) {
+      //   throw new HttpException(
+      //     {
+      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      //       message: `Không đủ hàng cho biến thể ${variant.variantId}`,
+      //     },
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //   );
+      // }
 
       totalPrice += item.price * item.quantity;
-      const updatedStockVariants = productDoc.variants.map((v) => {
-        if (v.variantId.toString() === item.variant.toString()) {
-          v.stock = Math.max(v.stock - item.quantity, 0);
-        }
-        return v;
-      });
+      // const updatedStockVariants = productDoc.variants.map((v) => {
+      //   if (v.variantId.toString() === item.variant.toString()) {
+      //     v.stock = Math.max(v.stock - item.quantity, 0);
+      //   }
+      //   return v;
+      // });
 
-      await this.inventoryModel.findOneAndUpdate(
-        { _id: productDoc._id },
-        { variants: updatedStockVariants },
-        { new: true },
-      );
+      // await this.inventoryModel.findOneAndUpdate(
+      //   { _id: productDoc._id },
+      //   { variants: updatedStockVariants },
+      //   { new: true },
+      // );
     }
 
     createOrderDto.totalPrice = totalPrice;

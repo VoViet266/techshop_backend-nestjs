@@ -25,7 +25,7 @@ export class CartItem {
   @Prop({ required: true, default: 1 })
   quantity: number;
 
-  @Prop({ required: true })
+  @Prop()
   price: number; // Giá tại thời điểm thêm vào giỏ (để không bị lệ thuộc khi thay đổi giá sản phẩm)
 }
 

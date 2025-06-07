@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
+import { Branch } from 'src/branch/schemas/branch.schema';
 import { Products } from 'src/product/schemas/product.schema';
 import { Variant } from 'src/product/schemas/variant.schema';
 
@@ -38,6 +39,12 @@ export class Order {
     price: number;
     variant: mongoose.Schema.Types.ObjectId;
   }[];
+
+  // @Prop({
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: Branch.name,
+  // })
+  // branch: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: Number, required: true, default: 0 })
   totalPrice: number;
