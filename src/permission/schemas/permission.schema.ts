@@ -7,16 +7,16 @@ export type PermissionDocument = HydratedDocument<Permission>;
 @Schema({ timestamps: true })
 export class Permission {
   @Prop({ required: true, unique: true })
-  name: string; // Tên permission, ví dụ: "READ", "WRITE"
+  name: string;
 
   @Prop({ required: true })
-  description: string; // Mô tả quyền
+  description: string;
 
   @Prop({ required: true })
-  module: string; // Module của permission, ví dụ: "USER", "POST
+  module: string;
 
   @Prop({ required: true })
-  action: string; // Action của permission, ví dụ: "READ", "WRITE"
+  action: string;
 
   @Prop({
     type: Object,

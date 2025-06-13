@@ -26,12 +26,22 @@ export class CloundinaryController {
   @Post('image')
   @UseInterceptors(FileInterceptor('file'))
   uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new Error('No file uploaded');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('File size exceeds the limit of 5MB');
+    }
+    if (!file.mimetype.startsWith('image/')) {
+      throw new Error('Invalid file type. Only images are allowed.');
+    }
+    console.log('Uploading file to Cloudinary:', file.originalname);
     return this.cloundinaryService.uploadImage(file);
   }
 
   @Public()
   @Get('image')
-  getAllImages(@Query('publicId') publicId: string) {
+  getAllImages(@Query('url') publicId: string) {
     return this.cloundinaryService.getImage(publicId);
   }
   @Delete('image')

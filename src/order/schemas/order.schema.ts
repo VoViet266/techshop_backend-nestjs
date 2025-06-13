@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { Branch } from 'src/branch/schemas/branch.schema';
+import { OrderStatus } from 'src/constant/orderStatus.enum';
 import { Products } from 'src/product/schemas/product.schema';
 import { Variant } from 'src/product/schemas/variant.schema';
 
@@ -40,11 +41,11 @@ export class Order {
     variant: mongoose.Schema.Types.ObjectId;
   }[];
 
-  // @Prop({
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: Branch.name,
-  // })
-  // branch: mongoose.Schema.Types.ObjectId;
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Branch.name,
+  })
+  branch: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: Number, required: true, default: 0 })
   totalPrice: number;
@@ -52,9 +53,8 @@ export class Order {
   @Prop({
     type: String,
     required: true,
-    // enum: {
-    // },
-    // default: OrderStatus.pending,
+    enum: OrderStatus,
+    default: OrderStatus.PENDING,
   })
   status: string;
 

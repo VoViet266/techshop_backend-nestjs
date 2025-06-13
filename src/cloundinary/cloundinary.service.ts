@@ -5,28 +5,36 @@ import { Readable } from 'stream';
 export class CloundinaryService {
   async uploadImage(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
-      const upload = cloudinary.uploader.upload_stream(
+      cloudinary.uploader.upload(
+        `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
         {
           folder: 'uploads',
-          resource_type: 'auto',
+          resource_type: 'image',
           access_mode: 'public',
-          allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
+          // allowed_formats: ['jpg', 'png', 'jpeg', 'gif', 'webp'],
           access_control: [],
+          format: 'webp', // Chỉ định định dạng ảnh
+          transformation: [{ format: 'webp' }],
         },
         (error, result) => {
           if (error) {
             console.error('Lỗi khi upload:', error);
             return reject(error);
           }
+          if (result.bytes > 5 * 1024 * 1024) {
+            // Giới hạn dung lượng ảnh (5MB)
+            return reject(
+              new Error('Dung lượng ảnh vượt quá giới hạn cho phép (5MB)'),
+            );
+          }
           return resolve(result);
         },
       );
-
-      Readable.from(file.buffer).pipe(upload);
     });
   }
 
-  async getImage(publicId: string): Promise<string> {
+  async getImage(url: string): Promise<string> {
+    const publicId = url.split('/').slice(-2).join('/').split('.')[0];
     return new Promise((resolve, reject) => {
       cloudinary.api.resource(publicId, (error, result) => {
         if (error) {
@@ -42,12 +50,12 @@ export class CloundinaryService {
     const publicId = url.split('/').slice(-2).join('/').split('.')[0];
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
-        console.log(result);
         if (error) {
           console.error('Lỗi khi xóa ảnh:', error);
           return reject(error);
         }
         if (result.result === 'ok') {
+          console.log('Xóa ảnh thành công:', url);
           return resolve('Xóa ảnh thành công');
         } else {
           return reject('Không thể xóa ảnh');

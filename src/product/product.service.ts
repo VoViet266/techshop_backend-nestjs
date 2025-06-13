@@ -336,16 +336,14 @@ export class ProductService {
 
   async remove(id: string) {
     const product = await this.productModel.findById(id);
-    console.log(product.variants);
+
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }
     // Kiểm tra xem sản phẩm có tồn tại trong kho không
     const inventory = await this.inventoryModel.findOne({ product: id });
-    if (!inventory) {
-      throw new BadRequestException(
-        'Không thể xóa sản phẩm vì nó đang có trong kho',
-      );
+    if (inventory) {
+      await this.inventoryModel.deleteMany({ product: id });
     }
 
     product.variants.map(async (v) => {

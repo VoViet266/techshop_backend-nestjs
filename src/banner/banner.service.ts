@@ -16,18 +16,20 @@ export class BannerService {
   }
 
   findAll() {
-    return `This action returns all banner`;
+    return this.bannerModel.find().sort({ createdAt: -1 }).exec();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} banner`;
+    return this.bannerModel.findById(id).exec();
   }
 
   update(id: number, updateBannerDto: UpdateBannerDto) {
-    return `This action updates a #${id} banner`;
+    return this.bannerModel
+      .updateOne({ _id: id }, { $set: updateBannerDto })
+      .exec();
   }
 
   remove(id: number) {
-    return `This action removes a #${id} banner`;
+    return this.bannerModel.deleteOne({ _id: id });
   }
 }

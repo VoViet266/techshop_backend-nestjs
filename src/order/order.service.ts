@@ -64,63 +64,8 @@ export class OrderService {
         },
         user,
       );
-      // const productDoc = await this.inventoryModel.findOne({
-      //   product: item.product,
-      //   branch: branch,
-      // });
-      // if (!productDoc) {
-      //   throw new HttpException(
-      //     {
-      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      //       message: `Không tìm thấy sản phẩm`,
-      //     },
-      //     HttpStatus.INTERNAL_SERVER_ERROR,
-      //   );
-      // }
-      // const variant = productDoc.variants.find(
-      //   (v) => v.variantId.toString() === item.variant,
-      // );
-      // if (variant.stock < item.quantity) {
-      //   throw new HttpException(
-      //     {
-      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      //       message: `Không đủ hàng cho sản phẩm `,
-      //     },
-      //     HttpStatus.INTERNAL_SERVER_ERROR,
-      //   );
-      // }
-      // if (!variant) {
-      //   throw new HttpException(
-      //     {
-      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      //       message: `Không tìm thấy biến thể cho sản phẩm }`,
-      //     },
-      //     HttpStatus.INTERNAL_SERVER_ERROR,
-      //   );
-      // }
-      // if (variant.stock < item.quantity) {
-      //   throw new HttpException(
-      //     {
-      //       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      //       message: `Không đủ hàng cho biến thể ${variant.variantId}`,
-      //     },
-      //     HttpStatus.INTERNAL_SERVER_ERROR,
-      //   );
-      // }
 
       totalPrice += item.price * item.quantity;
-      // const updatedStockVariants = productDoc.variants.map((v) => {
-      //   if (v.variantId.toString() === item.variant.toString()) {
-      //     v.stock = Math.max(v.stock - item.quantity, 0);
-      //   }
-      //   return v;
-      // });
-
-      // await this.inventoryModel.findOneAndUpdate(
-      //   { _id: productDoc._id },
-      //   { variants: updatedStockVariants },
-      //   { new: true },
-      // );
     }
 
     createOrderDto.totalPrice = totalPrice;
@@ -142,14 +87,97 @@ export class OrderService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} order`;
+    return this.orderModel
+      .findById(id)
+      .populate('items.product')
+      .populate('items.variant');
   }
 
   update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+    const orderExist = this.orderModel.findById(id);
+    if (!orderExist) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Đơn hàng không tồn tại',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return this.orderModel.findByIdAndUpdate(
+      id,
+      { $set: updateOrderDto },
+      { new: true },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(id: number) {
+    return this.orderModel.findByIdAndDelete(id).then((result) => {
+      if (!result) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.NOT_FOUND,
+            message: 'Đơn hàng không tồn tại',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return { message: 'Đơn hàng đã được xóa thành công' };
+    });
   }
+  // async cancelOrder(id: number, user: IUser) {
+  //   const order = await this.orderModel.findById(id);
+  //   if (!order) {
+  //     throw new HttpException(
+  //       {
+  //         statusCode: HttpStatus.NOT_FOUND,
+  //         message: 'Đơn hàng không tồn tại',
+  //       },
+  //       HttpStatus.NOT_FOUND,
+  //     );
+  //   }
+
+  //   if (order.user.toString() !== user._id.toString()) {
+  //     throw new HttpException(
+  //       {
+  //         statusCode: HttpStatus.FORBIDDEN,
+  //         message: 'Bạn không có quyền hủy đơn hàng này',
+  //       },
+  //       HttpStatus.FORBIDDEN,
+  //     );
+  //   }
+
+  //   if (order.status === 'Cancelled') {
+  //     throw new HttpException(
+  //       {
+  //         statusCode: HttpStatus.BAD_REQUEST,
+  //         message: 'Đơn hàng đã được hủy trước đó',
+  //       },
+  //       HttpStatus.BAD_REQUEST,
+  //     );
+  //   }
+
+  //   // Update order status to 'Cancelled'
+  //   order.status = 'Cancelled';
+  //   await order.save();
+
+  //   // Restore stock for each item in the order
+  //   for (const item of order.items) {
+  //     await this.inventoryService.importStock(
+  //       {
+  //         branchId: order.branch,
+  //         productId: item.product,
+  //         variants: [
+  //           {
+  //             variantId: item.variant,
+  //             stock: item.quantity,
+  //           },
+  //         ],
+  //       },
+  //       user,
+  //     );
+  //   }
+
+  //   return { message: 'Đơn hàng đã được hủy thành công' };
+  // }
 }

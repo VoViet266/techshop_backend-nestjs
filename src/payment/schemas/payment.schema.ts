@@ -26,23 +26,35 @@ export class Payment {
   })
   user: string;
 
-  @Prop({ required: true })
+  @Prop()
+  momoOrderId: string;
+  @Prop()
+  momoRequestId: string;
+
+  @Prop()
+  requestId: string;
+
+  @Prop()
+  momoTransId: string;
+
+  @Prop({
+    type: String,
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
+  status: PaymentStatus;
+
+  @Prop()
+  payType: string;
+
+  @Prop()
   amount: number;
 
-  @Prop({ required: true, enum: PaymentMethod })
-  paymentMethod: string;
-
-  @Prop({ required: true, default: PaymentStatus.PENDING, enum: PaymentStatus })
-  paymentStatus: string;
+  @Prop()
+  message: string;
 
   @Prop()
-  transactionCode: string;
-
-  @Prop()
-  transactionDate: Date;
-
-  // @Prop({ default: RefundStatus.NONE, enum: RefundStatus })
-  // refundStatus: RefundStatus;
+  paymentTime: Date;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

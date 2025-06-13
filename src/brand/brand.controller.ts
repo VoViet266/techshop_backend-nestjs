@@ -29,6 +29,7 @@ export class BrandController {
 
   @Get(':id')
   @Public()
+  
   findOne(@Param('id') id: string) {
     return this.brandService.findOne(+id);
   }

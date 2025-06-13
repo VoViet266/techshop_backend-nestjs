@@ -45,8 +45,12 @@ export class CreateOrderDto {
   @ApiProperty({ example: 1500 })
   totalPrice: number;
 
-  @ApiProperty({ example: 'pending', description: 'Trạng thái đơn hàng' })
+  @ApiProperty({
+    example: '64a2b3c4d5e6f7890a1b2c3f',
+    description: 'ID chi nhánh nơi đặt hàng',
+  })
   branch: string;
+  @ApiProperty({ example: 'pending', description: 'Trạng thái đơn hàng' })
   status: string;
 
   @ApiProperty({ example: '123 Đường ABC, Quận 1, TP.HCM' })

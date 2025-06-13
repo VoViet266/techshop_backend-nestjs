@@ -11,6 +11,7 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Public } from 'src/decorator/publicDecorator';
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/categories')
@@ -23,6 +24,7 @@ export class CategoryController {
   }
 
   @Get()
+  @Public()
   findAll() {
     return this.categoryService.findAll();
   }

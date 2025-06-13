@@ -34,6 +34,7 @@ export class ProductController {
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
+    console.log('Create Product DTO:', createProductDto);
     return this.productService.create(createProductDto);
   }
   @Post('insert')
@@ -53,6 +54,7 @@ export class ProductController {
   }
 
   @Get()
+  @Public()
   @ResponseMessage('Lấy danh sách sản phẩm thành công')
   findAll(
     @Query('page') currentPage: string,
@@ -62,7 +64,7 @@ export class ProductController {
     return this.productService.findAll(+currentPage, +limit, qs);
   }
 
-  @Get('find/:id')
+  @Get('/:id')
   @Public()
   @ResponseMessage('Lấy sản phẩm thành công')
   findOne(@Param('id') id: string) {

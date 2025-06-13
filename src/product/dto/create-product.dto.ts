@@ -213,9 +213,10 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
+  overviewImage: string;
+
   slug: string;
 
-  @IsMongoId()
   category: string;
 
   @ApiProperty({
@@ -223,17 +224,15 @@ export class CreateProductDto {
     description: 'ID thương hiệu',
     type: String,
   })
-  @IsMongoId()
   brand: string;
 
   @ApiProperty({
     type: [VariantDto],
     description: 'Danh sách biến thể sản phẩm',
   })
-  variants?: VariantDto[];
+  variants: VariantDto[];
 
   @ApiProperty({ example: 10, description: 'Giảm giá (%)' })
-  @IsNumber()
   discount: number;
 
   @ApiPropertyOptional({
@@ -252,41 +251,24 @@ export class CreateProductDto {
   connectivity?: ConnectivityDto;
 
   @ApiPropertyOptional({ type: CameraDto, description: 'Thông tin camera' })
-  @ValidateNested()
+
   @Type(() => CameraDto)
-  @IsOptional()
+
   camera?: CameraDto;
 
   @ApiPropertyOptional({
     example: ['smartphone', 'apple'],
     description: 'Tags sản phẩm',
   })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
   tags?: string[];
 
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
   viewCount?: number;
 
-  @IsNumber()
-  @Min(0)
-  @Max(5)
-  @IsOptional()
   averageRating?: number;
 
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
   reviewCount?: number;
 
-  @IsBoolean()
-  @IsOptional()
   isActive?: boolean;
 
-  @IsBoolean()
-  @IsOptional()
   isFeatured?: boolean;
 }
