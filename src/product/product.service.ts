@@ -329,9 +329,26 @@ export class ProductService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    return this.productModel.findByIdAndUpdate(id, updateProductDto, {
-      new: true,
-    });
+    const product = await this.productModel.findById(id);
+    
+    if (!product) {
+      throw new BadRequestException('Sản phẩm không tồn tại');
+    }
+    await Promise.all(
+      product.variants.map(async (v, index) => {
+        const variantUpdate = updateProductDto.variants[index];
+        if (variantUpdate) {
+          await this.variantModel.findByIdAndUpdate(v, {
+            name: variantUpdate.name,
+            price: variantUpdate.price,
+            color: variantUpdate.color,
+            memory: variantUpdate.memory,
+            images: variantUpdate.images,
+          });
+        }
+      }),
+    );
+    return this.productModel.updateOne({ _id: id }, updateProductDto, {});
   }
 
   async remove(id: string) {

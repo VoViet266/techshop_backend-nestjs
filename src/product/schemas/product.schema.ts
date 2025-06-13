@@ -139,7 +139,6 @@ export class Products {
   })
   tags: string[]; // For search and filtering
 
-  
   @Prop({
     type: [String],
     default: [],
@@ -217,7 +216,6 @@ export const ProductSchema = SchemaFactory.createForClass(Products);
 
 // Compound indexes for better query performance
 ProductSchema.index({ category: 1, brand: 1, isActive: 1 });
-ProductSchema.index({ name: 1, isActive: 1 });
 ProductSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
 ProductSchema.index({ tags: 1, isActive: 1 });
 ProductSchema.index({ slug: 1 }, { unique: true });

@@ -216,7 +216,7 @@ export class AuthService {
     const token = randomBytes(3).toString('hex');
 
     const expiresAt = new Date();
-    // theo múi giờ Việt Nam
+
     expiresAt.toLocaleDateString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
     });
