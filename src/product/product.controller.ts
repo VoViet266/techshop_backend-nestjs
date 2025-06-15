@@ -72,7 +72,7 @@ export class ProductController {
   }
 
   @Public()
-  @Get('/search')
+  @Get('/search/autocomplete')
   async autocomplete(@Query('query') query: string) {
     return this.productService.autocompleteSearch(query);
   }
