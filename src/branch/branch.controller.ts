@@ -16,8 +16,8 @@ export class BranchController {
   constructor(private readonly branchService: branchService) {}
 
   @Post()
-  @Public()
   create(@Body() createBranchDto: CreateBranchDto) {
+    console.log(createBranchDto);
     return this.branchService.create(createBranchDto);
   }
 
@@ -34,6 +34,10 @@ export class BranchController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBranchDto: UpdateBranchDto) {
+    const storeExists = this.branchService.findOne(id);
+    if (!storeExists) {
+      throw new Error(`branch with id ${id} does not exist`);
+    }
     return this.branchService.update(id, updateBranchDto);
   }
 

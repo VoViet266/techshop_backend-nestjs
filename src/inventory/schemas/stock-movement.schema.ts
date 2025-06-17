@@ -32,16 +32,17 @@ export class StockMovement {
     type: [
       {
         variantId: { type: mongoose.Types.ObjectId, ref: Variant.name },
-        stock: { type: Number },
+        quantity: { type: Number },
         cost: { type: Number, default: 0, min: 0 },
       },
     ],
   })
   variants?: {
     variantId: mongoose.Types.ObjectId;
-    stock: number;
+    quantity: number;
     cost?: number;
   }[];
+
   @Prop({
     enum: TransactionType,
     required: true,
@@ -58,26 +59,22 @@ export class StockMovement {
 
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   createdBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };
 
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   updatedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };

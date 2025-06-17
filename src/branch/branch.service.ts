@@ -13,9 +13,9 @@ export class branchService {
     private readonly branchModel: SoftDeleteModel<BranchDocument>,
   ) {}
   create(createBranchDto: CreateBranchDto) {
-    const existingBranch = this.branchModel.findOne({
-      name: createBranchDto.name,
-    });
+    // const existingBranch = this.branchModel.findOne({
+    //   name: createBranchDto.name,
+    // });
     // if (existingBranch) {
     //   throw new Error(
     //     `Branch with name ${createBranchDto.name} already exists`,
@@ -25,7 +25,10 @@ export class branchService {
   }
 
   findAll() {
-    return this.branchModel.find().sort({ createdAt: -1 }).exec();
+    return this.branchModel.find().populate({
+      path: 'manager',
+      select: 'email name',
+    });
   }
 
   findOne(id: string) {

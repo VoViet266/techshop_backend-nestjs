@@ -1,8 +1,10 @@
 export enum TransactionType {
   IMPORT = 'import', // Nhập hàng vào kho (từ nhà cung cấp hoặc nguồn bên ngoài)
   EXPORT = 'export', // Xuất hàng ra khỏi kho (bán hàng, huỷ hàng, v.v.)
-  TRANSFER_IN = 'transfer_in', // Nhập hàng chuyển từ chi nhánh khác (chi nhánh nhận)
-  TRANSFER_OUT = 'transfer_out', // Xuất hàng chuyển sang chi nhánh khác (chi nhánh gửi)
+  TRANSFER = 'transfer', // Chuyển kho
+  TRANSFER_IN = 'transfer-in', // Nhập tay (tự điều chiển trong hệ thống)
+  TRANSFER_OUT = 'transfer-out', // Xuat tay (tự điều chiển trong hệ thống)
+  ADJUST = 'adjust', // Tự điều chiển trong hệ thống
 }
 export enum TransactionStatus {
   PENDING = 'pending', // Đang chờ xử lý

@@ -22,11 +22,7 @@ import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import path from 'path';
-import * as XLSX from 'xlsx';
-import * as fs from 'fs';
-import csvParser from 'csv-parser';
+
 @ApiBearerAuth('access-token')
 @Controller('api/v1/products')
 export class ProductController {
@@ -72,7 +68,7 @@ export class ProductController {
   }
 
   @Public()
-  @Get('/search')
+  @Get('/search/autocomplete')
   async autocomplete(@Query('query') query: string) {
     return this.productService.autocompleteSearch(query);
   }

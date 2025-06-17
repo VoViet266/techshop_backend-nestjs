@@ -58,7 +58,7 @@ export class OrderService {
           variants: [
             {
               variantId: item.variant,
-              stock: item.quantity,
+              quantity: item.quantity,
             },
           ],
         },

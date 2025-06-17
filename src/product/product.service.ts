@@ -125,7 +125,7 @@ export class ProductService {
       }
     }
 
-    // Insert tất cả products vào DB
+   
     const inserted = await this.productModel.insertMany(products);
 
     return { success: true, insertedCount: inserted.length };

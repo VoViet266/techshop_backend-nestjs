@@ -41,7 +41,7 @@ export class InventoryService {
     private transferModel: SoftDeleteModel<TransferDocument>,
   ) {}
 
-  async create(createInventoryDto: CreateInventoryDto) {
+  async create(createInventoryDto: CreateInventoryDto, user: IUser) {
     const product = await this.productModel.findById(
       createInventoryDto.product,
     );
@@ -74,6 +74,7 @@ export class InventoryService {
         stock: variant.stock,
         cost: variant.cost || 0, // Ensure cost is included and defaults to 0 if missing
       })),
+      user: user,
     };
 
     return await this.inventoryModel.create(inventoryData);
@@ -95,6 +96,40 @@ export class InventoryService {
       .populate('variants.variantId', 'name sku')
       .lean();
   }
+  findImport(user: any) {
+    if (user.role?.roleName === RolesUser.Admin) {
+      return this.movementModel
+        .find({ type: TransactionType.IMPORT })
+        .populate('productId', 'name')
+        .populate('branchId', 'name location')
+        .populate('variants.variantId', 'name sku')
+        .lean();
+    }
+    return this.movementModel
+      .find({ branch: user.branch, type: TransactionType.IMPORT })
+      .populate('productId', 'name  ')
+      .populate('branchId', 'name location')
+      .populate('variants.variantId', 'name sku')
+      .lean();
+  }
+
+  findExport(user: any) {
+    if (user.role?.roleName === RolesUser.Admin) {
+      return this.inventoryModel
+        .find({ type: TransactionType.EXPORT })
+        .populate('productId', 'name')
+        .populate('branchId', 'name location')
+        .populate('variants.variantId', 'name sku')
+        .lean();
+    }
+    return this.inventoryModel
+      .find({ branch: user.branch, type: TransactionType.EXPORT })
+      .populate('productId', 'name  ')
+      .populate('branchId', 'name location')
+      .populate('variants.variantId', 'name sku')
+      .lean();
+  }
+
   findOne(id: string) {
     return this.inventoryModel
       .findById(id)
@@ -147,17 +182,18 @@ export class InventoryService {
     }
 
     // Cập nhật variants
-    variants.forEach(({ variantId, stock}) => {
+    variants.forEach(({ variantId, quantity, cost }) => {
       const variant = inventory.variants.find(
         (v) => v.variantId.toString() === variantId,
       );
 
       if (variant) {
-        variant.stock += stock;
+        variant.stock += quantity;
       } else {
         inventory.variants.push({
           variantId: new mongoose.Types.ObjectId(variantId),
-          stock: stock,
+          stock: quantity,
+          cost: cost,
         });
       }
     });
@@ -192,23 +228,23 @@ export class InventoryService {
     }
 
     // Kiểm tra tồn kho đủ
-    for (const { variantId, stock } of variants) {
+    for (const { variantId, quantity } of variants) {
       const variant = inventory.variants.find(
         (v) => v.variantId.toString() === variantId,
       );
-      if (!variant || variant.stock < stock) {
+      if (!variant || variant.stock < quantity) {
         throw new NotFoundException(`Tồn kho biến thể ${variantId} không đủ`);
       }
     }
 
     // Trừ tồn kho
-    variants.forEach(({ variantId, stock }) => {
+    variants.forEach(({ variantId, quantity }) => {
       const variant = inventory.variants.find(
         (v) => v.variantId.toString() === variantId,
       );
       // nếu variant tồn tại thì trừ đi số lượng tồn kho
       if (variant) {
-        variant.stock -= stock;
+        variant.stock -= quantity;
       }
     });
 
@@ -228,7 +264,7 @@ export class InventoryService {
     const productId = items[0].productId; // Extract productId from the first item
     const variants = items.map((item) => ({
       variantId: item.variant.toString(),
-      stock: item.quantity,
+      quantity: item.quantity,
     }));
 
     // // Xuất kho từ chi nhánh gửi

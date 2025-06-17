@@ -32,7 +32,7 @@ export class Inventory {
     _id: false,
     type: [
       {
-        variantId: { type: mongoose.Types.ObjectId, ref: 'Variant' },
+        variantId: { type: mongoose.Types.ObjectId, ref: Variant.name },
         stock: { type: Number },
         cost: { type: Number, default: 0, min: 0 },
       },
@@ -58,6 +58,9 @@ export class Inventory {
   })
   maxStockLevel: number;
 
+  //nhà cung cấp
+  ///
+
   // Thời gian nhập hàng gần nhất
   @Prop({ type: Date })
   lastRestockedAt: Date;
@@ -72,22 +75,29 @@ export class Inventory {
   // Thông tin người cập nhật cuối cùng
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   lastUpdatedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };
+
+  @Prop({
+    type: {
+      email: String,
+      name: String,
+    },
+  })
+  createdBy: {
+    email: string;
+    name: string;
+  };
+
+  @Prop()
+  createdAt: Date;
+  @Prop()
+  updatedAt: Date;
 }
-
-// Tạo schema từ class Inventory
 export const InventorySchema = SchemaFactory.createForClass(Inventory);
-
-// // Tạo các chỉ mục (index) cho schema để tối ưu truy vấn
-
-InventorySchema.index({ branch: 1, product: 1, quantity: 1, isActive: 1 });
-InventorySchema.index({ quantity: 1, minStockLevel: 1, isActive: 1 });

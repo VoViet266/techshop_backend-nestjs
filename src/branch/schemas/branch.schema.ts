@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
+import { User } from 'src/user/schemas/user.schema';
 
 export type BranchDocument = HydratedDocument<Branch>;
 
@@ -16,19 +17,16 @@ export class Branch {
   name: string;
 
   @Prop({
-    required: true,
+    // required: true,
     trim: true,
   })
   address: string;
 
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  manager: mongoose.Schema.Types.ObjectId;
+
   @Prop({
     trim: true,
-    // validate: {
-    //   validator: function (v: string) {
-    //     return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
-    //   },
-    //   message: 'Invalid phone number format',
-    // },
   })
   phone: string;
 
@@ -49,6 +47,12 @@ export class Branch {
     index: true,
   })
   isActive: boolean;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
 
   @Prop({ default: false })
   isDeleted: boolean;

@@ -10,8 +10,8 @@ export class Category {
   @Prop({ required: true })
   description: string;
 
-  @Prop()
-  slug: string; // URL-friendly version of name
+  @Prop({ default: true })
+  isActive: boolean;
 
   @Prop({ default: Date.now })
   createdAt: Date;
@@ -23,12 +23,12 @@ export class Category {
     type: Object,
   })
   createdBy: {
-    _id: string; // Assuming _id is a string, adjust if it's an ObjectId
+    _id: string; 
     email: string;
   };
   @Prop({ type: Object })
   updatedBy: {
-    _id: string; // Assuming _id is a string, adjust if it's an ObjectId
+    _id: string; 
     email: string;
   };
 }

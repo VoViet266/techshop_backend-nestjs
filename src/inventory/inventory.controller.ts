@@ -28,8 +28,8 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post()
-  create(@Body() createInventoryDto: CreateInventoryDto) {
-    return this.inventoryService.create(createInventoryDto);
+  create(@Body() createInventoryDto: CreateInventoryDto, @User() user: IUser) {
+    return this.inventoryService.create(createInventoryDto, user);
   }
 
   @Get()
@@ -37,6 +37,16 @@ export class InventoryController {
   @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
   findAll(@User() user: IUser) {
     return this.inventoryService.findAll(user);
+  }
+
+  @Get('/getImport')
+  findImport(@User() user: IUser) {
+    return this.inventoryService.findImport(user);
+  }
+
+  @Get('/getExport')
+  findExport(@User() user: IUser) {
+    return this.inventoryService.findExport(user);
   }
 
   @Get(':id')
@@ -59,7 +69,9 @@ export class InventoryController {
 
   @Post('import')
   async importStock(@Body() dto: CreateStockMovementDto, @User() user: IUser) {
+
     return this.inventoryService.importStock(dto, user);
+
   }
 
   @Post('export')
