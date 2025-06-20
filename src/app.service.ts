@@ -6,6 +6,6 @@ export class AppService {
   constructor(private readonly configService: ConfigService) {}
   getHello(): string {
     const appName = this.configService.get<string>('APP_NAME') || 'Application';
-    return `Welcome to ${appName}!`;
+    return `Welcome to ${appName}!!`;
   }
 }

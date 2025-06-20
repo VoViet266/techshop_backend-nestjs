@@ -13,25 +13,30 @@ import { Products, ProductSchema } from 'src/product/schemas/product.schema';
 import { Cart, CartSchema } from 'src/cart/schemas/cart.schema';
 import { CaslModule } from 'src/casl/casl.module';
 import { InventoryModule } from 'src/inventory/inventory.module';
+import { Payment, PaymentSchema } from 'src/payment/schemas/payment.schema';
+
+import { User, UserSchema } from 'src/user/schemas/user.schema';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   controllers: [OrderController],
   providers: [OrderService],
-  exports: [
-    MongooseModule, // 👈 export để module khác dùng được
-  ],
+  exports: [MongooseModule],
   imports: [
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
-      { name: Inventory.name, schema: InventorySchema },
+      // { name: Inventory.name, schema: InventorySchema },
       { name: Products.name, schema: ProductSchema },
       { name: Cart.name, schema: CartSchema },
+      { name: Payment.name, schema: PaymentSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     ProductModule,
     CartModule,
     CaslModule,
     InventoryModule,
-   // Import InventoryModule if needed
+    ProductModule,
+    UserModule,
   ],
 })
 export class OrderModule {}

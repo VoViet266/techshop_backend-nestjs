@@ -10,7 +10,7 @@ export class ImportProductFromCsvDto {
   isActive: boolean;
   isFeatured: boolean;
   tags: string[];
-  variants: mongoose.Schema.Types.ObjectId[]; // vì bạn dùng createdVariants.map(v => v._id)
+  variants: mongoose.Schema.Types.ObjectId[];
 
   specifications: {
     displaySize: string;

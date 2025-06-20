@@ -67,9 +67,4 @@ async function bootstrap() {
   );
 }
 bootstrap();
-//sử dụng webpack
-declare const module: any;
-if (module.hot) {
-  module.hot.accept();
-  module.hot.dispose(() => process.exit(0));
-}
+

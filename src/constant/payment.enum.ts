@@ -7,9 +7,11 @@ export enum PaymentMethod {
 }
 
 export enum PaymentStatus {
-  PENDING = 'pending',
-  SUCCESS = 'success',
-  FAILED = 'failed',
+  PENDING = 'PENDING', // Đang chờ thanh toán
+  COMPLETED = 'COMPLETED', // Đã thanh toán
+  FAILED = 'FAILED', // Thanh toán thất bại
+  CANCELLED = 'CANCELLED', // Đã hủy
+  REFUNDED = 'REFUNDED', // Đã hoàn tiền
 }
 
 export enum RefundStatus {
@@ -18,4 +20,3 @@ export enum RefundStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
 }
-

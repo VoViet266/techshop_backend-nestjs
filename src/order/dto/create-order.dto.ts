@@ -50,8 +50,15 @@ export class CreateOrderDto {
     description: 'ID chi nhánh nơi đặt hàng',
   })
   branch: string;
+
   @ApiProperty({ example: 'pending', description: 'Trạng thái đơn hàng' })
   status: string;
+
+  source: string;
+
+  paymentStatus: string;
+
+  payment: string;
 
   @ApiProperty({ example: '123 Đường ABC, Quận 1, TP.HCM' })
   shippingAddress: string;
@@ -61,4 +68,6 @@ export class CreateOrderDto {
     description: 'Phương thức thanh toán',
   })
   paymentMethod: string;
+
+  phone: string;
 }

@@ -22,6 +22,7 @@ import { Actions, Subjects } from 'src/constant/permission.enum';
 import { User } from 'src/decorator/userDecorator';
 import { use } from 'passport';
 import { IUser } from 'src/user/interface/user.interface';
+import { Public } from 'src/decorator/publicDecorator';
 @ApiBearerAuth('access-token')
 @Controller('api/v1/inventories')
 export class InventoryController {
@@ -69,9 +70,28 @@ export class InventoryController {
 
   @Post('import')
   async importStock(@Body() dto: CreateStockMovementDto, @User() user: IUser) {
-
     return this.inventoryService.importStock(dto, user);
+  }
 
+  @Get('getimport')
+  @Public()
+  async getAllImport(@User() user: IUser) {
+    return this.inventoryService.findImport(user);
+  }
+
+  @Get('getimport/:id')
+  async getImport(@Param('id') id: string) {
+    return this.inventoryService.getImportDetail(id);
+  }
+
+  @Get('getexport')
+  async getAllExport(@User() user: IUser) {
+    return this.inventoryService.findExport(user);
+  }
+
+  @Get('getexport/:id')
+  async getExport(@Param('id') id: string) {
+    return this.inventoryService.getExportDetail(id);
   }
 
   @Post('export')

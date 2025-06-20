@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,11 +7,9 @@ import { ProductDocument, Products } from 'src/product/schemas/product.schema';
 import { Cart, CartDocument } from 'src/cart/schemas/cart.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/user/interface/user.interface';
-import {
-  Inventory,
-  InventoryDocument,
-} from 'src/inventory/schemas/inventory.schema';
+
 import { InventoryService } from 'src/inventory/inventory.service';
+import { User, UserDocument } from 'src/user/schemas/user.schema';
 
 @Injectable()
 export class OrderService {
@@ -22,35 +20,62 @@ export class OrderService {
     private readonly productModel: SoftDeleteModel<ProductDocument>,
     @InjectModel(Cart.name)
     private readonly cartModel: SoftDeleteModel<CartDocument>,
-    @InjectModel(Inventory.name)
-    private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
+    // @InjectModel(Inventory.name)
+    // private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
+
+    @InjectModel(User.name)
+    private readonly userModel: SoftDeleteModel<UserDocument>,
+
     private readonly inventoryService: InventoryService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {
-    //Tìm sản phẩm trong giỏ hàng của user
-    const userCart = await this.cartModel.findOne({ user: user._id });
-    if (!userCart || userCart.items.length === 0) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Giỏ hàng của bạn đang trống!',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    if (user.role === 'staff') {
+      // Nếu là nhân viên, kiểm tra branch
+      if (!user.branch) {
+        throw new ForbiddenException('Bạn chưa được gán chi nhánh!');
+      }
 
-    createOrderDto.items = userCart.items.map((item) => {
-      return {
+      if (createOrderDto.branch.toString() !== user.branch.toString()) {
+        throw new ForbiddenException(
+          'Bạn chỉ có quyền tạo đơn tại chi nhánh của mình!',
+        );
+      }
+    }
+    let itemsToOrder = [];
+
+    // Nếu là khách online (ko gửi items), lấy từ cart
+    if (!createOrderDto.items || createOrderDto.items.length === 0) {
+      const userCart = await this.cartModel.findOne({ user: user._id });
+      if (!userCart || userCart.items.length === 0) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Giỏ hàng của bạn đang trống!',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      itemsToOrder = userCart.items.map((item) => ({
         product: item.product.toString(),
         quantity: item.quantity,
         variant: item.variant.toString(),
         price: item.price,
-      };
-    });
+      }));
+    } else {
+      // Nếu là nhân viên tạo tại quầy
+      itemsToOrder = createOrderDto.items;
+    }
 
+    // Get user phone
+    const findUser = await this.userModel.findById(user._id);
+    let phone = findUser?.phone || '';
+    createOrderDto.phone = createOrderDto.phone || phone;
+
+    // Xuất kho + tính tổng
     let totalPrice = 0;
-    for (const item of createOrderDto.items) {
+    for (const item of itemsToOrder) {
       await this.inventoryService.exportStock(
         {
           branchId: createOrderDto.branch,
@@ -68,22 +93,43 @@ export class OrderService {
       totalPrice += item.price * item.quantity;
     }
 
-    createOrderDto.totalPrice = totalPrice;
+    // Tạo order
     const newOrder = await this.orderModel.create({
-      ...createOrderDto,
+      branch: createOrderDto.branch,
+      phone: createOrderDto.phone,
+      items: itemsToOrder,
+      totalPrice: totalPrice,
       user: user._id,
       createdBy: {
         id: user._id,
         email: user.email,
       },
+      source: createOrderDto.items ? 'pos' : 'online',
     });
-    //Xóa giỏ hàng sau khi tạo đơn hàng
-    await this.cartModel.findOneAndDelete({ user: user._id });
+
+    // Nếu là online thì xóa giỏ hàng
+    if (!createOrderDto.items || createOrderDto.items.length === 0) {
+      await this.cartModel.findOneAndDelete({ user: user._id });
+    }
+
     return newOrder;
   }
 
   findAll(user: IUser) {
-    return this.orderModel.find({ user: user._id });
+    return this.orderModel
+      .find({ user: user._id })
+      .populate({
+        path: 'items.product',
+        select: 'name ',
+      })
+      .populate({
+        path: 'items.variant',
+        select: 'name ',
+      })
+      .populate({
+        path: 'branch',
+        select: 'name phone address email',
+      });
   }
 
   findOne(id: number) {
@@ -93,7 +139,7 @@ export class OrderService {
       .populate('items.variant');
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
+  update(id: string, updateOrderDto: UpdateOrderDto) {
     const orderExist = this.orderModel.findById(id);
     if (!orderExist) {
       throw new HttpException(

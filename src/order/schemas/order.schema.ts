@@ -2,6 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { Branch } from 'src/branch/schemas/branch.schema';
 import { OrderStatus } from 'src/constant/orderStatus.enum';
+import { PaymentStatus } from 'src/constant/payment.enum';
+import { Payment } from 'src/payment/schemas/payment.schema';
 import { Products } from 'src/product/schemas/product.schema';
 import { Variant } from 'src/product/schemas/variant.schema';
 
@@ -13,7 +15,7 @@ export type OrderDocument = HydratedDocument<Order>;
 })
 export class Order {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
-  user: mongoose.Schema.Types.ObjectId;
+  user?: mongoose.Schema.Types.ObjectId;
 
   @Prop({
     type: [
@@ -41,6 +43,10 @@ export class Order {
     variant: mongoose.Schema.Types.ObjectId;
   }[];
 
+  //phương thức mua hàng (online, offline)
+  @Prop({ type: String })
+  source: string;
+
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Branch.name,
@@ -58,11 +64,20 @@ export class Order {
   })
   status: string;
 
+  @Prop({ type: String, default: PaymentStatus.PENDING })
+  paymentStatus: string;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' })
+  payment: mongoose.Schema.Types.ObjectId;
+
   @Prop({ type: String, required: true })
   shippingAddress: string;
 
   @Prop({ type: String, required: true })
   paymentMethod: string;
+
+  @Prop({ type: String })
+  phone: string;
 
   @Prop()
   createdAt: Date;
@@ -71,13 +86,13 @@ export class Order {
     type: Object,
   })
   createdBy: {
-    _id: mongoose.Schema.Types.ObjectId;
+    name: string;
     email: string;
   };
 
   @Prop({ type: Object })
   updatedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
+    name: string;
     email: string;
   };
 }

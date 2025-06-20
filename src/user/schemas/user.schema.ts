@@ -12,7 +12,7 @@ const AddressSchema = new mongoose.Schema(
   },
   {
     _id: false,
-    strict: true, // Cấm field lạ như isDeleted, deletedAt nếu không khai báo
+    strict: true,
   },
 );
 @Schema({ timestamps: true })
@@ -34,12 +34,6 @@ export class User {
 
   @Prop({
     trim: true,
-    validate: {
-      validator: function (v: string) {
-        return !v || /^[\+]?[1-9][\d]{0,15}$/.test(v);
-      },
-      message: 'Invalid phone number format',
-    },
   })
   phone: string;
 
@@ -58,11 +52,8 @@ export class User {
   })
   userType: string;
 
-  @Prop({
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Branch.name,
-  })
-  branch?: mongoose.Schema.Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Branch.name })
+  branch: mongoose.Schema.Types.ObjectId;
 
   @Prop()
   age: number;

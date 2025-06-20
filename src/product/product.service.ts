@@ -125,7 +125,6 @@ export class ProductService {
       }
     }
 
-   
     const inserted = await this.productModel.insertMany(products);
 
     return { success: true, insertedCount: inserted.length };
@@ -173,6 +172,14 @@ export class ProductService {
           localField: 'brand',
           foreignField: '_id',
           as: 'brand',
+        },
+      },
+      {
+        $lookup: {
+          from: 'variants',
+          localField: 'variants',
+          foreignField: '_id',
+          as: 'variants',
         },
       },
       {
@@ -330,7 +337,7 @@ export class ProductService {
 
   async update(id: string, updateProductDto: UpdateProductDto) {
     const product = await this.productModel.findById(id);
-    
+
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }

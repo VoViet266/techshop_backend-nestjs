@@ -72,7 +72,7 @@ export class InventoryService {
       variants: createInventoryDto.variants.map((variant) => ({
         variantId: variant.variantId,
         stock: variant.stock,
-        cost: variant.cost || 0, // Ensure cost is included and defaults to 0 if missing
+        cost: variant.cost || 0,
       })),
       user: user,
     };
@@ -115,14 +115,14 @@ export class InventoryService {
 
   findExport(user: any) {
     if (user.role?.roleName === RolesUser.Admin) {
-      return this.inventoryModel
+      return this.movementModel
         .find({ type: TransactionType.EXPORT })
         .populate('productId', 'name')
         .populate('branchId', 'name location')
         .populate('variants.variantId', 'name sku')
         .lean();
     }
-    return this.inventoryModel
+    return this.movementModel
       .find({ branch: user.branch, type: TransactionType.EXPORT })
       .populate('productId', 'name  ')
       .populate('branchId', 'name location')
@@ -174,7 +174,12 @@ export class InventoryService {
         branch: branchId,
         product: productId,
         variants: [],
+        lastRestockedAt: new Date(),
         isActive: true,
+        createdBy: {
+          email: user.email,
+          name: user.name,
+        },
       });
       if (!inventory) {
         throw new BadRequestException('Không thể tạo tồn kho mới');
@@ -207,12 +212,29 @@ export class InventoryService {
       productId,
       variants,
       createdBy: {
-        _id: user._id,
         email: user.email,
         name: user.name,
       },
     });
     return { message: 'Nhập kho thành công', inventory };
+  }
+
+  async getImportDetail(id: string) {
+    return this.movementModel
+      .findById(id)
+      .populate('productId', 'name')
+      .populate('branchId', 'name location')
+      .populate('variants.variantId', 'name sku')
+      .lean();
+  }
+
+  async getExportDetail(id: string) {
+    return this.movementModel
+      .findById(id)
+      .populate('productId', 'name')
+      .populate('branchId', 'name location')
+      .populate('variants.variantId', 'name sku')
+      .lean();
   }
 
   async exportStock(dto: CreateStockMovementDto, user: IUser) {
@@ -227,7 +249,6 @@ export class InventoryService {
       throw new NotFoundException('Không tìm thấy tồn kho');
     }
 
-    // Kiểm tra tồn kho đủ
     for (const { variantId, quantity } of variants) {
       const variant = inventory.variants.find(
         (v) => v.variantId.toString() === variantId,
@@ -249,12 +270,15 @@ export class InventoryService {
     });
 
     await inventory.save();
-    //
     await this.movementModel.create({
       type: TransactionType.EXPORT,
       branchId,
       productId,
       variants,
+      createdBy: {
+        email: user.email,
+        name: user.name,
+      },
     });
     return { message: 'Xuất kho thành công', inventory };
   }

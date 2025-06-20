@@ -62,7 +62,7 @@ export class AuthService {
       },
     });
     const role: any = userWithRole.role;
-    const branch = userWithRole.branch;
+
     const roleName = role?.name;
     const permission = role?.permissions?.map((per: any) => ({
       name: per.name,
@@ -77,7 +77,7 @@ export class AuthService {
       name,
       email,
       avatar,
-      branch,
+
       role: {
         roleName,
         permission,
@@ -104,7 +104,7 @@ export class AuthService {
       name,
       email,
       avatar,
-      branch,
+
       role: {
         roleName,
         permission,

@@ -44,8 +44,6 @@ export class CreateUserDto {
   password: string;
 
   @ApiPropertyOptional({ example: '0912345678' })
-  @IsOptional()
-  @IsString()
   phone?: string;
 
   @ApiPropertyOptional({
@@ -56,8 +54,6 @@ export class CreateUserDto {
   @IsArray()
   @IsString({ each: true })
   address?: string[];
-
-  branch: string;
 
   @ApiPropertyOptional({ example: 25 })
   @IsOptional()
@@ -79,7 +75,6 @@ export class CreateUserDto {
   status?: string;
 }
 
-// 📌 DTO đăng ký người dùng
 class AddressDto {
   @ApiProperty({ example: '123 Đường ABC, Quận 1' })
   @IsString()
