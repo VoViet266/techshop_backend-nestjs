@@ -81,7 +81,7 @@ export class InventoryService {
   }
 
   async findAll(user: any) {
-    if (user.role?.roleName === RolesUser.Admin) {
+    if (user.role === RolesUser.Admin) {
       return this.inventoryModel
         .find()
         .populate('product', 'name')
@@ -97,7 +97,8 @@ export class InventoryService {
       .lean();
   }
   findImport(user: any) {
-    if (user.role?.roleName === RolesUser.Admin) {
+    console.log(user);
+    if (user.role === RolesUser.Admin) {
       return this.movementModel
         .find({ type: TransactionType.IMPORT })
         .populate('productId', 'name')
@@ -114,7 +115,7 @@ export class InventoryService {
   }
 
   findExport(user: any) {
-    if (user.role?.roleName === RolesUser.Admin) {
+    if (user.role === RolesUser.Admin) {
       return this.movementModel
         .find({ type: TransactionType.EXPORT })
         .populate('productId', 'name')

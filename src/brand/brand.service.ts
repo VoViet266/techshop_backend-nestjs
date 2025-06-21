@@ -38,7 +38,7 @@ export class BrandService {
       });
   }
 
-  async update(id: number, updateBrandDto: UpdateBrandDto) {
+  async update(id: string, updateBrandDto: UpdateBrandDto) {
     const existingBrand = await this.brandModel.findById(id);
     if (!existingBrand) {
       throw new Error(`Brand with id ${id} does not exist`);
@@ -50,7 +50,7 @@ export class BrandService {
     );
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return this.brandModel.deleteOne({ _id: id }).then((result) => {
       if (result.deletedCount === 0) {
         throw new Error(`Brand with id ${id} does not exist`);
