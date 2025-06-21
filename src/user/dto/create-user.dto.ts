@@ -87,22 +87,16 @@ class AddressDto {
 export class RegisterUserDto {
   @ApiProperty({ example: 'Nguyen Van B' })
   @IsNotEmpty({ message: 'Name không được để trống' })
-  @IsString()
   name: string;
 
   @ApiProperty({ example: 'password123' })
   @IsNotEmpty({ message: 'Password không được để trống' })
-  @IsString()
   password: string;
 
   @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
-  @IsOptional()
-  @IsString()
   avatar?: string;
 
   @ApiProperty({ example: 'user2@example.com' })
-  @IsEmail({}, { message: 'Email không hợp lệ' })
-  @IsNotEmpty({ message: 'Email không được để trống' })
   email: string;
 
   @ApiProperty({
@@ -112,28 +106,18 @@ export class RegisterUserDto {
       { addressDetail: '456 Đường XYZ', default: false },
     ],
   })
-  @ValidateNested({ each: true })
-  @Type(() => AddressDto)
   address: AddressDto[];
 
   @ApiPropertyOptional({ example: 30 })
-  @IsOptional()
-  @IsNumber({}, { message: 'Age phải là số' })
   age?: number;
 
   @ApiProperty({ type: [String], example: ['user', 'admin'] })
-  @IsArray()
-  @IsString({ each: true })
   role: string[];
 
   @ApiPropertyOptional({ example: 'male' })
-  @IsOptional()
-  @IsString()
   gender?: string;
 
   @ApiPropertyOptional({ example: '0987654321' })
-  @IsOptional()
-  @IsString()
   phone?: string;
 }
 export class LoginDto {

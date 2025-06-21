@@ -1,4 +1,9 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,6 +15,11 @@ import { IUser } from 'src/user/interface/user.interface';
 
 import { InventoryService } from 'src/inventory/inventory.service';
 import { User, UserDocument } from 'src/user/schemas/user.schema';
+import { RolesUser } from 'src/constant/roles.enum';
+import { OrderStatus } from 'src/constant/orderStatus.enum';
+import { PaymentMethod, PaymentStatus } from 'src/constant/payment.enum';
+import { Payment, PaymentDocument } from 'src/payment/schemas/payment.schema';
+import mongoose, { Types } from 'mongoose';
 
 @Injectable()
 export class OrderService {
@@ -23,6 +33,9 @@ export class OrderService {
     // @InjectModel(Inventory.name)
     // private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
 
+    @InjectModel(Payment.name)
+    private readonly paymentModel: SoftDeleteModel<PaymentDocument>,
+
     @InjectModel(User.name)
     private readonly userModel: SoftDeleteModel<UserDocument>,
 
@@ -30,7 +43,7 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {
-    if (user.role === 'staff') {
+    if (user.role === RolesUser.Staff) {
       // Nếu là nhân viên, kiểm tra branch
       if (!user.branch) {
         throw new ForbiddenException('Bạn chưa được gán chi nhánh!');
@@ -43,8 +56,6 @@ export class OrderService {
       }
     }
     let itemsToOrder = [];
-
-    // Nếu là khách online (ko gửi items), lấy từ cart
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       const userCart = await this.cartModel.findOne({ user: user._id });
       if (!userCart || userCart.items.length === 0) {
@@ -92,20 +103,39 @@ export class OrderService {
 
       totalPrice += item.price * item.quantity;
     }
-
-    // Tạo order
     const newOrder = await this.orderModel.create({
       branch: createOrderDto.branch,
       phone: createOrderDto.phone,
       items: itemsToOrder,
       totalPrice: totalPrice,
       user: user._id,
+      paymentMethod: createOrderDto.paymentMethod,
+      status: OrderStatus.PENDING,
+      paymentStatus:
+        createOrderDto.paymentStatus === PaymentMethod.CASH
+          ? PaymentStatus.COMPLETED
+          : PaymentStatus.PENDING,
       createdBy: {
-        id: user._id,
+        name: user.name,
         email: user.email,
       },
       source: createOrderDto.items ? 'pos' : 'online',
     });
+    const newPayment = await this.paymentModel.create({
+      order: newOrder._id,
+      user: user._id,
+      amount: totalPrice,
+      payType: createOrderDto.paymentMethod,
+      status:
+        createOrderDto.paymentMethod === 'cash'
+          ? PaymentStatus.COMPLETED
+          : PaymentStatus.PENDING,
+      paymentTime:
+        createOrderDto.paymentMethod === 'cash' ? new Date() : undefined,
+    });
+
+    newOrder.payment = newPayment._id 
+    await newOrder.save();
 
     // Nếu là online thì xóa giỏ hàng
     if (!createOrderDto.items || createOrderDto.items.length === 0) {

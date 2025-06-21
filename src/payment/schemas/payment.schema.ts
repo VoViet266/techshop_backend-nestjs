@@ -27,12 +27,12 @@ export class Payment {
   user: string;
 
   @Prop()
-  momoOrderId: string;
+  momoOrderId?: string;
   @Prop()
-  momoRequestId: string;
+  momoRequestId?: string;
 
   @Prop()
-  requestId: string;
+  requestId?: string;
 
   @Prop()
   momoTransId: string;
@@ -44,7 +44,7 @@ export class Payment {
   })
   status: PaymentStatus;
 
-  @Prop()
+  @Prop({ enum: PaymentMethod })
   payType: string;
 
   @Prop()

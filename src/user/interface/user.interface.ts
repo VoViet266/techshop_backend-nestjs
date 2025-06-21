@@ -4,5 +4,6 @@ export interface IUser {
   email: string;
   branch: string;
   role: string;
+  permission: any[];
   avatar: string;
 }

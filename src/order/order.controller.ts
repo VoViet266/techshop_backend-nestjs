@@ -25,15 +25,16 @@ export class OrderController {
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @User() user: IUser) {
+
     return this.orderService.create(createOrderDto, user);
   }
 
   @Get()
-@UseGuards(PoliciesGuard)
-@CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Order))
-findAll(@User() user: IUser) {
-  return this.orderService.findAll(user); // 👈 Truyền user xuống service
-}
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Order))
+  findAll(@User() user: IUser) {
+    return this.orderService.findAll(user); // 👈 Truyền user xuống service
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -77,11 +77,9 @@ export class AuthService {
       name,
       email,
       avatar,
-
-      role: {
-        roleName,
-        permission,
-      },
+      branch: user.branch,
+      role: roleName,
+      permission: permission,
     };
 
     const refresh_Token = this.createRefreshToken({ payload });
@@ -104,11 +102,9 @@ export class AuthService {
       name,
       email,
       avatar,
-
-      role: {
-        roleName,
-        permission,
-      },
+      branch: user.branch,
+      role: roleName,
+      permission: permission,
     };
   }
 
@@ -153,17 +149,19 @@ export class AuthService {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
-        role: {
-          roleName,
-          permission,
-        },
+        branch: user.branch,
+        role: roleName,
+        permission: permission,
       };
 
       // Tạo refresh token mới
       const newRefreshToken = this.createRefreshToken({ payload });
 
       // Lưu refresh token mới vào DB
-      await this.userService.updateUserToken(newRefreshToken, user._id.toString());
+      await this.userService.updateUserToken(
+        newRefreshToken,
+        user._id.toString(),
+      );
 
       // Xóa và gán lại cookie refresh token
       res.clearCookie('refresh_Token');
@@ -185,10 +183,9 @@ export class AuthService {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
-        role: {
-          roleName,
-          permission,
-        },
+        branch: user.branch,
+        role: roleName,
+        permission: permission,
       };
     } catch (error) {
       if (error.name === 'TokenExpiredError') {

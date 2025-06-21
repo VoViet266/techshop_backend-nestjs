@@ -17,33 +17,33 @@ export class CartItemDto {
     example: '64a2b3c4d5e6f7890a1b2c3d',
     description: 'ID sản phẩm',
   })
-  product: string;
+  product?: string;
 
   @ApiProperty({ example: 2, description: 'Số lượng sản phẩm' })
-  quantity: number;
+  quantity?: number;
 
   @ApiProperty({
     example: 1500,
     description: 'Giá của sản phẩm tại thời điểm đặt hàng',
   })
-  price: number;
+  price?: number;
 
   @ApiProperty({
     example: '64a2b3c4d5e6f7890a1b2c3e',
     description: 'ID biến thể sản phẩm',
   })
-  variant: string;
+  variant?: string;
 }
 
 export class CreateOrderDto {
   @ApiProperty({ example: 'userId123' })
-  user: string;
+  user?: string;
 
   @ApiProperty({ type: [CartItemDto] })
-  items: CartItemDto[];
+  items?: CartItemDto[];
 
   @ApiProperty({ example: 1500 })
-  totalPrice: number;
+  totalPrice?: number;
 
   @ApiProperty({
     example: '64a2b3c4d5e6f7890a1b2c3f',
@@ -52,16 +52,16 @@ export class CreateOrderDto {
   branch: string;
 
   @ApiProperty({ example: 'pending', description: 'Trạng thái đơn hàng' })
-  status: string;
+  status?: string;
 
-  source: string;
+  source?: string;
 
   paymentStatus: string;
 
   payment: string;
 
   @ApiProperty({ example: '123 Đường ABC, Quận 1, TP.HCM' })
-  shippingAddress: string;
+  shippingAddress?: string;
 
   @ApiProperty({
     example: 'credit_card',

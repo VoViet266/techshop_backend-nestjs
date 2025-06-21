@@ -26,7 +26,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @Controller('api/v1/auth')
-@ApiBearerAuth('access-token')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -46,6 +45,7 @@ export class AuthController {
   @Post('/register')
   @ResponseMessage('Đăng ký thành công')
   async register(@Body() register: RegisterUserDto) {
+    console.log(register);
     return this.userService.register(register);
   }
   @Public()

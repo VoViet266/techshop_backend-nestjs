@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Branch } from 'src/branch/schemas/branch.schema';
 import { OrderStatus } from 'src/constant/orderStatus.enum';
 import { PaymentStatus } from 'src/constant/payment.enum';
@@ -34,7 +34,6 @@ export class Order {
         },
       },
     ],
-    required: true,
   })
   items: {
     product: mongoose.Schema.Types.ObjectId;
@@ -51,14 +50,13 @@ export class Order {
     type: mongoose.Schema.Types.ObjectId,
     ref: Branch.name,
   })
-  branch: mongoose.Schema.Types.ObjectId;
+  branch?: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: Number, required: true, default: 0 })
   totalPrice: number;
 
   @Prop({
     type: String,
-    required: true,
     enum: OrderStatus,
     default: OrderStatus.PENDING,
   })
@@ -68,12 +66,12 @@ export class Order {
   paymentStatus: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' })
-  payment: mongoose.Schema.Types.ObjectId;
+  payment: Types.ObjectId;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String })
   shippingAddress: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String })
   paymentMethod: string;
 
   @Prop({ type: String })
