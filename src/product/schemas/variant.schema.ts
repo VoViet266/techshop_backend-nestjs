@@ -9,7 +9,6 @@ export class Variant {
   @Prop()
   name: string;
 
-  //gia ban
   @Prop({
     min: 0,
   })

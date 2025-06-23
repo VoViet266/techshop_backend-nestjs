@@ -34,8 +34,8 @@ export class CategoryService {
   }
 
   findOne(id: string) {
-    return this.categoryModel.findById(id)
-
+    return this.categoryModel.findById(id);
+  }
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     const existingCategory = await this.categoryModel.findById(id).lean();
     if (!existingCategory) {

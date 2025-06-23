@@ -57,6 +57,7 @@ export class ProductController {
     @Query('limit') limit: string,
     @Query() qs: string,
   ) {
+   
     return this.productService.findAll(+currentPage, +limit, qs);
   }
 

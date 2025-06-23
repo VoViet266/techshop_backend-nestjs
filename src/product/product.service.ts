@@ -213,16 +213,22 @@ export class ProductService {
 
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population } = aqp(qs);
+
     delete filter.page;
     delete filter.limit;
+    filter.isDeleted = false;
 
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
     let result: object[];
     let totalItems: number;
+    console.log(filter);
     if (filter.category || filter.brand) {
-      const matchConditions: any = {};
+      const matchConditions: any = {
+        isDeleted: false,
+      };
+
       if (filter.category) {
         matchConditions['category.name'] = {
           $regex: filter.category,
@@ -265,15 +271,16 @@ export class ProductService {
             preserveNullAndEmptyArrays: true,
           },
         },
+
+        { $match: matchConditions },
         {
           $lookup: {
             from: 'variants',
             localField: 'variants',
             foreignField: '_id',
-            as: 'variant',
+            as: 'variants',
           },
         },
-        { $match: matchConditions },
         {
           $project: {
             name: 1,
@@ -287,7 +294,7 @@ export class ProductService {
               _id: '$brand._id',
               name: '$brand.name',
             },
-            variant: 1,
+            variant: '$variants',
           },
         },
         {
@@ -310,7 +317,7 @@ export class ProductService {
         .limit(defaultLimit)
         .sort(sort as any)
         .populate(population)
-        .populate('variants')
+        .populate('variants', 'name price color memory images')
         .populate('category', 'name description')
         .populate('brand', 'name description logo')
         .exec();
