@@ -31,6 +31,7 @@ export class CategoryController {
 
   @Public()
   @Get(':id')
+  @Public()
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(id);
   }

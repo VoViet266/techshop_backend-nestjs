@@ -12,24 +12,24 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBrandDto {
   @ApiProperty({ example: 'Apple', description: 'Tên thương hiệu' })
-  @IsString()
+ 
   name: string;
 
   @ApiPropertyOptional({
     example: 'Thương hiệu điện tử hàng đầu thế giới',
     description: 'Mô tả thương hiệu',
   })
-  @IsString()
-  @IsOptional()
+
   description?: string;
 
   @ApiPropertyOptional({
     example: 'https://example.com/logo.png',
     description: 'URL logo thương hiệu',
   })
-  @IsUrl()
-  @IsOptional()
+
   logo?: string;
+
+  
 
   // Nếu cần mở thêm các trường khác, bạn có thể thêm như sau:
 
