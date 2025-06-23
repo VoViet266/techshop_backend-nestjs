@@ -84,6 +84,7 @@ export class AuthController {
   }
   @ResponseMessage('Đăng xuất thành công')
   @Get('/logout')
+  // @Public()
   handleLogout(@Res({ passthrough: true }) res: Response, @User() user: IUser) {
     return this.authService.logout(res, user);
   }

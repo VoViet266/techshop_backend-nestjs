@@ -31,7 +31,7 @@ export class BrandController {
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {
-    return this.brandService.findOne(+id);
+    return this.brandService.findOne(id);
   }
 
   @Patch(':id')
@@ -41,6 +41,6 @@ export class BrandController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.brandService.remove(+id);
+    return this.brandService.remove(id);
   }
 }

@@ -13,12 +13,12 @@ export class BrandService {
   ) {}
 
   create(createBrandDto: CreateBrandDto) {
-    const existingBrand = this.brandModel.findOne({
-      name: createBrandDto.name,
-    });
-    if (existingBrand) {
-      throw new Error(`Brand with name ${createBrandDto.name} already exists`);
-    }
+    // const existingBrand = this.brandModel.findOne({
+    //   name: createBrandDto.name,
+    // });
+    // if (existingBrand) {
+    //   throw new Error(`Brand with name ${createBrandDto.name} already exists`);
+    // }
     return this.brandModel.create(createBrandDto);
   }
 
@@ -26,7 +26,7 @@ export class BrandService {
     return this.brandModel.find().lean();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return this.brandModel
       .findById(id)
       .exec()
@@ -50,7 +50,7 @@ export class BrandService {
     );
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     return this.brandModel.deleteOne({ _id: id }).then((result) => {
       if (result.deletedCount === 0) {
         throw new Error(`Brand with id ${id} does not exist`);

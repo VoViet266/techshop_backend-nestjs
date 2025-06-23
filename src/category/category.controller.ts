@@ -29,7 +29,7 @@ export class CategoryController {
     return this.categoryService.findAll();
   }
 
-  @Public()
+
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {

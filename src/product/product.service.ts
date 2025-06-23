@@ -294,7 +294,7 @@ export class ProductService {
               _id: '$brand._id',
               name: '$brand.name',
             },
-            variant: '$variants',
+            variants: '$variants',
           },
         },
         {
