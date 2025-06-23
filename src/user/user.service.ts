@@ -159,6 +159,14 @@ export class UserService {
     return await this.userModel.updateOne({ _id: id }, { ...updateUserDto });
   }
 
+  async updateRole(id: string, role: string) {
+    const userExist = await this.userModel.findOne({ _id: id });
+    if (!userExist) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    return await this.userModel.updateOne({ _id: id }, { role: role });
+  }
+
   findUserByRefreshToken = async (refresh_Token: string) => {
     const user = await this.userModel.findOne({
       refreshToken: refresh_Token,

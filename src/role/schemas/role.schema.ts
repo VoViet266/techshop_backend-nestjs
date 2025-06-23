@@ -7,6 +7,7 @@ export type RoleDocument = HydratedDocument<Role>;
 export class Role {
   @Prop({ required: true, unique: true })
   name: string;
+
   @Prop()
   description: string;
   @Prop({

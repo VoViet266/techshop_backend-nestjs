@@ -10,7 +10,10 @@ export class Brand {
   name: string;
   @Prop({ required: true })
   description: string;
-  @Prop({ required: true })
+  @Prop({})
   logo: string;
+
+  @Prop({ default: true })
+  isActive: boolean;
 }
 export const BrandSchema = SchemaFactory.createForClass(Brand);

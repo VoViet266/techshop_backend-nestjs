@@ -14,4 +14,10 @@ export enum Subjects {
   Role = 'role',
   Permission = 'permission',
   Inventory = 'inventory',
+  Banner = 'banner',
+  Cart = 'cart',
+  Payment = 'payment',
+  Promotion = 'promotion',
+  Branch = 'branch',
+  
 }

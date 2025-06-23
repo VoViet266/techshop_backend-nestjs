@@ -16,18 +16,22 @@ export class PermissionService {
   }
 
   findAll() {
-    return `This action returns all permission`;
+    return this.permissionModel.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} permission`;
+    return this.permissionModel.findById(id);
   }
 
-  update(id: number, updatePermissionDto: UpdatePermissionDto) {
-    return `This action updates a #${id} permission`;
+  update(id: string, updatePermissionDto: UpdatePermissionDto) {
+    console.log(updatePermissionDto);
+    return this.permissionModel.updateOne(
+      { _id: id },
+      { $set: updatePermissionDto },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} permission`;
+  remove(id: string) {
+    return this.permissionModel.deleteOne({ _id: id });
   }
 }

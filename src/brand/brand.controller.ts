@@ -18,6 +18,7 @@ export class BrandController {
 
   @Post()
   create(@Body() createBrandDto: CreateBrandDto) {
+    console.log(createBrandDto);
     return this.brandService.create(createBrandDto);
   }
 
