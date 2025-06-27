@@ -157,6 +157,11 @@ export class ProductService {
           },
         },
       },
+      {
+        $match: {
+          isDeleted: { $ne: true },
+        },
+      },
       { $limit: 10 },
       {
         $lookup: {
@@ -223,7 +228,7 @@ export class ProductService {
 
     let result: object[];
     let totalItems: number;
-    console.log(filter);
+
     if (filter.category || filter.brand) {
       const matchConditions: any = {
         isDeleted: false,
@@ -348,21 +353,29 @@ export class ProductService {
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }
+    let variantId = [];
     await Promise.all(
       product.variants.map(async (v, index) => {
         const variantUpdate = updateProductDto.variants[index];
-        if (variantUpdate) {
-          await this.variantModel.findByIdAndUpdate(v, {
-            name: variantUpdate.name,
-            price: variantUpdate.price,
-            color: variantUpdate.color,
-            memory: variantUpdate.memory,
-            images: variantUpdate.images,
-          });
-        }
+
+        const updatedVariant = await this.variantModel.findByIdAndUpdate(v, {
+          name: variantUpdate.name,
+          price: variantUpdate.price,
+          color: variantUpdate.color,
+          memory: variantUpdate.memory,
+          images: variantUpdate.images,
+        });
+
+        variantId.push(updatedVariant._id);
       }),
     );
-    return this.productModel.updateOne({ _id: id }, updateProductDto, {});
+    return this.productModel.updateOne(
+      { _id: id },
+      { ...updateProductDto, variants: variantId },
+      {
+        new: true,
+      },
+    );
   }
 
   async remove(id: string) {

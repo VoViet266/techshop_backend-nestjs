@@ -46,6 +46,7 @@ export class CloundinaryController {
   }
   @Delete('image')
   async deleteFile(@Query('url') url: string) {
+    console.log('Đang xóa ảnh:', url);
     return await this.cloundinaryService.deleteImage(url);
   }
 }

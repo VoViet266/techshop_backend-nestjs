@@ -57,7 +57,6 @@ export class ProductController {
     @Query('limit') limit: string,
     @Query() qs: string,
   ) {
-   
     return this.productService.findAll(+currentPage, +limit, qs);
   }
 
@@ -76,6 +75,7 @@ export class ProductController {
 
   @Patch('/:id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    console.log(updateProductDto);
     return this.productService.update(id, updateProductDto);
   }
 

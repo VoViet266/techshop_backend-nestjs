@@ -7,7 +7,8 @@ import { Branch } from 'src/branch/schemas/branch.schema';
 export type UserDocument = HydratedDocument<User>;
 const AddressSchema = new mongoose.Schema(
   {
-    addressDetail: { type: String, required: true },
+    specificAddress: { type: String },
+    addressDetail: { type: String },
     default: { type: Boolean, default: false },
   },
   {
@@ -41,7 +42,8 @@ export class User {
   gender: string;
 
   @Prop({ type: [AddressSchema], default: [] })
-  address: {
+  addresses: {
+    specificAddress: string;
     addressDetail: string;
     default: boolean;
   }[];
@@ -59,13 +61,16 @@ export class User {
   age: number;
 
   @Prop()
+  isActive: boolean;
+
+  @Prop()
   totalSpent: string;
 
   @Prop()
   totalOrders: number;
 
   @Prop()
-  refeshToken: string;
+  refreshToken: string;
 
   @Prop()
   resetPasswordToken: string;

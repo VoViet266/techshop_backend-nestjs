@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 @Injectable()
@@ -51,8 +51,7 @@ export class CloundinaryService {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
         if (error) {
-          console.error('Lỗi khi xóa ảnh:', error);
-          return reject(error);
+          throw new NotFoundException('Không tìm thấy ảnh');
         }
         if (result.result === 'ok') {
           console.log('Xóa ảnh thành công:', url);

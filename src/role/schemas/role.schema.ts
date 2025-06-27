@@ -15,6 +15,9 @@ export class Role {
   })
   permissions: mongoose.Schema.Types.ObjectId[];
 
+  @Prop({ default: true })
+  isActive: boolean;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 

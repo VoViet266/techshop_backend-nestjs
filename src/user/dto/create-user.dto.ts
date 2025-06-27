@@ -39,8 +39,6 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty({ example: 'password123' })
-  @IsNotEmpty({ message: 'Password không được để trống' })
-  @IsString()
   password: string;
 
   @ApiPropertyOptional({ example: '0912345678' })
@@ -50,34 +48,26 @@ export class CreateUserDto {
     type: [String],
     example: ['123 Đường ABC', '456 Đường XYZ'],
   })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
   address?: string[];
 
   @ApiPropertyOptional({ example: 25 })
-  @IsOptional()
-  @IsNumber({}, { message: 'Age phải là số' })
   age?: number;
+
   refreshToken: string;
+
   @ApiPropertyOptional({ example: 'https://example.com/avatar.jpg' })
-  @IsOptional()
-  @IsString()
   avatar?: string;
 
   @ApiPropertyOptional({ example: 'admin' })
-  @IsOptional()
   role?: string;
 
   @ApiPropertyOptional({ example: 'active' })
-  @IsOptional()
-  @IsString()
   status?: string;
 }
 
 class AddressDto {
+  specificAddress: string;
   @ApiProperty({ example: '123 Đường ABC, Quận 1' })
-  @IsString()
   addressDetail: string;
 
   @ApiProperty({ example: true })
@@ -106,7 +96,9 @@ export class RegisterUserDto {
       { addressDetail: '456 Đường XYZ', default: false },
     ],
   })
-  address: AddressDto[];
+  addresses: AddressDto[];
+
+  phone?: string;
 
   @ApiPropertyOptional({ example: 30 })
   age?: number;
@@ -116,9 +108,6 @@ export class RegisterUserDto {
 
   @ApiPropertyOptional({ example: 'male' })
   gender?: string;
-
-  @ApiPropertyOptional({ example: '0987654321' })
-  phone?: string;
 }
 export class LoginDto {
   @ApiProperty({ example: 'user@example.com', description: 'Email đăng nhập' })

@@ -59,7 +59,7 @@ export class UserService {
   }
 
   async register(user: RegisterUserDto) {
-    const { name, email, password, age, gender, address } = user;
+    const { name, email, password, age, gender, addresses, phone } = user;
     const isExitEmail = await this.userModel.findOne({ email });
     if (isExitEmail) {
       throw new ConflictException(
@@ -74,7 +74,8 @@ export class UserService {
       password: hashedPassword,
       age,
       gender,
-      address,
+      phone,
+      addresses,
     });
     return newRegister;
   }
@@ -104,12 +105,9 @@ export class UserService {
     return 'Mật Khẩu đã cập nhật thành công';
   };
 
-  updateUserToken = async (refreshToken: string, id: string) => {
-    console.log(id);
-    return await this.userModel.updateOne(
-      { _id: id },
-      { refreshToken: refreshToken },
-    );
+  updateUserToken = async (id: string, refreshToken: string) => {
+    await this.userModel.updateOne({ _id: id }, { refreshToken: refreshToken });
+    return true;
   };
   findOne(id: string) {
     return this.userModel
@@ -137,6 +135,7 @@ export class UserService {
     });
   }
   async update(id: string, updateUserDto: UpdateUserDto) {
+    console.log(updateUserDto);
     const userExist = await this.userModel.findOne({ _id: id });
     if (!userExist) {
       throw new NotFoundException(`User with id ${id} not found`);

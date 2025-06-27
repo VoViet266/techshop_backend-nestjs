@@ -84,7 +84,8 @@ export class AuthService {
 
     const refresh_Token = this.createRefreshToken({ payload });
 
-    await this.userService.updateUserToken(refresh_Token, _id.toString());
+    console.log(_id);
+    await this.userService.updateUserToken(_id.toString(), refresh_Token);
 
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
@@ -119,29 +120,38 @@ export class AuthService {
 
   refreshToken = async (refreshToken: string, res: Response) => {
     try {
-      // Xác thực refresh token
-      this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-      });
+      let decoded: any;
+      try {
+        decoded = this.jwtService.verify(refreshToken, {
+          secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+        });
+      } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+          throw new UnauthorizedException(
+            'Refresh Token đã hết hạn. Đăng nhập lại.',
+          );
+        }
+        throw new BadRequestException('Refresh Token không hợp lệ.');
+      }
+      const userDoc =
+        await this.userService.findUserByRefreshToken(refreshToken);
 
-      // Tìm user theo refresh token
-      const user = await (
-        await this.userService.findUserByRefreshToken(refreshToken)
-      ).populate({
+      if (!userDoc) {
+        throw new UnauthorizedException(
+          'Không tìm thấy người dùng với refresh token.',
+        );
+      }
+
+      const user = await userDoc.populate({
         path: 'role',
         populate: {
           path: 'permissions',
         },
       });
 
-      if (!user) {
-        return null;
-      }
       const role: any = user.role;
       const roleName = role?.name;
       const permission = role?.permissions?.map((per: any) => per.name);
-
-      // Tạo payload cho token
       const payload = {
         sub: 'token login',
         iss: 'from server',
@@ -154,21 +164,19 @@ export class AuthService {
         permission: permission,
       };
 
-      // Tạo refresh token mới
-      const newRefreshToken = this.createRefreshToken({ payload });
+      const newRefreshToken = this.jwtService.sign(payload, {
+        secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE'),
+      });
 
-      // Lưu refresh token mới vào DB
       await this.userService.updateUserToken(
-        newRefreshToken,
         user._id.toString(),
+        newRefreshToken,
       );
-
-      // Xóa và gán lại cookie refresh token
       res.clearCookie('refresh_Token');
-
       res.cookie('refresh_Token', newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // bật secure nếu là môi trường production
+        secure: this.configService.get<string>('NODE_ENV') === 'production',
         sameSite:
           this.configService.get<string>('NODE_ENV') === 'production'
             ? 'none'
@@ -176,9 +184,11 @@ export class AuthService {
         maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
       });
 
-      // Trả về access token mới và thông tin user
       return {
-        access_token: this.jwtService.sign(payload),
+        access_token: this.jwtService.sign(payload, {
+          secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
+          expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRE'),
+        }),
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -188,16 +198,11 @@ export class AuthService {
         permission: permission,
       };
     } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException(
-          'Refresh Token đã hết hạn. Đăng nhập lại.',
-        );
-      }
-      throw new BadRequestException('Refresh Token không hợp lệ.');
+      throw error;
     }
   };
   async logout(res: Response, user: IUser) {
-    await this.userService.updateUserToken('', user._id.toString());
+    await this.userService.updateUserToken(user._id.toString(), null);
     res.clearCookie('refresh_Token');
     return {
       message: 'Đăng xuất thành công',

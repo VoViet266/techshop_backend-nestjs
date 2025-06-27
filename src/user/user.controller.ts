@@ -42,7 +42,7 @@ export class UserController {
   }
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    console.log(updateUserDto);
+    console.log('csca', updateUserDto);
     return this.userService.update(id, updateUserDto);
   }
 

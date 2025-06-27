@@ -162,55 +162,38 @@ export class VariantMemoryDto {
 
 export class VariantDto {
   @ApiProperty({ example: 'Standard', description: 'Tên biến thể' })
-  @IsString()
   name: string;
 
   @ApiProperty({ example: 999, description: 'Giá bán' })
-  @IsNumber()
-  @Min(0)
   price: number;
 
   @ApiProperty({ type: VariantColorDto, description: 'Thông tin màu sắc' })
-  @ValidateNested()
-  @Type(() => VariantColorDto)
   color: VariantColorDto;
 
   @ApiProperty({ type: VariantMemoryDto, description: 'Thông tin bộ nhớ' })
-  @ValidateNested()
-  @Type(() => VariantMemoryDto)
   memory: VariantMemoryDto;
 
   @ApiProperty({
     example: ['image1.jpg', 'image2.jpg'],
     description: 'Danh sách hình ảnh',
   })
-  @IsArray()
-  @IsString({ each: true })
-  @ArrayMinSize(1)
   images: string[];
 
   @ApiPropertyOptional({ example: 200, description: 'Trọng lượng (gram)' })
-  @IsNumber()
-  @IsOptional()
   weight?: number;
 
   @ApiPropertyOptional({ example: true, description: 'Trạng thái kích hoạt' })
-  @IsBoolean()
-  @IsOptional()
   isActive?: boolean;
 }
 
 export class CreateProductDto {
   @ApiProperty({ example: 'iPhone 14', description: 'Tên sản phẩm' })
-  @IsString()
   name: string;
 
   @ApiPropertyOptional({
     example: 'Smartphone mới nhất từ Apple',
     description: 'Mô tả sản phẩm',
   })
-  @IsString()
-  @IsOptional()
   description?: string;
 
   overviewImage: string;
@@ -240,20 +223,12 @@ export class CreateProductDto {
     description: 'Thông số kỹ thuật',
   })
   @ValidateNested()
-  @Type(() => ProductSpecsDto)
-  @IsOptional()
   specifications?: ProductSpecsDto;
 
   @ApiPropertyOptional({ type: ConnectivityDto, description: 'Kết nối' })
-  @ValidateNested()
-  @Type(() => ConnectivityDto)
-  @IsOptional()
   connectivity?: ConnectivityDto;
 
   @ApiPropertyOptional({ type: CameraDto, description: 'Thông tin camera' })
-
-  @Type(() => CameraDto)
-
   camera?: CameraDto;
 
   @ApiPropertyOptional({
