@@ -22,6 +22,7 @@ import { PromotionModule } from './promotion/promotion.module';
 import { CloundinaryModule } from './cloundinary/cloundinary.module';
 import { FileModule } from './file/file.module';
 import { CaslModule } from './casl/casl.module';
+import { RecommendationModule } from './recommendation/recommendation.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { CaslModule } from './casl/casl.module';
     CloundinaryModule,
     FileModule,
     CaslModule,
+    RecommendationModule,
   ],
 
   controllers: [AppController],

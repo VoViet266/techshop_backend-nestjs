@@ -176,6 +176,9 @@ export class Products {
   })
   isFeatured: boolean;
 
+  @Prop({ type: [Number], index: true, default: [] }) // Thêm trường này
+  featureVector: number[];
+
   @Prop({
     default: false,
     index: true,

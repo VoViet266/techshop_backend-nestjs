@@ -237,6 +237,8 @@ export class CreateProductDto {
   })
   tags?: string[];
 
+  featureVector: number[];
+
   viewCount?: number;
 
   averageRating?: number;
