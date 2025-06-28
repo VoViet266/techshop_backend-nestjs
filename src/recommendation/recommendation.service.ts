@@ -55,25 +55,7 @@ export class RecommendationService implements OnModuleInit {
   async trainTfIdfModel(): Promise<void> {
     const startTime = Date.now();
     this.logger.log('Starting TF-IDF model training...');
-    try {
-      const trainedCount = await this.productModel.countDocuments({
-        isActive: { $ne: true },
-        isDeleted: { $ne: true },
-        featureVector: { $exists: true, $ne: null },
-      });
 
-      const totalCount = await this.productModel.countDocuments({
-        isActive: { $ne: true },
-        isDeleted: { $ne: true },
-      });
-
-      if (trainedCount === totalCount && trainedCount > 0) {
-        this.logger.log('TF-IDF model already trained. Skipping...');
-        return;
-      }
-    } catch (error) {
-      this.logger.error('Error checking model training status:', error);
-    }
     try {
       this.tfidf = new natural.TfIdf();
       this.productVectors.clear();
@@ -135,9 +117,6 @@ export class RecommendationService implements OnModuleInit {
     }
   }
 
-  /**
-   * Trích xuất features từ sản phẩm
-   */
   private extractProductFeatures(product: any): string {
     const features = [
       product.name || '',
@@ -178,7 +157,7 @@ export class RecommendationService implements OnModuleInit {
 
     return vector;
   }
-  /// Tính cosine similarity giữa 2 vector
+
   private calculateCosineSimilarity(vec1: number[], vec2: number[]): number {
     if (!vec1 || !vec2 || vec1.length !== vec2.length) {
       return 0;
@@ -210,12 +189,11 @@ export class RecommendationService implements OnModuleInit {
       await this.trainTfIdfModel();
     }
 
-    // Kiểm tra sản phẩm tồn tại
     const targetProduct = await this.productModel
       .findById(productId)
       .populate('category', 'name')
       .populate('brand', 'name')
-      .select('_id name category brand')
+      .select(' name category brand')
       .lean();
 
     if (!targetProduct) {
@@ -252,7 +230,7 @@ export class RecommendationService implements OnModuleInit {
           .findById(otherProductId)
           .populate('category', 'name')
           .populate('brand', 'name')
-          .select('_id name category brand isActive')
+          .select(' name category brand ')
           .lean();
 
         if (product && product.isActive !== false) {
@@ -268,9 +246,9 @@ export class RecommendationService implements OnModuleInit {
     similarities.sort((a, b) => b.score - a.score);
     const results = similarities.slice(0, limit).map((s) => s.product);
 
-    // this.logger.debug(
-    //   `Found ${similarities.length} similar products for ${productId}, returning top ${results.length}`,
-    // );
+    this.logger.debug(
+      `Found ${similarities.length} similar products for ${productId}, returning top ${results.length}`,
+    );
 
     return results;
   }
