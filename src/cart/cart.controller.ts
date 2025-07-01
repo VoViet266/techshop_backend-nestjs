@@ -25,9 +25,8 @@ export class CartController {
   }
 
   @Get()
-  @Public()
-  findAll() {
-    return this.cartService.findAll();
+  findAll(@User() user: IUser) {
+    return this.cartService.findAll(user);
   }
 
   @Get(':id')
