@@ -30,5 +30,6 @@ import { MulterConfigService } from 'src/config/multer.config';
     }),
     CaslModule,
   ],
+  exports: [ProductModule, MongooseModule],
 })
 export class ProductModule {}

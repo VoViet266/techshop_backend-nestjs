@@ -9,8 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { RecommendationService } from './recommendation.service';
-import { CreateRecommendationDto } from './dto/create-recommendation.dto';
-import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
+
 import { Public } from 'src/decorator/publicDecorator';
 
 @Controller('api/v1/recommendation')

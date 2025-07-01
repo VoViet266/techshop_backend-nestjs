@@ -6,11 +6,7 @@ import * as natural from 'natural';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { ProductDocument, Products } from 'src/product/schemas/product.schema';
 
-interface ProductVector {
-  productId: string;
-  vector: number[];
-  lastUpdated: Date;
-}
+
 
 interface SimilarityResult {
   product: Products;
@@ -65,7 +61,7 @@ export class RecommendationService implements OnModuleInit {
         .find({ isActive: { $ne: false } })
         .populate('category', 'name')
         .populate('brand', 'name')
-        .select('_id name category brand ')
+        .select(' name category brand ')
         .lean();
 
       if (products.length === 0) {
@@ -80,26 +76,17 @@ export class RecommendationService implements OnModuleInit {
         const combinedFeatures = this.extractProductFeatures(product);
         documentsMap.set(product._id.toString(), combinedFeatures);
         this.tfidf.addDocument(combinedFeatures);
-
         const tokens = this.tokenizeText(combinedFeatures);
         tokens.forEach((token) => vocabSet.add(token));
       }
 
       this.vocabulary = Array.from(vocabSet).sort(); // Sort để đảm bảo consistency
 
-      const updatePromises: Promise<any>[] = [];
-
       products.forEach((product, docIndex) => {
         const vector = this.createProductVector(docIndex);
         this.productVectors.set(product._id.toString(), vector);
-        updatePromises.push(
-          this.productModel
-            .updateOne({ _id: product._id }, { featureVector: vector })
-            .exec(),
-        );
+       
       });
-
-      await Promise.all(updatePromises);
 
       this.isModelTrained = true;
       this.lastTrainingTime = new Date();
@@ -193,7 +180,7 @@ export class RecommendationService implements OnModuleInit {
       .findById(productId)
       .populate('category', 'name')
       .populate('brand', 'name')
-      .select(' name category brand')
+      .select('name category brand')
       .lean();
 
     if (!targetProduct) {

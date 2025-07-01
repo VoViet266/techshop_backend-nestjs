@@ -87,9 +87,9 @@ export class CartService {
     return cart;
   }
 
-  findAll() {
-    return this.cartModel
-      .find()
+  findAll(user: IUser) {
+    const cart = this.cartModel
+      .findOne({ user: user._id })
       .populate({
         path: 'user',
         select: 'email name ',
@@ -100,8 +100,9 @@ export class CartService {
       })
       .populate({
         path: 'items.variant',
-        select: 'sku name price color memory',
+        select: 'sku images name price color memory',
       });
+    return cart;
   }
 
   findOne(id: number) {
@@ -126,7 +127,9 @@ export class CartService {
       {
         _id: id,
       },
-      updateCartDto,
+      {
+        ...updateCartDto,
+      },
     );
   }
 

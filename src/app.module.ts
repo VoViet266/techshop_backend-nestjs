@@ -23,6 +23,7 @@ import { CloundinaryModule } from './cloundinary/cloundinary.module';
 import { FileModule } from './file/file.module';
 import { CaslModule } from './casl/casl.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { RecommendationModule } from './recommendation/recommendation.module';
     FileModule,
     CaslModule,
     RecommendationModule,
+    ChatbotModule,
   ],
 
   controllers: [AppController],

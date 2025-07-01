@@ -24,6 +24,7 @@
   "dependencies": {
     "@casl/ability": "^6.7.3",
     "@casl/mongoose": "^8.0.3",
+    "@google/generative-ai": "^0.24.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
