@@ -12,9 +12,16 @@ export class Banner {
   @Prop()
   linkTo: string;
   @Prop()
-  position: string; // e.g., 'top', 'bottom', 'sidebar'
+  position: string;
   @Prop()
   isActive: boolean;
+
+  @Prop()
+  clicks: number;
+
+  @Prop()
+  views: number;
+
   @Prop()
   startDate: Date;
   @Prop()

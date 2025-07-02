@@ -23,13 +23,13 @@ export class BannerService {
     return this.bannerModel.findById(id).exec();
   }
 
-  update(id: number, updateBannerDto: UpdateBannerDto) {
+  update(id: string, updateBannerDto: UpdateBannerDto) {
     return this.bannerModel
       .updateOne({ _id: id }, { $set: updateBannerDto })
       .exec();
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.bannerModel.deleteOne({ _id: id });
   }
-}
+} 

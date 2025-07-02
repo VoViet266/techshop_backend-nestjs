@@ -96,7 +96,7 @@ export class CartService {
       })
       .populate({
         path: 'items.product',
-        select: 'name slug',
+        select: 'name slug discount',
       })
       .populate({
         path: 'items.variant',
@@ -107,7 +107,7 @@ export class CartService {
 
   findOne(id: number) {
     return this.cartModel
-      .findOne()
+      .findOne({ _id: id })
       .populate({
         path: 'user',
         select: 'email name ',
@@ -141,7 +141,6 @@ export class CartService {
       throw new NotFoundException(`Không tìm thấy giỏ hàng của người dùng.`);
     }
 
-    // Tìm vị trí của item cần xóa
     const itemIndex = cart.items.findIndex(
       (item) =>
         item.product.toString() === productId &&
