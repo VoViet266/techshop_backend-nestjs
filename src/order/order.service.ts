@@ -134,7 +134,7 @@ export class OrderService {
         createOrderDto.paymentMethod === 'cash' ? new Date() : undefined,
     });
 
-    newOrder.payment = newPayment._id 
+    newOrder.payment = newPayment._id;
     await newOrder.save();
 
     // Nếu là online thì xóa giỏ hàng
@@ -145,7 +145,7 @@ export class OrderService {
     return newOrder;
   }
 
-  findAll(user: IUser) {
+  findAllByCustomer(user: IUser) {
     return this.orderModel
       .find({ user: user._id })
       .populate({
@@ -160,6 +160,25 @@ export class OrderService {
         path: 'branch',
         select: 'name phone address email',
       });
+  }
+
+  findAllByStaff(user: IUser) {
+    switch (user.role) {
+      case RolesUser.Admin:
+        return this.orderModel
+          .find()
+          .populate({ path: 'items.product', select: 'name ' })
+          .populate({ path: 'items.variant', select: 'name ' });
+
+      case RolesUser.Staff:
+        return this.orderModel
+          .find({ branch: user.branch })
+          .populate({ path: 'items.product', select: 'name ' })
+          .populate({ path: 'items.variant', select: 'name ' });
+
+      default:
+        throw new ForbiddenException('Bạn không có quyền truy cập!');
+    }
   }
 
   findOne(id: number) {

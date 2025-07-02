@@ -40,7 +40,7 @@ export class CartController {
     return this.cartService.update(id, updateCartDto);
   }
 
-  @Delete(':id')
+  @Delete('remove-all/:id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.cartService.remove(id, user);
   }
