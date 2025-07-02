@@ -40,6 +40,11 @@ export class CartController {
     return this.cartService.update(id, updateCartDto);
   }
 
+  @Delete(':id')
+  remove(@Param('id') id: string, @User() user: IUser) {
+    return this.cartService.remove(id, user);
+  }
+
   @Delete('remove-item')
   async removeItem(
     @User() user: IUser,

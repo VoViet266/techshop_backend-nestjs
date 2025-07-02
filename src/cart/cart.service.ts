@@ -8,6 +8,7 @@ import { ProductDocument, Products } from 'src/product/schemas/product.schema';
 import { IUser } from 'src/user/interface/user.interface';
 import { Types } from 'mongoose';
 import { Variant, VariantDocument } from 'src/product/schemas/variant.schema';
+import { User } from 'src/decorator/userDecorator';
 
 @Injectable()
 export class CartService {
@@ -160,5 +161,15 @@ export class CartService {
 
     await cart.save();
     return cart;
+  }
+  remove(id: string, @User() user: IUser) {
+    const cartExist = this.cartModel.findById({ _id: id, user: user._id });
+    if (!cartExist) {
+      throw new NotFoundException(`Không tìm thấy giỏ hàng với id ${id}`);
+    }
+    this.cartModel.deleteOne({
+      _id: id,
+    });
+    return 'Xóa giỏ hàng thành công';
   }
 }
