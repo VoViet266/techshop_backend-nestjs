@@ -1,8 +1,5 @@
-import {
-  Min,
-} from 'class-validator';
+import { Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-
 
 export class VariantDto {
   @ApiProperty({
@@ -25,21 +22,18 @@ export class CreateInventoryDto {
     example: '64a2b3c4d5e6f7890a1b2c3e',
     description: 'ID cửa hàng',
   })
-
   branch: string;
 
   @ApiProperty({
     example: '64a2b3c4d5e6f7890a1b2c3f',
     description: 'ID sản phẩm',
   })
-
   product: string;
 
   @ApiProperty({
     type: [VariantDto],
     description: 'Danh sách biến thể sản phẩm',
   })
-
   variants: VariantDto[];
 }
 export class CreateStockMovementDto {
@@ -57,7 +51,7 @@ export class CreateTransferDto {
   toBranchId: string; // chi nhánh nhận
   items: {
     productId: string; // id sản phẩm
-    variant: string; // id biến thể sản phẩm
+    variants: string; // id biến thể sản phẩm
     quantity: number; // số lượng chuyển
   }[]; // danh sách sản phẩm và số lượng tương ứng
   status: string;

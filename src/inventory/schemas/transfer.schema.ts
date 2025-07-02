@@ -31,7 +31,7 @@ export class Transfer {
           ref: Products.name,
         },
         quantity: { type: Number, required: true },
-        variant: {
+        variants: {
           type: mongoose.Schema.Types.ObjectId,
           ref: Variant.name,
         },
@@ -40,7 +40,7 @@ export class Transfer {
   })
   items: {
     productId: mongoose.Schema.Types.ObjectId;
-    variant: mongoose.Schema.Types.ObjectId;
+    variants: mongoose.Schema.Types.ObjectId;
     quantity: number;
   }[];
 
@@ -51,26 +51,22 @@ export class Transfer {
 
   @Prop({
     type: {
-      
       email: String,
       name: String,
     },
   })
   createdBy: {
-
     email: string;
     name: string;
   };
 
   @Prop({
     type: {
-    
       email: String,
       name: String,
     },
   })
   updatedBy: {
-  
     email: string;
     name: string;
   };

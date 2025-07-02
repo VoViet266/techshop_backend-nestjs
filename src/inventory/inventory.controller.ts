@@ -40,20 +40,10 @@ export class InventoryController {
     return this.inventoryService.findAll(user);
   }
 
-  @Get('/getImport')
-  findImport(@User() user: IUser) {
-    return this.inventoryService.findImport(user);
-  }
-
-  @Get('/getExport')
-  findExport(@User() user: IUser) {
-    return this.inventoryService.findExport(user);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.inventoryService.findOne(id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.inventoryService.findOne(id);
+  // }
 
   @Patch(':id')
   update(
@@ -74,7 +64,6 @@ export class InventoryController {
   }
 
   @Get('getimport')
-  @Public()
   async getAllImport(@User() user: IUser) {
     return this.inventoryService.findImport(user);
   }
@@ -99,8 +88,18 @@ export class InventoryController {
     return this.inventoryService.exportStock(dto, user);
   }
 
-  @Post('transfer')
+  @Get('/transfer')
+  async getAllTransfer() {
+    return this.inventoryService.findTransfer();
+  }
+
+  @Post('/transfer')
   async transferStock(@Body() dto: CreateTransferDto, @User() user: IUser) {
     return this.inventoryService.transferStock(dto, user);
+  }
+
+  @Get('get_transfer/:id')
+  async getTransferDetail(@Param('id') id: string) {
+    return this.inventoryService.getTransferDetail(id);
   }
 }

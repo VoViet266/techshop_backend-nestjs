@@ -133,9 +133,33 @@ export class CartService {
     );
   }
 
-  remove(id: string) {
-    return this.cartModel.deleteOne({
-      _id: id,
-    });
+  async removeItemFromCart(user: IUser, productId: string, variantId: string) {
+    // Tìm cart của user
+    const cart = await this.cartModel.findOne({ user: user._id });
+
+    if (!cart) {
+      throw new NotFoundException(`Không tìm thấy giỏ hàng của người dùng.`);
+    }
+
+    // Tìm vị trí của item cần xóa
+    const itemIndex = cart.items.findIndex(
+      (item) =>
+        item.product.toString() === productId &&
+        item.variant.toString() === variantId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException(`Không tìm thấy sản phẩm trong giỏ hàng.`);
+    }
+
+    cart.items.splice(itemIndex, 1);
+    cart.totalQuantity = cart.items.reduce(
+      (acc, item) => acc + item.quantity,
+      0,
+    );
+    cart.totalPrice = cart.items.reduce((acc, item) => acc + item.price, 0);
+
+    await cart.save();
+    return cart;
   }
 }

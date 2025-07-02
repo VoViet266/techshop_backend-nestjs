@@ -238,6 +238,25 @@ export class InventoryService {
       .lean();
   }
 
+  async getTransferDetail(id: string) {
+    return this.transferModel
+      .findById(id)
+      .populate('fromBranchId', 'name location')
+      .populate('toBranchId', 'name location')
+      .populate('items.productId', 'name')
+      .populate('items.variants', 'name sku')
+      .lean();
+  }
+  async findTransfer() {
+    return this.transferModel
+      .find()
+      .populate('fromBranchId', 'name location')
+      .populate('toBranchId', 'name location')
+      .populate('items.productId', 'name')
+      .populate('items.variants', 'name sku')
+      .lean();
+  }
+
   async exportStock(dto: CreateStockMovementDto, user: IUser) {
     const { branchId, productId, variants } = dto;
 
@@ -288,7 +307,7 @@ export class InventoryService {
     const { fromBranchId, toBranchId, items } = createTransferDto;
     const productId = items[0].productId; // Extract productId from the first item
     const variants = items.map((item) => ({
-      variantId: item.variant.toString(),
+      variantId: item.variants.toString(),
       quantity: item.quantity,
     }));
 
@@ -304,9 +323,6 @@ export class InventoryService {
     if (!exportStock) {
       throw new BadRequestException('Không thể xuất kho từ chi nhánh gửi');
     }
-
-    // // Nhập kho chi nhánh nhận
-
     const importStock = await this.importStock(
       {
         branchId: toBranchId,
@@ -323,7 +339,7 @@ export class InventoryService {
       ...createTransferDto,
       items: items.map((item) => ({
         productId: item.productId,
-        variant: item.variant,
+        variant: item.variants,
         quantity: item.quantity,
       })),
       status: TransactionStatus.RECEIVED,
