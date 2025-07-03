@@ -163,14 +163,6 @@ export class CartService {
     return cart;
   }
   async remove(@User() user: IUser) {
-    const cartExist = this.cartModel.findById({ user: user._id });
-
-    if (!cartExist) {
-      throw new NotFoundException(`Không tìm thấy giỏ hàng của ${user.name}`);
-    }
-    await this.cartModel.deleteOne({
-      user: user._id,
-    });
-    return 'Xóa giỏ hàng thành công';
+    await this.cartModel.updateOne({ user: user._id }, { $set: { items: [] } });
   }
 }
