@@ -162,15 +162,14 @@ export class CartService {
     await cart.save();
     return cart;
   }
-  async remove(id: string, @User() user: IUser) {
-    const cartExist = this.cartModel.findById({ _id: id });
-    console.log(user._id);
-    console.log(id);
+  async remove(@User() user: IUser) {
+    const cartExist = this.cartModel.findById({ user: user._id });
+
     if (!cartExist) {
-      throw new NotFoundException(`Không tìm thấy giỏ hàng với id ${id}`);
+      throw new NotFoundException(`Không tìm thấy giỏ hàng của ${user.name}`);
     }
     await this.cartModel.deleteOne({
-      _id: id,
+      user: user._id,
     });
     return 'Xóa giỏ hàng thành công';
   }
