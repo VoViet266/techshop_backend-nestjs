@@ -17,7 +17,11 @@ import { InventoryService } from 'src/inventory/inventory.service';
 import { User, UserDocument } from 'src/user/schemas/user.schema';
 import { RolesUser } from 'src/constant/roles.enum';
 import { OrderStatus } from 'src/constant/orderStatus.enum';
-import { PaymentMethod, PaymentStatus } from 'src/constant/payment.enum';
+import {
+  OrderSource,
+  PaymentMethod,
+  PaymentStatus,
+} from 'src/constant/payment.enum';
 import { Payment, PaymentDocument } from 'src/payment/schemas/payment.schema';
 import mongoose, { Types } from 'mongoose';
 
@@ -119,7 +123,8 @@ export class OrderService {
         name: user.name,
         email: user.email,
       },
-      source: createOrderDto.items ? 'pos' : 'online',
+      source: createOrderDto.items ? OrderSource.POS : OrderSource.ONLINE,
+      shippingAddress: createOrderDto.shippingAddress || '',
     });
     const newPayment = await this.paymentModel.create({
       order: newOrder._id,
@@ -127,11 +132,13 @@ export class OrderService {
       amount: totalPrice,
       payType: createOrderDto.paymentMethod,
       status:
-        createOrderDto.paymentMethod === 'cash'
+        createOrderDto.paymentMethod === OrderSource.POS
           ? PaymentStatus.COMPLETED
           : PaymentStatus.PENDING,
       paymentTime:
-        createOrderDto.paymentMethod === 'cash' ? new Date() : undefined,
+        createOrderDto.paymentMethod === OrderSource.POS
+          ? new Date()
+          : undefined,
     });
 
     newOrder.payment = newPayment._id;
@@ -206,7 +213,7 @@ export class OrderService {
     );
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     return this.orderModel.findByIdAndDelete(id).then((result) => {
       if (!result) {
         throw new HttpException(
@@ -220,59 +227,63 @@ export class OrderService {
       return { message: 'Đơn hàng đã được xóa thành công' };
     });
   }
-  // async cancelOrder(id: number, user: IUser) {
-  //   const order = await this.orderModel.findById(id);
-  //   if (!order) {
-  //     throw new HttpException(
-  //       {
-  //         statusCode: HttpStatus.NOT_FOUND,
-  //         message: 'Đơn hàng không tồn tại',
-  //       },
-  //       HttpStatus.NOT_FOUND,
-  //     );
-  //   }
+  async cancelOrder(id: string, user: IUser) {
+    const order = await this.orderModel.findById(id);
+    if (!order) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Đơn hàng không tồn tại',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
-  //   if (order.user.toString() !== user._id.toString()) {
-  //     throw new HttpException(
-  //       {
-  //         statusCode: HttpStatus.FORBIDDEN,
-  //         message: 'Bạn không có quyền hủy đơn hàng này',
-  //       },
-  //       HttpStatus.FORBIDDEN,
-  //     );
-  //   }
+    if (order.user.toString() !== user._id.toString()) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.FORBIDDEN,
+          message: 'Bạn không có quyền hủy đơn hàng này',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
 
-  //   if (order.status === 'Cancelled') {
-  //     throw new HttpException(
-  //       {
-  //         statusCode: HttpStatus.BAD_REQUEST,
-  //         message: 'Đơn hàng đã được hủy trước đó',
-  //       },
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
+    if (
+      order.paymentStatus === PaymentStatus.COMPLETED ||
+      order.paymentStatus === PaymentStatus.CANCELLED ||
+      order.paymentStatus === PaymentStatus.REFUNDED
+    ) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Không thể hủy đơn hàng!!!!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-  //   // Update order status to 'Cancelled'
-  //   order.status = 'Cancelled';
-  //   await order.save();
+    order.paymentStatus = PaymentStatus.CANCELLED;
+    await order.save();
+    const payment = await this.paymentModel.findById(order.payment);
+    payment.status = PaymentStatus.CANCELLED;
+    await payment.save();
+    for (const item of order.items) {
+      await this.inventoryService.importStock(
+        {
+          branchId: order.branch?.toString(),
+          productId: item.product?.toString(),
+          variants: [
+            {
+              variantId: item.variant?.toString(),
+              quantity: item.quantity,
+            },
+          ],
+        },
+        user,
+      );
+    }
 
-  //   // Restore stock for each item in the order
-  //   for (const item of order.items) {
-  //     await this.inventoryService.importStock(
-  //       {
-  //         branchId: order.branch,
-  //         productId: item.product,
-  //         variants: [
-  //           {
-  //             variantId: item.variant,
-  //             stock: item.quantity,
-  //           },
-  //         ],
-  //       },
-  //       user,
-  //     );
-  //   }
-
-  //   return { message: 'Đơn hàng đã được hủy thành công' };
-  // }
+    return { message: 'Đơn hàng đã được hủy thành công' };
+  }
 }

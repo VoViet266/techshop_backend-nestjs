@@ -163,6 +163,12 @@ export class CartService {
     return cart;
   }
   async remove(@User() user: IUser) {
+    const cart = await this.cartModel.findOne({ user: user._id });
+    if (cart.items.length === 0) {
+      throw new NotFoundException(
+        `Giỏ hàng của người dùng đang rỗng or chưa có giỏ hàng!`,
+      );
+    }
     await this.cartModel.updateOne({ user: user._id }, { $set: { items: [] } });
   }
 }

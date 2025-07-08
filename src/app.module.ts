@@ -24,6 +24,7 @@ import { FileModule } from './file/file.module';
 import { CaslModule } from './casl/casl.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
     CaslModule,
     RecommendationModule,
     ChatbotModule,
+    ReviewModule,
   ],
 
   controllers: [AppController],

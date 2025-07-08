@@ -20,3 +20,7 @@ export enum RefundStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
 }
+export enum OrderSource {
+  ONLINE = 'online',
+  POS = 'pos',
+}

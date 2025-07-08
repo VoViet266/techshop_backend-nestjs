@@ -2,7 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Branch } from 'src/branch/schemas/branch.schema';
 import { OrderStatus } from 'src/constant/orderStatus.enum';
-import { PaymentStatus } from 'src/constant/payment.enum';
+import {
+  OrderSource,
+  PaymentMethod,
+  PaymentStatus,
+} from 'src/constant/payment.enum';
 import { Payment } from 'src/payment/schemas/payment.schema';
 import { Products } from 'src/product/schemas/product.schema';
 import { Variant } from 'src/product/schemas/variant.schema';
@@ -42,8 +46,7 @@ export class Order {
     variant: mongoose.Schema.Types.ObjectId;
   }[];
 
-  //phương thức mua hàng (online, offline)
-  @Prop({ type: String })
+  @Prop({ enum: OrderSource })
   source: string;
 
   @Prop({
@@ -55,14 +58,7 @@ export class Order {
   @Prop({ type: Number, required: true, default: 0 })
   totalPrice: number;
 
-  @Prop({
-    type: String,
-    enum: OrderStatus,
-    default: OrderStatus.PENDING,
-  })
-  status: string;
-
-  @Prop({ type: String, default: PaymentStatus.PENDING })
+  @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.PENDING })
   paymentStatus: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' })
@@ -71,7 +67,7 @@ export class Order {
   @Prop({ type: String })
   shippingAddress: string;
 
-  @Prop({ type: String })
+  @Prop({ enum: PaymentMethod })
   paymentMethod: string;
 
   @Prop({ type: String })

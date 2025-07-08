@@ -36,12 +36,11 @@ export class PaymentController {
   }
   @Post('momo/notify')
   async handleCallback(@Body() body: any) {
-    console.log('📦 MoMo Callback:', body);
-
     const { orderId, transId, resultCode, message, payType, responseTime } =
       body;
 
-    const status = resultCode === 0 ? 'SUCCESS' : 'FAILED';
+    const status =
+      resultCode === 0 ? PaymentStatus.COMPLETED : PaymentStatus.FAILED;
 
     await this.paymentService.updatePaymentStatus({
       orderId,

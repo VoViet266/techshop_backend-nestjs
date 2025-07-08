@@ -162,16 +162,16 @@ export class VariantMemoryDto {
 
 export class VariantDto {
   @ApiProperty({ example: 'Standard', description: 'Tên biến thể' })
-  name: string;
+  name?: string;
 
   @ApiProperty({ example: 999, description: 'Giá bán' })
-  price: number;
+  price?: number;
 
   @ApiProperty({ type: VariantColorDto, description: 'Thông tin màu sắc' })
-  color: VariantColorDto;
+  color?: VariantColorDto;
 
   @ApiProperty({ type: VariantMemoryDto, description: 'Thông tin bộ nhớ' })
-  memory: VariantMemoryDto;
+  memory?: VariantMemoryDto;
 
   @ApiProperty({
     example: ['image1.jpg', 'image2.jpg'],
@@ -213,23 +213,28 @@ export class CreateProductDto {
     type: [VariantDto],
     description: 'Danh sách biến thể sản phẩm',
   })
-  variants: VariantDto[];
+  variants?: VariantDto[];
 
   @ApiProperty({ example: 10, description: 'Giảm giá (%)' })
   discount: number;
 
+  // @ApiPropertyOptional({
+  //   type: ProductSpecsDto,
+  //   description: 'Thông số kỹ thuật',
+  // })
+  // @ValidateNested()
+  // specifications?: ProductSpecsDto;
+
+  // @ApiPropertyOptional({ type: ConnectivityDto, description: 'Kết nối' })
+  // connectivity?: ConnectivityDto;
+
+  // @ApiPropertyOptional({ type: CameraDto, description: 'Thông tin camera' })
+  // camera?: CameraDto;
   @ApiPropertyOptional({
-    type: ProductSpecsDto,
-    description: 'Thông số kỹ thuật',
+    type: Object,
+    description: 'Các thuộc tính tùy chỉnh của sản phẩm',
   })
-  @ValidateNested()
-  specifications?: ProductSpecsDto;
-
-  @ApiPropertyOptional({ type: ConnectivityDto, description: 'Kết nối' })
-  connectivity?: ConnectivityDto;
-
-  @ApiPropertyOptional({ type: CameraDto, description: 'Thông tin camera' })
-  camera?: CameraDto;
+  attributes?: Record<string, any>;
 
   @ApiPropertyOptional({
     example: ['smartphone', 'apple'],

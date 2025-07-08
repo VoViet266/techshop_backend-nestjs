@@ -75,7 +75,6 @@ export class Camera {
 })
 export class Products {
   @Prop({
-    required: true,
     unique: true,
     index: true,
     trim: true,
@@ -83,7 +82,6 @@ export class Products {
   name: string;
 
   @Prop({
-    required: true,
     index: true,
     trim: true,
   })
@@ -124,20 +122,14 @@ export class Products {
   })
   variants?: Variant[];
 
-  @Prop({ type: ProductSpecs })
-  specifications: ProductSpecs;
+  @Prop({ type: mongoose.Schema.Types.Mixed, required: true })
+  attributes: Record<string, any>;
 
-  @Prop({ type: Connectivity })
-  connectivity: Connectivity;
-
-  @Prop({ type: Camera })
-  camera: Camera;
-
-  @Prop({
-    type: [String],
-    index: true,
-  })
-  tags: string[]; // For search and filtering
+  // @Prop({
+  //   type: [String],
+  //   index: true,
+  // })
+  // tags: string[];
 
   @Prop({
     type: [String],
@@ -175,8 +167,6 @@ export class Products {
     index: true,
   })
   isFeatured: boolean;
-
- 
 
   @Prop({
     default: false,

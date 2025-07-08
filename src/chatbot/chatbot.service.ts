@@ -11,8 +11,14 @@ import {
 import { Products, ProductDocument } from 'src/product/schemas/product.schema';
 
 interface ProductWithEmbedding {
-  name: string;
+  productId: string;
+  productName: string;
   description: string;
+  price: number;
+  images: string;
+  category: string;
+  brand: string;
+  isActive: boolean;
   vector: number[];
   score?: number;
 }
@@ -30,26 +36,22 @@ export class ChatBotService implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   private readonly SYSTEM_PROMPT = `
-  Vai trò: Bạn là trợ lý AI chuyên nghiệp của công ty ABC, chuyên tư vấn sản phẩm.
-  Nguyên tắc trả lời:
-  1. LUÔN dựa vào thông tin được cung cấp trong context
-  2. Trả lời ngắn gọn, súc tích, thân thiện
-  3. Nếu không có thông tin: "Tôi không có thông tin về vấn đề này"
-  4. Không bịa đặt thông tin không có trong context
-  5. Khi đề xuất sản phẩm, ưu tiên theo độ liên quan
-  6. Luôn giữ tên sản phẩm và thương hiệu chính xác
-  7. Nếu dữ liệu có sai thì không cần thông báo
-  8. Hỗ trợ so sánh sản phẩm khi có nhiều lựa chọn
+  Vai trò của bạn: Là một trợ lý AI chuyên nghiệp của công ty ABC, chỉ tư vấn sản phẩm dựa trên dữ liệu context cung cấp. Câu trả lời được hiển thị gọn gàng.
   
-  Định dạng hiển thị hình ảnh:
-  <div style="text-align: center; margin: 12px 0;">
-    <img src="IMAGE_URL" alt="Hình sản phẩm" style="max-width: 100%; width: 280px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
-  </div>
+  Nguyên tắc:
+      1. Chỉ sử dụng thông tin từ context.  
+      2. Trả lời ngắn gọn, súc tích, thân thiện.  
+      3. Nếu không có thông tin: trả lời "Tôi không có thông tin về vấn đề này".  
+      4. Không suy diễn, không tổng hợp ngoài context.  
+      5. Hiển thị thông tin sản phẩm kèm hình ảnh (nếu có).  
+      6. Không thêm nội dung giới thiệu lại sản phẩm nếu không được yêu cầu.  
+      7. Nếu người dùng hỏi câu hỏi có thể trả lời theo nhiều cách hãy hỏi lại.
+      8. Khi được hỏi về nhãn hiệu hoặc danh mục, chỉ sử dụng thông tin từ dữ liệu lớn của bạn để cung cấp thông tin.
+      9. Dựa theo template tôi đã cung cấp thì hãy tự style lại nếu cần.
     `.trim();
 
   async onModuleInit() {
     try {
-      console;
       await this.initializeGemini();
       await this.loadProductData();
       this.logger.log('ChatBotService initialized successfully');
@@ -81,7 +83,7 @@ export class ChatBotService implements OnModuleInit {
           role: 'model',
           parts: [
             {
-              text: 'Tôi đã hiểu vai trò. Sẵn sàng hỗ trợ khách hàng về sản phẩm ABC.',
+              text: 'Tôi đã hiểu vai trò. Sẵn sàng hỗ trợ khách hàng về sản phẩm ABC một cách chi tiết.',
             },
           ],
         },
@@ -93,7 +95,7 @@ export class ChatBotService implements OnModuleInit {
     const products = await this.ProductModel.find()
       .populate({ path: 'category', select: 'name' })
       .populate({ path: 'brand', select: 'name' })
-      .populate({ path: 'variants', select: 'images price color memory' });
+      .populate({ path: 'variants', select: 'price images' });
 
     if (!products?.length) {
       this.logger.warn('Không tìm thấy sản phẩm nào.');
@@ -103,21 +105,30 @@ export class ChatBotService implements OnModuleInit {
     this.logger.log(`Tạo embedding cho ${products.length} sản phẩm...`);
 
     const BATCH_SIZE = 10;
+
     for (let i = 0; i < products.length; i += BATCH_SIZE) {
       const batch = products.slice(i, i + BATCH_SIZE);
-      await Promise.all(
-        batch.map(async (product) => {
-          const description = this.formatProductInfo(product);
-          const imageHtml = product.variants[0]?.images || '';
-          const vector = await this.getEmbedding(description);
 
-          this.productData.push({
-            name: product.name,
-            description: `${description}\n${imageHtml}`,
-            vector,
-          });
-        }),
-      );
+      const productPromises = batch.map(async (product) => {
+        const category = this.getNameFromPopulatedField(product.category);
+        const brand = this.getNameFromPopulatedField(product.brand);
+
+        const productInfo = this.formatProductInfo(product, category, brand);
+        const vector = await this.getEmbedding(productInfo.searchText);
+        this.productData.push({
+          productId: product._id.toString(),
+          productName: product.name,
+          description: productInfo.fullDescription,
+          price: product.variants[0]?.price,
+          images: product.variants[0]?.images[0],
+          category,
+          brand,
+          isActive: product.isActive,
+          vector,
+        });
+      });
+
+      await Promise.all(productPromises);
     }
 
     this.logger.log(
@@ -125,23 +136,78 @@ export class ChatBotService implements OnModuleInit {
     );
   }
 
-  private formatProductInfo(product: any): string {
-    const category = this.getNameFromPopulatedField(product.category);
-    const brand = this.getNameFromPopulatedField(product.brand);
-    const imageUrl = product?.variants[0]?.images;
-    const variants =
-      product.variants
-        ?.map(
-          (v: any, i: number) =>
-            `Biến thể ${i + 1}: Giá: ${v.price || 'Liên hệ'} VNĐ` +
-            (v.color?.colorName ? `, Màu: ${v.color.colorName}` : '') +
-            (v.memory?.ram || v.memory?.storage
-              ? `, RAM: ${v.memory?.ram || 'Chưa rõ'}, Bộ nhớ: ${v.memory?.storage || 'Chưa rõ'}`
-              : ''),
-        )
-        .join('\n') || 'Không có biến thể';
+  private formatProductInfo(
+    product: any,
+    category: string,
+    brand: string,
+  ): {
+    searchText: string;
+    fullDescription: string;
+  } {
+    const baseInfo = product.name;
+    const categoryInfo = `Danh mục: ${category}`;
+    const brandInfo = `Thương hiệu: ${brand}`;
+    const statusInfo = `Trạng thái: ${product.isActive ? 'Còn bán' : 'Ngừng bán'}`;
 
-    return `Tên sản phẩm: ${product.name}\nDanh mục: ${category}\nThương hiệu: ${brand}\n${variants}\nHình ảnh: ${imageUrl}\nTrạng thái: ${product.isActive ? 'Còn bán' : 'Ngừng bán'}`;
+    // Tính toán giá từ variants
+    const prices =
+      product.variants?.map((variant: any) => variant?.price) || [];
+    const minPrice = Math.min(...prices);
+
+    const searchText = [
+      baseInfo,
+      categoryInfo,
+      brandInfo,
+      minPrice > 0
+        ? `Giá: ${minPrice.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}`
+        : '',
+      statusInfo,
+      product.description?.replace(/<[^>]*>/g, '') || '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const statusColor = product.isActive ? '#4CAF50' : '#f44336';
+
+    const firstImage = product.variants?.find(
+      (variant: any) => variant.images?.length > 0,
+    )?.images?.[0];
+
+    const fullDescription = `
+${
+  firstImage
+    ? `
+<div style="display: flex; align-items: center; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; margin: 8px 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="flex-shrink: 0; margin-right: 16px;">
+    <img src="${firstImage}" alt="${product.name}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;" />
+  </div>
+  <div style="flex-grow: 1;">
+    <h3 style="margin: 0 0 8px 0; color: #333; font-size: 15px; font-weight: 600;">${product.name}</h3>
+    <div style="color: #666; font-size: 14px; line-height: 1.5;">
+      <div style="margin-bottom: 4px;"><strong>Giá:</strong> ${minPrice}</div>
+      <div style="margin-bottom: 4px;"><strong>Thương hiệu:</strong> ${brand}</div>
+      <div style="margin-bottom: 4px;"><strong>Danh mục:</strong> ${category}</div>
+      <div style="margin-bottom: 4px;"><strong>Trạng thái:</strong> <span style="color: ${statusColor};">${product.isActive ? 'Còn bán' : 'Ngừng bán'}</span></div>
+    </div>
+  </div>
+</div>
+`
+    : `
+<div style="border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; margin: 12px 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <h3 style="margin: 0 0 8px 0; color: #333; font-size: 18px; font-weight: 600;">${product.name}</h3>
+  <div style="color: #666; font-size: 14px; line-height: 1.5;">
+    <div style="margin-bottom: 4px;"><strong>Giá:</strong> ${minPrice}</div>
+    <div style="margin-bottom: 4px;"><strong>Thương hiệu:</strong> ${brand}</div>
+    <div style="margin-bottom: 4px;"><strong>Danh mục:</strong> ${category}</div>
+    <div><strong>Trạng thái:</strong> <span style="color: ${statusColor};">${product.isActive ? 'Còn bán' : 'Ngừng bán'}</span></div>
+  </div>
+</div>
+`
+}
+
+    `.trim();
+
+    return { searchText, fullDescription };
   }
 
   private getNameFromPopulatedField(field: any): string {
@@ -155,15 +221,28 @@ export class ChatBotService implements OnModuleInit {
 
     try {
       const inputVector = await this.getEmbedding(userInput);
-      const topProducts = this.findRelevantProducts(inputVector, 3);
+      const topProducts = this.findRelevantProducts(inputVector, 5);
 
       if (!topProducts.length) return 'Không tìm thấy sản phẩm phù hợp.';
 
       const context = topProducts
-        .map((p, i) => `Sản phẩm #${i + 1}:\n${p.description}`)
+        .map((product, i) =>
+          `
+Sản phẩm #${i + 1}:
+${product.description}
+---
+        `.trim(),
+        )
         .join('\n\n');
 
-      const prompt = `Yêu cầu: ${this.SYSTEM_PROMPT}\nCâu hỏi: ${userInput}\nDữ liệu liên quan:\n${context}\nVui lòng trả lời dựa vào thông tin trên.`;
+      const prompt = `
+Câu hỏi của khách hàng: "${userInput}"
+
+Dữ liệu sản phẩm liên quan:
+${context}
+
+Hãy trả lời dựa vào thông tin sản phẩm trên. Nếu có nhiều sản phẩm phù hợp, hãy so sánh và đưa ra lời khuyên. Luôn hiển thị hình ảnh của sản phẩm được đề cập.
+      `.trim();
 
       const result = await this.chatSession.sendMessage(prompt);
       return result.response.text();
@@ -190,16 +269,16 @@ export class ChatBotService implements OnModuleInit {
 
   private findRelevantProducts(
     inputVector: number[],
-    topK = 3,
+    topK = 5,
   ): ProductWithEmbedding[] {
     if (!this.productData.length) return [];
 
     return this.productData
-      .map((p) => ({
-        ...p,
-        score: this.calculateCosineSimilarity(p.vector, inputVector),
+      .map((product) => ({
+        ...product,
+        score: this.calculateCosineSimilarity(product.vector, inputVector),
       }))
-      .filter((p) => (p.score || 0) > 0.5)
+      .filter((product) => (product.score || 0) > 0.3)
       .sort((a, b) => (b.score || 0) - (a.score || 0))
       .slice(0, topK);
   }
@@ -210,5 +289,36 @@ export class ChatBotService implements OnModuleInit {
     const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
     const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
     return normA && normB ? dot / (normA * normB) : 0;
+  }
+
+  // Utility methods cho sản phẩm
+  getProductById(productId: string): ProductWithEmbedding | undefined {
+    return this.productData.find((product) => product.productId === productId);
+  }
+
+  findProductsByCategory(categoryName: string): ProductWithEmbedding[] {
+    return this.productData.filter((product) =>
+      product.category.toLowerCase().includes(categoryName.toLowerCase()),
+    );
+  }
+
+  findProductsByBrand(brandName: string): ProductWithEmbedding[] {
+    return this.productData.filter((product) =>
+      product.brand.toLowerCase().includes(brandName.toLowerCase()),
+    );
+  }
+
+  // findProductsByPriceRange(
+  //   minPrice: number,
+  //   maxPrice: number,
+  // ): ProductWithEmbedding[] {
+  //   return this.productData.filter(
+  //     (product) =>
+  //       product.price.min <= maxPrice && product.price.max >= minPrice,
+  //   );
+  // }
+
+  getAllActiveProducts(): ProductWithEmbedding[] {
+    return this.productData.filter((product) => product.isActive);
   }
 }

@@ -21,17 +21,15 @@ export class CreateBranchDto {
     example: '+84901234567',
     description: 'Số điện thoại liên hệ',
   })
-  
   phone: string;
+  location: string;
 
   @ApiProperty({ example: 'branch@example.com', description: 'Email liên hệ' })
-  
   email: string;
 
   @ApiPropertyOptional({
     example: true,
     description: 'Trạng thái hoạt động của cửa hàng',
   })
- 
   isActive?: boolean;
 }

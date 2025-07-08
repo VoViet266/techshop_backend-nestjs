@@ -10,6 +10,7 @@ export class Brand {
   name: string;
   @Prop()
   description: string;
+
   @Prop({})
   logo: string;
 

@@ -25,6 +25,9 @@ export class Branch {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   manager: mongoose.Schema.Types.ObjectId;
 
+  @Prop()
+  location: string;
+
   @Prop({
     trim: true,
   })

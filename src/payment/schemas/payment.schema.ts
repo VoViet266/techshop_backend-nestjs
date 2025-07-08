@@ -28,6 +28,7 @@ export class Payment {
 
   @Prop()
   momoOrderId?: string;
+
   @Prop()
   momoRequestId?: string;
 

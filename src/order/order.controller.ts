@@ -51,6 +51,11 @@ export class OrderController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+    return this.orderService.remove(id);
+  }
+
+  @Patch('/cancel/:id')
+  cancelOrder(@Param('id') id: string, @User() user: IUser) {
+    return this.orderService.cancelOrder(id, user);
   }
 }

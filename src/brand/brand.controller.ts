@@ -36,6 +36,7 @@ export class BrandController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBrandDto: UpdateBrandDto) {
+    console.log(updateBrandDto);
     return this.brandService.update(id, updateBrandDto);
   }
 

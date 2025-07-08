@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Get, Injectable, Param } from '@nestjs/common';
 import * as fs from 'fs';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -21,6 +21,8 @@ import {
 import * as mongooseDelete from 'mongoose-delete';
 import csvParser from 'csv-parser';
 import { ImportProductFromCsvDto } from './dto/import-product.dto';
+import { ReviewService } from 'src/review/review.service';
+import { Public } from 'src/decorator/publicDecorator';
 
 @Injectable()
 export class ProductService {
@@ -31,19 +33,12 @@ export class ProductService {
     private readonly variantModel: SoftDeleteModel<VariantDocument>,
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
-
-    @InjectModel(Brand.name)
-    private readonly brandModel: SoftDeleteModel<BrandDocument>,
-    @InjectModel(Category.name)
-    private readonly categoryModel: SoftDeleteModel<CategoryDocument>,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
     const createdVariants = await this.variantModel.insertMany(
-      createProductDto.variants.map((variant) => ({
+      createProductDto?.variants?.map((variant) => ({
         ...variant,
-        compareAtPrice:
-          variant.price + (variant.price * createProductDto.discount) / 100,
       })),
     );
     const slug = slugify(createProductDto.name, {
@@ -54,7 +49,7 @@ export class ProductService {
     const createdProduct = await this.productModel.create({
       ...createProductDto,
       slug: slug,
-      variants: createdVariants.map((variant) => variant._id),
+      variants: createdVariants?.map((variant) => variant._id) || [],
     });
     return createdProduct;
   }
@@ -84,50 +79,6 @@ export class ProductService {
     const createdProducts =
       await this.productModel.insertMany(productsToInsert);
     return createdProducts;
-  }
-  async importProductsFromCsv(filePath: string): Promise<any> {
-    const rows: any[] = [];
-
-    await new Promise((resolve, reject) => {
-      fs.createReadStream(filePath)
-        .pipe(csvParser())
-        .on('data', (row) => {
-          rows.push(row);
-        })
-        .on('end', () => resolve(null))
-        .on('error', (err) => reject(err));
-    });
-
-    const products = [];
-
-    // Xử lý async tuần tự hoặc song song ở đây
-    for (const row of rows) {
-      try {
-        const product = {
-          name: row.name,
-          slug: slugify(row.name, {
-            lower: true,
-            strict: true,
-            locale: 'vi',
-          }),
-          description: row.description,
-          category: row.category,
-          brand: row.brand,
-          discount: Number(row.discount),
-          isActive: row.isActive === 'true',
-          isFeatured: row.isFeatured === 'true',
-          tags: row.tags?.split(';').map((tag) => tag.trim()),
-        };
-
-        products.push(product);
-      } catch (err) {
-        throw new Error('Error processing row: ' + err.message);
-      }
-    }
-
-    const inserted = await this.productModel.insertMany(products);
-
-    return { success: true, insertedCount: inserted.length };
   }
 
   async autocompleteSearch(query: string) {
@@ -202,6 +153,7 @@ export class ProductService {
             _id: '$brand._id',
             name: '$brand.name',
           },
+          attributes: 1,
           variants: 1,
           isActive: 1,
           isFeatured: 1,
@@ -291,13 +243,19 @@ export class ProductService {
             name: 1,
             description: 1,
             discount: 1,
+            tags: 1,
+            slug: 1,
+            overviewImage: 1,
+            attributes: 1,
             category: {
               _id: '$category._id',
               name: '$category.name',
+              logo: '$category.logo',
             },
             brand: {
               _id: '$brand._id',
               name: '$brand.name',
+              logo: '$brand.logo',
             },
             variants: '$variants',
           },
@@ -349,33 +307,52 @@ export class ProductService {
 
   async update(id: string, updateProductDto: UpdateProductDto) {
     const product = await this.productModel.findById(id);
-
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }
-    let variantId = [];
+
+    const variantIds: string[] = [];
     await Promise.all(
-      product.variants.map(async (v, index) => {
-        const variantUpdate = updateProductDto.variants[index];
-
-        const updatedVariant = await this.variantModel.findByIdAndUpdate(v, {
-          name: variantUpdate.name,
-          price: variantUpdate.price,
-          color: variantUpdate.color,
-          memory: variantUpdate.memory,
-          images: variantUpdate.images,
-        });
-
-        variantId.push(updatedVariant._id);
+      updateProductDto.variants.map(async (variant, index) => {
+        if (product.variants[index]) {
+          const existingVariantId = product.variants[index];
+          const updated = await this.variantModel.findByIdAndUpdate(
+            existingVariantId,
+            {
+              ...variant,
+            },
+            { new: true },
+          );
+          if (!updated) {
+            throw new BadRequestException(
+              `Không tìm thấy biến thể với ID ${existingVariantId}`,
+            );
+          }
+          variantIds.push(updated._id.toString());
+        } else {
+          const created = await this.variantModel.create({
+            ...variant,
+          });
+          variantIds.push(created._id.toString());
+        }
       }),
     );
-    return this.productModel.updateOne(
+
+    if (product.variants.length > variantIds.length) {
+      const toDelete = product.variants.slice(variantIds.length);
+      await this.variantModel.deleteMany({ _id: { $in: toDelete } });
+    }
+
+    await this.productModel.updateOne(
       { _id: id },
-      { ...updateProductDto, variants: variantId },
       {
-        new: true,
+        ...updateProductDto,
+        attributes: updateProductDto.attributes,
+        variants: variantIds,
       },
     );
+
+    return { message: 'Cập nhật thành công' };
   }
 
   async remove(id: string) {

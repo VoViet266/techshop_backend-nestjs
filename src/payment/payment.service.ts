@@ -32,7 +32,8 @@ export class PaymentService {
     const orderId = `ORDER_${Date.now()}`;
     // redirectUrl là nơi người dùng sẽ được chuyển hướng sau khi thanh toán thành công ở Frontend
     const redirectUrl = 'https://momo.vn/return';
-    const ipnUrl = ' https://96eb-2001-ee0-533b-f3a0-30cb-cf3e-f6e1-2deb.ngrok-free.app/api/v1/payment/momo/notify';
+    const ipnUrl =
+      ' https://96eb-2001-ee0-533b-f3a0-30cb-cf3e-f6e1-2deb.ngrok-free.app/api/v1/payment/momo/notify';
     const extraData = Buffer.from(
       JSON.stringify({ userId: user._id }),
     ).toString('base64');
@@ -66,7 +67,7 @@ export class PaymentService {
       });
 
       await this.paymentModel.create({
-        order: dto.order, // nếu có
+        order: dto.order,
         user: user._id,
         momoOrderId: orderId,
         requestId,
@@ -107,10 +108,10 @@ export class PaymentService {
     );
 
     // Nếu bạn có bảng đơn hàng
-    if (status === 'SUCCESS') {
+    if (status === PaymentStatus.COMPLETED) {
       await this.orderModel.findOneAndUpdate(
         { momoOrderId: orderId },
-        { status: 'SUCCESS' },
+        { status: PaymentStatus.COMPLETED },
       );
     }
   }
