@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import {
@@ -34,16 +35,23 @@ export class InventoryController {
   }
 
   @Get()
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
   findAll(@User() user: IUser) {
     return this.inventoryService.findAll(user);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.inventoryService.findOne(id);
-  // }
+  @Get('check-stock')
+  findOne(
+    @Query('productId') productId: string,
+    @Query('branchId') branchId: string,
+    @Query('variantId') variantId: string,
+  ) {
+    
+    return this.inventoryService.getStockProduct(
+      productId,
+      branchId,
+      variantId,
+    );
+  }
 
   @Patch(':id')
   update(

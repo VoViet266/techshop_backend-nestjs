@@ -38,10 +38,7 @@ export class ReviewService {
     const page = Number(currentPage) || 1;
     const pageSize = Number(limit) || 10;
 
-    const skip = (page - 1) * pageSize;
-
-    const sortBy = Object.keys(sort)[0] || 'createdAt';
-    const sortOrder = sort[sortBy] ?? -1;
+    const skip = (page - 1) * pageSize; 
 
     const [comments, total] = await Promise.all([
       this.reviewModel

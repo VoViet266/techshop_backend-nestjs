@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import {
   CreateInventoryDto,
@@ -78,6 +79,28 @@ export class InventoryService {
     };
 
     return await this.inventoryModel.create(inventoryData);
+  }
+  async getStockProduct(
+    productId: string,
+    branchId: string,
+    variantId: string,
+  ) {
+    const inventory = await this.inventoryModel
+      .findOne(
+        {
+          product: productId,
+          branch: branchId,
+          'variants.variantId': variantId,
+        },
+        {
+          variants: { $elemMatch: { variantId: variantId } },
+        },
+      )
+      .lean();
+
+    const stock = inventory?.variants?.[0]?.stock ?? 0;
+
+    return stock;
   }
 
   async findAll(user: any) {

@@ -73,6 +73,7 @@ export class RecommendationService implements OnModuleInit {
         .find({ isActive: { $ne: false } })
         .populate('category', 'name')
         .populate('brand', 'name')
+        .populate('variants', 'price')
         .select('name category brand description tags')
         .lean();
 
@@ -180,7 +181,7 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendedProducts(
     productId: string,
-    limit = 5,
+    limit = 6,
     minSimilarity = 0.1,
   ): Promise<Products[]> {
     if (!this.isModelTrained) {
@@ -192,7 +193,8 @@ export class RecommendationService implements OnModuleInit {
       .findById(productId)
       .populate('category', 'name')
       .populate('brand', 'name')
-      .select('name category brand description tags')
+      .populate('variants', 'price images')
+      .select('name discount category brand variants description ')
       .lean();
 
     if (!targetProduct) {
@@ -227,7 +229,8 @@ export class RecommendationService implements OnModuleInit {
           .findById(otherProductId)
           .populate('category', 'name')
           .populate('brand', 'name')
-          .select('name category brand description tags')
+          .populate('variants', 'price images')
+          .select('name category brand variants description tags')
           .lean();
 
         if (product && product.isActive !== false) {
