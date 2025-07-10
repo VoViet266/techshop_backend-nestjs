@@ -93,7 +93,9 @@ export class OrderService {
     for (const item of itemsToOrder) {
       await this.inventoryService.exportStock(
         {
-          branchId: createOrderDto.branch,
+          branchId: Array.isArray(createOrderDto.branch)
+            ? createOrderDto.branch[0]
+            : createOrderDto.branch,
           productId: item.product,
           variants: [
             {

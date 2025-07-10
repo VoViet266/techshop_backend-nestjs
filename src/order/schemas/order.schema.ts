@@ -50,10 +50,10 @@ export class Order {
   source: string;
 
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
+    type: [mongoose.Schema.Types.ObjectId],
     ref: Branch.name,
   })
-  branch?: mongoose.Schema.Types.ObjectId;
+  branch?: mongoose.Schema.Types.ObjectId[];
 
   @Prop({ type: Number, required: true, default: 0 })
   totalPrice: number;

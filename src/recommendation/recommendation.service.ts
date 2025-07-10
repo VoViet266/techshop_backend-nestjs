@@ -286,10 +286,19 @@ export class RecommendationService implements OnModuleInit {
       }
     }
 
-    return Array.from(allRecommendations.values())
+    const sortedProducts = Array.from(allRecommendations.values())
       .sort((a, b) => b.totalScore - a.totalScore)
       .slice(0, limit)
       .map((r) => r.product);
+    const fullProducts = await this.productModel
+      .find({ _id: { $in: sortedProducts } })
+      .populate('category', 'name')
+      .populate('brand', 'name')
+      .populate('variants', 'price images')
+      .select('name category brand variants description tags')
+      .lean();
+
+    return fullProducts;
   }
 
   private async getPopularProducts(limit: number): Promise<Products[]> {
