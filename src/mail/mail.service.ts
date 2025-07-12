@@ -17,13 +17,16 @@ export class MailService {
   }
 
   async sendResetPasswordEmail(email: string, token: string): Promise<void> {
-    const resetUrl = `http://localhost:8080/reset-password?token=${token}`;
+    const resetCode = token;
 
     await this.transporter.sendMail({
       from: this.configService.get('EMAIL_FROM'),
       to: email,
       subject: 'Yêu cầu đặt lại mật khẩu',
       html: `<head>
+  <!DOCTYPE html>
+<html lang="vi">
+<head>
     <title>Đặt lại mật khẩu</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,7 +51,6 @@ export class MailService {
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
-
 
         .logo {
             width: 60px;
@@ -106,24 +108,53 @@ export class MailService {
             margin-bottom: 35px;
         }
 
-        .reset-button {
-            display: inline-block;
-            background: #e69410;
-            color: #ffffff;
-            padding: 16px 40px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(175, 138, 63, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .code-container {
+            background: #f3dfce;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 35px 0;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
         }
 
-        .reset-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(227, 166, 111, 0.6);
+        .code-label {
+            color: #0e0e0eff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .verification-code {
+            background: #ffffff;
+            color: #2d3748;
+            font-size: 32px;
+            font-weight: 700;
+            padding: 20px 30px;
+            border-radius: 12px;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            margin: 0 auto;
+            user-select: all;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .verification-code:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .copy-hint {
+            color: #ffffff;
+            font-size: 12px;
+            margin-top: 15px;
+            opacity: 0.8;
         }
 
         .warning-box {
@@ -231,6 +262,16 @@ export class MailService {
                 flex-direction: column;
                 gap: 10px;
             }
+
+            .verification-code {
+                font-size: 24px;
+                letter-spacing: 4px;
+                padding: 15px 20px;
+            }
+
+            .code-container {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -245,18 +286,25 @@ export class MailService {
                             style="display: block; height: auto; border: 0; width: 100%;" width="374"
                             alt="Resetting Password" title="Resetting Password" height="auto"></div>
                 </div>
+                
                 <div class="message">
                     Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.
-                    Để bảo vệ tài khoản của bạn, vui lòng nhấp vào nút bên dưới để tiếp tục quá trình đặt lại mật khẩu.
+                    Để bảo vệ tài khoản của bạn, vui lòng sử dụng mã khôi phục bên dưới.
                 </div>
-                <a href="${resetUrl}" class="reset-button">Đặt lại mật khẩu</a>
+
+                <div class="code-container">
+                    <div class="code-label">Mã khôi phục mật khẩu</div>
+                    <div class="verification-code" onclick="this.select();">${resetCode}</div>
+                    <div class="copy-hint">Nhấp vào mã để sao chép</div>
+                </div>
+
                 <div class="warning-box">
                     <p class="warning-text">
-                        <strong style="color: red;">Lưu ý quan trọng:</strong> Liên kết này sẽ hết hạn sau <strong>1
-                            phút</strong> kể từ khi
-                        bạn nhận được email này vì lý do bảo mật.
+                        <strong style="color: red;">Lưu ý quan trọng:</strong> Mã khôi phục này sẽ hết hạn sau <strong>5 phút</strong> kể từ khi
+                        bạn nhận được email này vì lý do bảo mật. Vui lòng sử dụng mã ngay lập tức.
                     </p>
                 </div>
+
                 <div class="message" style="margin-bottom: 0; font-size: 14px; color: #6c757d;">
                     Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.
                     Tài khoản của bạn vẫn an toàn và không có thay đổi nào được thực hiện.
@@ -264,7 +312,8 @@ export class MailService {
             </div>
         </div>
     </div>
-</body>`,
+</body>
+</html>`,
     });
   }
 }

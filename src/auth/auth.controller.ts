@@ -24,12 +24,15 @@ import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import ms from 'ms';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly configService: ConfigService,
   ) {}
 
   @UseGuards(LocalAuthGuard)
@@ -45,22 +48,47 @@ export class AuthController {
   @Post('/register')
   @ResponseMessage('Đăng ký thành công')
   async register(@Body() register: RegisterUserDto) {
-    console.log(register);
     return this.userService.register(register);
   }
   @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-    // Tự động redirect đến Google
-  }
+  async googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req: any) {
+  @Public()
+  async googleAuthRedirect(@Request() req: any, @Res() res: Response) {
+    const user = req.user;
+    const access_token = await this.authService.createAccessToken(user);
+
+    const payload = {
+      sub: 'token login',
+      iss: 'from server',
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      branch: user.branch,
+      role: user.role,
+    };
+
+    const refresh_Token = this.authService.createRefreshToken({ payload });
+    console.log(refresh_Token);
+    res.cookie('refresh_Token', refresh_Token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite:
+        this.configService.get<string>('NODE_ENV') === 'production'
+          ? 'none'
+          : 'strict',
+      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+    });
+    res.redirect(
+      `http://localhost:5173/oauth-success?access_token=${access_token}`,
+    );
     return {
       message: 'Đăng nhập thành công!',
-      user: req.user,
     };
   }
 

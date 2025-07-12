@@ -50,6 +50,19 @@ export class AuthService {
     }
     return null;
   }
+
+  async createAccessToken(user: IUser) {
+    const { _id, name, email, avatar } = user;
+    const payload = {
+      sub: 'token login',
+      iss: 'from server',
+      _id,
+      name,
+      email,
+      avatar,
+    };
+    return this.jwtService.sign(payload);
+  }
   async login(user: IUser, res: Response) {
     const { _id, name, email, avatar } = user;
     const userWithRole = await (
@@ -84,7 +97,6 @@ export class AuthService {
 
     const refresh_Token = this.createRefreshToken({ payload });
 
-    console.log(_id);
     await this.userService.updateUserToken(_id.toString(), refresh_Token);
 
     res.cookie('refresh_Token', refresh_Token, {
@@ -222,7 +234,8 @@ export class AuthService {
     expiresAt.toLocaleDateString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
     });
-    expiresAt.setMinutes(expiresAt.getMinutes() + 1);
+    /// Token có thời hạn 5 phút
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5);
 
     user.resetPasswordToken = token;
     user.resetPasswordExpires = expiresAt;

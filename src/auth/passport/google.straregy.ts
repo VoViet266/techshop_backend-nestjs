@@ -14,37 +14,53 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super({
       clientID: configSerive.get<string>('GOOGLE_CLIENT_ID'),
       clientSecret: configSerive.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: configSerive.get<string>('GOOGLE_CALLBACK_URL'),
+      callbackURL: 'http://localhost:8080/api/v1/auth/google/callback',
       scope: ['email', 'profile'],
     });
   }
 
-  async validate(profile: any, done: VerifyCallback): Promise<any> {
-    const { name, emails, photos } = profile;
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: any,
+  ): Promise<any> {
+    try {
+      const { name, emails, photos } = profile;
 
-    const email = emails[0].value;
-    const existingUser = await this.userService.findOneByEmail(email);
+      if (!emails || emails.length === 0) {
+        throw new Error('No email provided by Google');
+      }
 
-    let user: any;
+      const email = emails[0].value;
 
-    if (existingUser) {
-      user = existingUser;
-    } else {
-      // Nếu chưa có thì tạo mới user
-      user = await this.userService.create({
-        email: email,
-        name: name.givenName,
-        avatar: photos[0].value,
-        password: '',
-        phone: '',
-        address: [],
-        age: 0,
-        role: '',
-        status: '',
-        refreshToken: '',
-      });
+      if (!email) {
+        throw new Error('Invalid email from Google');
+      }
+
+      const existingUser = await this.userService.findOneByEmail(email);
+      let user: any;
+
+      if (existingUser) {
+        user = existingUser;
+        console.log('User already exists:', user.email);
+      } else {
+        console.log('User does not exist, creating new user:', email);
+        user = await this.userService.create({
+          email,
+          name: `${name.givenName} ${name.familyName}`,
+          avatar: photos?.[0]?.value || '',
+          password: '',
+          phone: '',
+          address: [],
+          age: 0,
+          refreshToken: '',
+        });
+      }
+
+      return user;
+    } catch (error) {
+      console.error('Error in Google strategy validate:', error);
+      throw error;
     }
-
-    done(null, user);
   }
 }

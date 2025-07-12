@@ -40,15 +40,15 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     let roleId: any = createUserDto.role;
-    if (!createUserDto.role) {
-      const roleDefault = await this.roleModel.findOne({
-        name: RolesUser.Customer,
-      });
-      if (!roleDefault) {
-        throw new NotFoundException('Không tìm thấy quyền');
-      }
-      roleId = roleDefault._id;
-    }
+    // if (!createUserDto.role) {
+    //   const roleDefault = await this.roleModel.findOne({
+    //     name: RolesUser.Customer,
+    //   });
+    //   if (!roleDefault) {
+    //     throw new NotFoundException('Không tìm thấy quyền');
+    //   }
+    //   roleId = roleDefault._id;
+    // }
 
     const hashedPassword = this.hashPassword(createUserDto.password);
     return await this.userModel.create({
