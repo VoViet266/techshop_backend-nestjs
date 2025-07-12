@@ -58,9 +58,6 @@ export class Inventory {
   })
   maxStockLevel: number;
 
-  //nhà cung cấp
-  ///
-
   // Thời gian nhập hàng gần nhất
   @Prop({ type: Date })
   lastRestockedAt: Date;
@@ -84,7 +81,7 @@ export class Inventory {
     name: string;
   };
 
-   @Prop({
+  @Prop({
     type: {
       email: String,
       name: String,
@@ -94,7 +91,6 @@ export class Inventory {
     email: string;
     name: string;
   };
-
 
   @Prop()
   createdAt: Date;

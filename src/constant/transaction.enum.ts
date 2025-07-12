@@ -8,8 +8,10 @@ export enum TransactionType {
 }
 export enum TransactionStatus {
   PENDING = 'pending', // Đang chờ xử lý
-  IN_TRANSIT = 'in-transit', // Đang được vận chuyển
+  IN_TRANSIT = 'in_ transit', // Đang được vận chuyển
   RECEIVED = 'received', // Đã nhận hàng
+  APPROVED = 'approved', // Đã xử lý
+  REJECT = 'reject', // Bi loi
 }
 
 export enum TransactionSource {
@@ -17,4 +19,5 @@ export enum TransactionSource {
   RETURN = 'return', // Phát sinh từ đơn trả hàng
   MANUAL = 'manual', // Nhập tay (tự điều chỉnh trong hệ thống)
   TRANSFER = 'transfer', // Phát sinh từ chuyển kho
+  CANCELLED = 'cancelled', // Hệ thống hủy đơn hàng
 }

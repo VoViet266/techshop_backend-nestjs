@@ -51,8 +51,10 @@ export class StockMovement {
 
   @Prop() note: string;
 
+  
+
   @Prop({ type: String, enum: TransactionSource })
-  relatedTo?: string;
+  source: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId })
   relatedId?: string;

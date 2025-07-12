@@ -25,6 +25,7 @@ import { CaslModule } from './casl/casl.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { ReviewModule } from './review/review.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { ReviewModule } from './review/review.module';
     RecommendationModule,
     ChatbotModule,
     ReviewModule,
+    RedisModule,
   ],
 
   controllers: [AppController],

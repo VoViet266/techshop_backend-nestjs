@@ -16,6 +16,7 @@ import {
   ViewHistory,
   ViewHistoryDocument,
 } from './schemas/view_histories.schema';
+import { create } from 'domain';
 
 interface SimilarityResult {
   product: Products;
@@ -154,7 +155,7 @@ export class RecommendationService implements OnModuleInit {
 
     return vector;
   }
-
+  //Hàm tính độ tương đồng giữa 2 vector
   private calculateCosineSimilarity(vec1: number[], vec2: number[]): number {
     if (!vec1 || !vec2 || vec1.length !== vec2.length) {
       return 0;
@@ -262,7 +263,7 @@ export class RecommendationService implements OnModuleInit {
       try {
         const similarProducts = await this.getRecommendedProducts(
           productId,
-          limit * 2,
+          limit * 5,
         );
 
         similarProducts.forEach((product) => {
@@ -305,6 +306,9 @@ export class RecommendationService implements OnModuleInit {
     return this.productModel
       .find({ isActive: { $ne: false } })
       .sort({ viewCount: -1, soldCount: -1 })
+      .populate('category', 'name')
+      .populate('brand', 'name')
+      .populate('variants', 'price images')
       .limit(limit)
       .lean();
   }
@@ -312,7 +316,7 @@ export class RecommendationService implements OnModuleInit {
   private async getUserInteractedProducts(userId: string): Promise<string[]> {
     const histories = await this.viewHistoryModel
       .find({ userId })
-      .sort({ viewedAt: -1 })
+      .sort({ createdAt: -1 })
       .limit(20)
       .select('productId')
       .lean();
@@ -349,46 +353,46 @@ export class RecommendationService implements OnModuleInit {
     }
   }
 
-  async getRecommendationsFromViewedProducts(
-    productIds: string[],
-    limit = 10,
-  ): Promise<Products[]> {
-    const allRecommendations = new Map<
-      string,
-      { product: Products; totalScore: number }
-    >();
+  // async getRecommendationsFromViewedProducts(
+  //   productIds: string[],
+  //   limit = 10,
+  // ): Promise<Products[]> {
+  //   const allRecommendations = new Map<
+  //     string,
+  //     { product: Products; totalScore: number }
+  //   >();
+  //   console.log('sdvs');
+  //   for (const productId of productIds) {
+  //     try {
+  //       const similarProducts = await this.getRecommendedProducts(
+  //         productId,
+  //         limit * 2,
+  //       );
 
-    for (const productId of productIds) {
-      try {
-        const similarProducts = await this.getRecommendedProducts(
-          productId,
-          limit * 2,
-        );
+  //       similarProducts.forEach((product) => {
+  //         const id = (product as any)._id.toString();
+  //         if (productIds.includes(id)) return;
 
-        similarProducts.forEach((product) => {
-          const id = (product as any)._id.toString();
-          if (productIds.includes(id)) return;
+  //         const existing = allRecommendations.get(id);
+  //         const score = 1;
 
-          const existing = allRecommendations.get(id);
-          const score = 1;
+  //         if (existing) {
+  //           existing.totalScore += score;
+  //         } else {
+  //           allRecommendations.set(id, { product, totalScore: score });
+  //         }
+  //       });
+  //     } catch (error) {
+  //       this.logger.warn(
+  //         `Failed to get recommendations for product ${productId}:`,
+  //         error,
+  //       );
+  //     }
+  //   }
 
-          if (existing) {
-            existing.totalScore += score;
-          } else {
-            allRecommendations.set(id, { product, totalScore: score });
-          }
-        });
-      } catch (error) {
-        this.logger.warn(
-          `Failed to get recommendations for product ${productId}:`,
-          error,
-        );
-      }
-    }
-
-    return Array.from(allRecommendations.values())
-      .sort((a, b) => b.totalScore - a.totalScore)
-      .slice(0, limit)
-      .map((r) => r.product);
-  }
+  //   return Array.from(allRecommendations.values())
+  //     .sort((a, b) => b.totalScore - a.totalScore)
+  //     .slice(0, limit)
+  //     .map((r) => r.product);
+  // }
 }

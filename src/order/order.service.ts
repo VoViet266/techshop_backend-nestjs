@@ -24,6 +24,7 @@ import {
 } from 'src/constant/payment.enum';
 import { Payment, PaymentDocument } from 'src/payment/schemas/payment.schema';
 import mongoose, { Types } from 'mongoose';
+import { TransactionSource } from 'src/constant/transaction.enum';
 
 @Injectable()
 export class OrderService {
@@ -77,6 +78,7 @@ export class OrderService {
         quantity: item.quantity,
         variant: item.variant.toString(),
         price: item.price,
+        branch: item.branch.toString(),
       }));
     } else {
       // Nếu là nhân viên tạo tại quầy
@@ -91,36 +93,16 @@ export class OrderService {
     // Xuất kho + tính tổng
     let totalPrice = 0;
     for (const item of itemsToOrder) {
-      await this.inventoryService.exportStock(
-        {
-          branchId: Array.isArray(createOrderDto.branch)
-            ? createOrderDto.branch[0]
-            : createOrderDto.branch,
-          productId: item.product,
-          variants: [
-            {
-              variantId: item.variant,
-              quantity: item.quantity,
-            },
-          ],
-        },
-        user,
-      );
-
       totalPrice += item.price * item.quantity;
     }
     const newOrder = await this.orderModel.create({
-      branch: createOrderDto.branch,
       phone: createOrderDto.phone,
       items: itemsToOrder,
       totalPrice: totalPrice,
       user: user._id,
       paymentMethod: createOrderDto.paymentMethod,
       status: OrderStatus.PENDING,
-      paymentStatus:
-        createOrderDto.paymentStatus === PaymentMethod.CASH
-          ? PaymentStatus.COMPLETED
-          : PaymentStatus.PENDING,
+      paymentStatus: PaymentStatus.PENDING,
       createdBy: {
         name: user.name,
         email: user.email,
@@ -133,10 +115,7 @@ export class OrderService {
       user: user._id,
       amount: totalPrice,
       payType: createOrderDto.paymentMethod,
-      status:
-        createOrderDto.paymentMethod === OrderSource.POS
-          ? PaymentStatus.COMPLETED
-          : PaymentStatus.PENDING,
+      status: PaymentStatus.PENDING,
       paymentTime:
         createOrderDto.paymentMethod === OrderSource.POS
           ? new Date()
@@ -168,7 +147,8 @@ export class OrderService {
       .populate({
         path: 'branch',
         select: 'name phone address email',
-      });
+      })
+      .sort({ createdAt: -1 });
   }
 
   findAllByStaff(user: IUser) {
@@ -176,14 +156,18 @@ export class OrderService {
       case RolesUser.Admin:
         return this.orderModel
           .find()
+          .populate({ path: 'items.branch', select: 'name ' })
           .populate({ path: 'items.product', select: 'name ' })
-          .populate({ path: 'items.variant', select: 'name ' });
+          .populate({ path: 'items.variant', select: 'name ' })
+          .sort({ createdAt: -1 });
 
       case RolesUser.Staff:
         return this.orderModel
           .find({ branch: user.branch })
+          .populate({ path: 'items.branch', select: 'name ' })
           .populate({ path: 'items.product', select: 'name ' })
-          .populate({ path: 'items.variant', select: 'name ' });
+          .populate({ path: 'items.variant', select: 'name ' })
+          .sort({ createdAt: -1 });
 
       default:
         throw new ForbiddenException('Bạn không có quyền truy cập!');
@@ -197,8 +181,8 @@ export class OrderService {
       .populate('items.variant');
   }
 
-  update(id: string, updateOrderDto: UpdateOrderDto) {
-    const orderExist = this.orderModel.findById(id);
+  async update(id: string, updateOrderDto: UpdateOrderDto, user: IUser) {
+    const orderExist = await this.orderModel.findById(id);
     if (!orderExist) {
       throw new HttpException(
         {
@@ -208,11 +192,37 @@ export class OrderService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return this.orderModel.findByIdAndUpdate(
-      id,
-      { $set: updateOrderDto },
-      { new: true },
-    );
+    orderExist.status = updateOrderDto.status;
+    orderExist.paymentStatus = updateOrderDto.paymentStatus;
+    orderExist.save();
+
+    if (
+      (updateOrderDto.status = OrderStatus.DELIVERED) &&
+      updateOrderDto.paymentStatus === PaymentStatus.COMPLETED
+    ) {
+      for (const item of orderExist.items) {
+        await this.productModel.updateOne(
+          { _id: item.product },
+          { $inc: { sold: item.quantity } },
+        );
+
+        await this.inventoryService.exportStock(
+          {
+            branchId: item.branch.toString(),
+            productId: item.product.toString(),
+            variants: [
+              {
+                variantId: item.variant.toString(),
+                quantity: item.quantity,
+              },
+            ],
+          },
+          user,
+        );
+      }
+    }
+
+    return 'Update order successfully';
   }
 
   async remove(id: string) {
@@ -270,10 +280,54 @@ export class OrderService {
     const payment = await this.paymentModel.findById(order.payment);
     payment.status = PaymentStatus.CANCELLED;
     await payment.save();
+
+    return { message: 'Đơn hàng đã được hủy thành công' };
+  }
+
+  async refundOrder(id: string, user: IUser) {
+    const order = await this.orderModel.findById(id);
+    if (!order) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'Đơn hàng không tồn tại',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (order.user.toString() !== user._id.toString()) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.FORBIDDEN,
+          message: 'Không có quyện hủy đơn hàng nây',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (
+      order.paymentStatus === PaymentStatus.CANCELLED ||
+      order.paymentStatus === PaymentStatus.REFUNDED
+    ) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Không thể hủy đơn hàng!!!!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    order.paymentStatus = PaymentStatus.REFUNDED;
+    await order.save();
+    const payment = await this.paymentModel.findById(order.payment);
+    payment.status = PaymentStatus.REFUNDED;
+    await payment.save();
     for (const item of order.items) {
       await this.inventoryService.importStock(
         {
-          branchId: order.branch?.toString(),
+          branchId: item.branch.toString(),
           productId: item.product?.toString(),
           variants: [
             {
@@ -281,11 +335,11 @@ export class OrderService {
               quantity: item.quantity,
             },
           ],
+          source: TransactionSource.RETURN,
         },
         user,
       );
     }
-
-    return { message: 'Đơn hàng đã được hủy thành công' };
+    return { message: 'Đơn hàng đã được hủy thanh toán' };
   }
 }

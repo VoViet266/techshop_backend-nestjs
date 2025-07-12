@@ -36,6 +36,11 @@ export class Order {
           ref: Variant.name,
           required: true,
         },
+        branch: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: Branch.name,
+          required: true,
+        },
       },
     ],
   })
@@ -44,19 +49,17 @@ export class Order {
     quantity: number;
     price: number;
     variant: mongoose.Schema.Types.ObjectId;
+    branch: mongoose.Schema.Types.ObjectId;
   }[];
 
   @Prop({ enum: OrderSource })
   source: string;
 
-  @Prop({
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: Branch.name,
-  })
-  branch?: mongoose.Schema.Types.ObjectId[];
-
   @Prop({ type: Number, required: true, default: 0 })
   totalPrice: number;
+
+  @Prop({ enum: OrderStatus, default: OrderStatus.PENDING })
+  status: string;
 
   @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.PENDING })
   paymentStatus: string;

@@ -122,14 +122,8 @@ export class Products {
   })
   variants?: Variant[];
 
-  @Prop({ type: mongoose.Schema.Types.Mixed, required: true })
+  @Prop({ type: mongoose.Schema.Types.Mixed, default: {} })
   attributes: Record<string, any>;
-
-  // @Prop({
-  //   type: [String],
-  //   index: true,
-  // })
-  // tags: string[];
 
   @Prop({
     type: [String],
@@ -142,6 +136,12 @@ export class Products {
     min: 0,
   })
   viewCount: number;
+
+  @Prop({
+    default: 0,
+    min: 0,
+  })
+  soldCount: number;
 
   @Prop({
     default: 0,

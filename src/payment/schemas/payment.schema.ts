@@ -45,6 +45,13 @@ export class Payment {
   })
   status: PaymentStatus;
 
+  @Prop({
+    type: String,
+    enum: RefundStatus,
+    default: RefundStatus.NONE,
+  })
+  refundStatus: RefundStatus;
+
   @Prop({ enum: PaymentMethod })
   payType: string;
 

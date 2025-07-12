@@ -15,11 +15,13 @@ import { MulterModule } from '@nestjs/platform-express';
 import { MulterConfigService } from 'src/config/multer.config';
 import { Review, ReviewSchema } from 'src/review/schemas/review.schema';
 import { ReviewModule } from 'src/review/review.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   controllers: [ProductController],
   providers: [ProductService],
   imports: [
+    RedisModule,
     ReviewModule,
     MongooseModule.forFeature([
       { name: Products.name, schema: ProductSchema },

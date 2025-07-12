@@ -1,4 +1,10 @@
-import { BadRequestException, Get, Injectable, Param } from '@nestjs/common';
+import {
+  BadRequestException,
+  Get,
+  Inject,
+  Injectable,
+  Param,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -13,16 +19,8 @@ import { console } from 'inspector';
 import slugify from 'slugify';
 import aqp from 'api-query-params';
 import { Variant, VariantDocument } from './schemas/variant.schema';
-import { Brand, BrandDocument } from 'src/brand/schemas/brand.schema';
-import {
-  Category,
-  CategoryDocument,
-} from 'src/category/schemas/category.schema';
-import * as mongooseDelete from 'mongoose-delete';
-import csvParser from 'csv-parser';
-import { ImportProductFromCsvDto } from './dto/import-product.dto';
-import { ReviewService } from 'src/review/review.service';
-import { Public } from 'src/decorator/publicDecorator';
+
+import Redis from 'ioredis';
 
 @Injectable()
 export class ProductService {
@@ -33,6 +31,7 @@ export class ProductService {
     private readonly variantModel: SoftDeleteModel<VariantDocument>,
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -41,14 +40,15 @@ export class ProductService {
         ...variant,
       })),
     );
-    const slug = slugify(createProductDto.name, {
-      lower: true,
-      strict: true,
-      locale: 'vi',
-    });
+    console.log(createProductDto.name);
+    // const slug = slugify(createProductDto.name, {
+    //   lower: true,
+    //   strict: true,
+    //   locale: 'vi',
+    // });
     const createdProduct = await this.productModel.create({
       ...createProductDto,
-      slug: slug,
+      // slug: slug,
       variants: createdVariants?.map((variant) => variant._id) || [],
     });
     return createdProduct;
@@ -169,12 +169,17 @@ export class ProductService {
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
-    const { filter, sort, population } = aqp(qs);
+    const { filter } = aqp(qs);
 
     delete filter.page;
     delete filter.limit;
     filter.isDeleted = false;
-
+    const cacheKey = `products:page=${currentPage}&limit=${limit}`;
+    const cached = await this.redisClient.get(cacheKey);
+    console.log('cached', cached);
+    if (cached) {
+      return JSON.parse(cached);
+    }
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
@@ -274,16 +279,28 @@ export class ProductService {
       totalItems = aggregateResults[0].totalItems[0]?.count || 0;
     } else {
       totalItems = await this.productModel.countDocuments(filter);
+      // Lấy sản phẩm và populate variants, category, brand
       result = await this.productModel
         .find(filter)
         .skip(offset)
         .limit(defaultLimit)
-        .sort(sort as any)
-        .populate(population)
-        .populate('variants', 'name price color memory images')
+        .populate({
+          path: 'variants',
+          select: 'name price color memory images',
+        })
         .populate('category', 'name description')
         .populate('brand', 'name description logo')
         .exec();
+
+      result = result.sort((a: any, b: any) => {
+        const maxPriceA = Math.max(
+          ...(a.variants?.map((v: any) => v.price) ?? [0]),
+        );
+        const maxPriceB = Math.max(
+          ...(b.variants?.map((v: any) => v.price) ?? [0]),
+        );
+        return maxPriceB - maxPriceA;
+      });
     }
     const totalPages = Math.ceil(totalItems / defaultLimit);
     const response = {
@@ -295,14 +312,18 @@ export class ProductService {
       },
       result,
     };
+    await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 120);
     return response;
   }
 
   async findOneById(id: string) {
-    return await this.productModel.findById({ _id: id }).populate({
-      path: 'variants',
-      select: 'name price color memory images',
-    });
+    return await this.productModel
+      .findById({ _id: id })
+      .populate({
+        path: 'variants',
+        select: 'name price color memory images',
+      })
+      .populate('category', 'name description configFields ');
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
@@ -353,6 +374,20 @@ export class ProductService {
     );
 
     return { message: 'Cập nhật thành công' };
+  }
+
+  async countViews(id: string) {
+    return await this.productModel.updateOne(
+      { _id: id },
+      { $inc: { viewCount: 1 } },
+    );
+  }
+
+  async countOrders(id: string) {
+    return await this.productModel.updateOne(
+      { _id: id },
+      { $inc: { soldCount: 1 } },
+    );
   }
 
   async remove(id: string) {

@@ -49,20 +49,20 @@ export class RecommendationController {
     return this.recommendationService.getRecommendationsForUser(userId);
   }
 
-  @Get()
-  @Public()
-  async getRecommendationsByProductIds(@Query('ids') ids: string) {
-    if (!ids) {
-      throw new BadRequestException('ids query is required');
-    }
+  // @Get()
+  // @Public()
+  // async getRecommendationsByProductIds(@Query('ids') ids: string) {
+  //   if (!ids) {
+  //     throw new BadRequestException('ids query is required');
+  //   }
 
-    const productIds = ids.split(',').filter((id) => !!id);
-    if (productIds.length === 0) {
-      throw new BadRequestException('No valid product IDs provided');
-    }
+  //   const productIds = ids.split(',').filter((id) => !!id);
+  //   if (productIds.length === 0) {
+  //     throw new BadRequestException('No valid product IDs provided');
+  //   }
 
-    return this.recommendationService.getRecommendationsFromViewedProducts(
-      productIds,
-    );
-  }
+  //   return this.recommendationService.getRecommendationsFromViewedProducts(
+  //     productIds,
+  //   );
+  // }
 }

@@ -72,6 +72,7 @@ export class CartService {
           variant: new Types.ObjectId(newItem.variant),
           quantity: newItem.quantity,
           price: (await variant).price * newItem.quantity,
+          branch: new Types.ObjectId(newItem.branch),
         });
       }
     }

@@ -97,4 +97,15 @@ export class ProductController {
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
   }
+
+  @Patch('/:id/view-count')
+  setViewCount(@Param('id') id: string) {
+    return this.productService.countViews(id);
+  }
+
+  @Patch('/:id/order-count')
+  setOrderCount(@Param('id') id: string) {
+    return this.productService.countOrders(id);
+  }
+
 }

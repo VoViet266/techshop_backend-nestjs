@@ -21,9 +21,9 @@ import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 import { User } from 'src/decorator/userDecorator';
-import { use } from 'passport';
+
 import { IUser } from 'src/user/interface/user.interface';
-import { Public } from 'src/decorator/publicDecorator';
+
 @ApiBearerAuth('access-token')
 @Controller('api/v1/inventories')
 export class InventoryController {
@@ -45,7 +45,6 @@ export class InventoryController {
     @Query('branchId') branchId: string,
     @Query('variantId') variantId: string,
   ) {
-    
     return this.inventoryService.getStockProduct(
       productId,
       branchId,
@@ -109,5 +108,14 @@ export class InventoryController {
   @Get('get_transfer/:id')
   async getTransferDetail(@Param('id') id: string) {
     return this.inventoryService.getTransferDetail(id);
+  }
+
+  @Patch('/transfer/:id')
+  async updateTransfer(
+    @Param('id') id: string,
+    @Body() dto: CreateTransferDto,
+    @User() user: IUser,
+  ) {
+    return this.inventoryService.updateTransfer(id, dto, user);
   }
 }

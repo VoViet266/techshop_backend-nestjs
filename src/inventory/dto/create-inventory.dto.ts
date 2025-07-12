@@ -44,6 +44,9 @@ export class CreateStockMovementDto {
     quantity: number; // số lượng tương ứng
     cost?: number; // giá vốn của biến thể (tùy chọn)
   }[]; // danh sách biến thể và số lượng tương ứng
+
+  note?: string; // ghi chú chuyển kho (tùy chọn)
+  source?: string;
 }
 
 export class CreateTransferDto {
@@ -51,9 +54,13 @@ export class CreateTransferDto {
   toBranchId: string; // chi nhánh nhận
   items: {
     productId: string; // id sản phẩm
-    variants: string; // id biến thể sản phẩm
+    variantId: string; // id biến thể sản phẩm
     quantity: number; // số lượng chuyển
+    unit?: string;
   }[]; // danh sách sản phẩm và số lượng tương ứng
+  approvedBy?: string;
+  approvedAt?: Date;
+  rejectNote?: string;
   status: string;
   note?: string; // ghi chú chuyển kho (tùy chọn)
 }

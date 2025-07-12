@@ -31,21 +31,32 @@ export class Transfer {
           ref: Products.name,
         },
         quantity: { type: Number, required: true },
-        variants: {
+        variantId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: Variant.name,
         },
+        unit: { type: String },
       },
     ],
   })
   items: {
     productId: mongoose.Schema.Types.ObjectId;
-    variants: mongoose.Schema.Types.ObjectId;
+    variantId: mongoose.Schema.Types.ObjectId;
     quantity: number;
+    unit?: string;
   }[];
 
   @Prop({ enum: TransactionStatus, default: TransactionStatus.PENDING })
   status: string;
+
+  @Prop({ type: Types.ObjectId, ref: User.name })
+  approvedBy?: Types.ObjectId[];
+
+  @Prop()
+  approvedAt?: Date;
+
+  @Prop()
+  rejectNote?: string;
 
   @Prop() note: string;
 

@@ -33,6 +33,8 @@ export class CartItemDto {
     description: 'Giá sản phẩm tại thời điểm mua',
   })
   price?: number;
+
+  branch: string;
 }
 
 export class CreateCartDto {

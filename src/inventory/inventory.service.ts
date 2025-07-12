@@ -10,7 +10,10 @@ import {
   CreateStockMovementDto,
   CreateTransferDto,
 } from './dto/create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import {
+  UpdateInventoryDto,
+  UpdateTransferDto,
+} from './dto/update-inventory.dto';
 import { Inventory, InventoryDocument } from './schemas/inventory.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
@@ -110,6 +113,7 @@ export class InventoryService {
         .populate('product', 'name')
         .populate('branch', 'name location')
         .populate('variants.variantId', 'name sku') // Populate the variantId field inside variants
+        .sort({ createdAt: -1 })
         .lean();
     }
     return this.inventoryModel
@@ -127,6 +131,7 @@ export class InventoryService {
         .populate('productId', 'name')
         .populate('branchId', 'name location')
         .populate('variants.variantId', 'name sku')
+        .sort({ createdAt: -1 })
         .lean();
     }
     return this.movementModel
@@ -134,6 +139,7 @@ export class InventoryService {
       .populate('productId', 'name  ')
       .populate('branchId', 'name location')
       .populate('variants.variantId', 'name sku')
+      .sort({ createdAt: -1 })
       .lean();
   }
 
@@ -144,6 +150,7 @@ export class InventoryService {
         .populate('productId', 'name')
         .populate('branchId', 'name location')
         .populate('variants.variantId', 'name sku')
+        .sort({ createdAt: -1 })
         .lean();
     }
     return this.movementModel
@@ -151,6 +158,7 @@ export class InventoryService {
       .populate('productId', 'name  ')
       .populate('branchId', 'name location')
       .populate('variants.variantId', 'name sku')
+      .sort({ createdAt: -1 })
       .lean();
   }
 
@@ -235,6 +243,7 @@ export class InventoryService {
       branchId,
       productId,
       variants,
+      source: dto.source,
       createdBy: {
         email: user.email,
         name: user.name,
@@ -266,8 +275,9 @@ export class InventoryService {
       .findById(id)
       .populate('fromBranchId', 'name location')
       .populate('toBranchId', 'name location')
-      .populate('items.productId', 'name')
-      .populate('items.variants', 'name sku')
+      .populate('items.productId', 'name ')
+      .populate('items.variantId', 'name sku')
+    
       .lean();
   }
   async findTransfer() {
@@ -276,13 +286,14 @@ export class InventoryService {
       .populate('fromBranchId', 'name location')
       .populate('toBranchId', 'name location')
       .populate('items.productId', 'name')
-      .populate('items.variants', 'name sku')
+      .populate('items.variantId', 'name sku')
+      .sort({ createdAt: -1 })
       .lean();
   }
 
   async exportStock(dto: CreateStockMovementDto, user: IUser) {
     const { branchId, productId, variants } = dto;
-
+    console.log(dto.variants);
     const inventory = await this.inventoryModel.findOne({
       branch: branchId,
       product: productId,
@@ -327,45 +338,17 @@ export class InventoryService {
   }
 
   async transferStock(createTransferDto: CreateTransferDto, user: IUser) {
-    const { fromBranchId, toBranchId, items } = createTransferDto;
-    const productId = items[0].productId; // Extract productId from the first item
-    const variants = items.map((item) => ({
-      variantId: item.variants.toString(),
-      quantity: item.quantity,
-    }));
-
-    // // Xuất kho từ chi nhánh gửi
-    const exportStock = await this.exportStock(
-      {
-        branchId: fromBranchId,
-        productId,
-        variants,
-      },
-      user,
-    );
-    if (!exportStock) {
-      throw new BadRequestException('Không thể xuất kho từ chi nhánh gửi');
-    }
-    const importStock = await this.importStock(
-      {
-        branchId: toBranchId,
-        productId,
-        variants,
-      },
-      user,
-    );
-    if (!importStock) {
-      throw new BadRequestException('Không thể nhập kho vào chi nhánh nhận');
-    }
+    const { items } = createTransferDto;
 
     await this.transferModel.create({
       ...createTransferDto,
       items: items.map((item) => ({
         productId: item.productId,
-        variant: item.variants,
+        variantId: item.variantId,
         quantity: item.quantity,
+        unit: item.unit,
       })),
-      status: TransactionStatus.RECEIVED,
+      status: TransactionStatus.PENDING,
       createdBy: {
         _id: user._id,
         email: user.email,
@@ -373,5 +356,49 @@ export class InventoryService {
       },
     });
     return { message: 'Chuyển kho thành công' };
+  }
+
+  async updateTransfer(
+    id: string,
+    updateTransferDto: UpdateTransferDto,
+    user: IUser,
+  ) {
+    await this.transferModel.findByIdAndUpdate(id, { ...updateTransferDto });
+
+    if (updateTransferDto.status === TransactionStatus.RECEIVED) {
+      for (const item of updateTransferDto.items) {
+        console.log(item);
+        await this.exportStock(
+          {
+            branchId: updateTransferDto.fromBranchId,
+            productId: item.productId,
+            variants: [
+              {
+                variantId: item.variantId,
+                quantity: item.quantity,
+              },
+            ],
+          },
+          user,
+        );
+
+    
+        await this.importStock(
+          {
+            branchId: updateTransferDto.toBranchId,
+            productId: item.productId,
+            variants: [
+              {
+                variantId: item.variantId,
+                quantity: item.quantity,
+              },
+            ],
+          },
+          user,
+        );
+      }
+    }
+
+    return { message: 'Cập nhật chuyển kho thành công' };
   }
 }

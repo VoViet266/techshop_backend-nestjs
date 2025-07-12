@@ -45,8 +45,12 @@ export class OrderController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(id, updateOrderDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+    @User() user: IUser,
+  ) {
+    return this.orderService.update(id, updateOrderDto, user);
   }
 
   @Delete(':id')
@@ -57,5 +61,10 @@ export class OrderController {
   @Patch('/cancel/:id')
   cancelOrder(@Param('id') id: string, @User() user: IUser) {
     return this.orderService.cancelOrder(id, user);
+  }
+
+  @Patch('/refund/:id')
+  refundOrder(@Param('id') id: string, @User() user: IUser) {
+    return this.orderService.refundOrder(id, user);
   }
 }
