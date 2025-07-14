@@ -196,7 +196,7 @@ export class CreateProductDto {
   })
   description?: string;
 
-  overviewImage: string;
+  galleryImages: string;
 
   slug: string;
 

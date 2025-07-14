@@ -47,8 +47,8 @@ export class CloundinaryService {
   }
 
   async deleteImage(url: string): Promise<string> {
+    console.log('Xóa ảnh:', url);
     const publicId = url.split('/').slice(-2).join('/').split('.')[0];
-
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
         if (error) {

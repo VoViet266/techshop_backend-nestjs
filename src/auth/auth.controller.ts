@@ -60,8 +60,24 @@ export class AuthController {
   @Public()
   async googleAuthRedirect(@Request() req: any, @Res() res: Response) {
     const user = req.user;
-    const access_token = await this.authService.createAccessToken(user);
 
+    const userWithRole = await (
+      await this.userService.findOneByID(user._id)
+    ).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        select: 'name module action',
+      },
+    });
+    const role: any = userWithRole.role;
+
+    const roleName = role?.name;
+    const permission = role?.permissions?.map((per: any) => ({
+      name: per.name,
+      module: per.module,
+      action: per.action,
+    }));
     const payload = {
       sub: 'token login',
       iss: 'from server',
@@ -69,12 +85,14 @@ export class AuthController {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      branch: user.branch,
-      role: user.role,
+      branch: user?.branch,
+      role: roleName,
+      permission: permission,
     };
 
+    const access_token = await this.authService.createAccessToken(payload);
     const refresh_Token = this.authService.createRefreshToken({ payload });
-    console.log(refresh_Token);
+
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

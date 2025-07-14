@@ -24,9 +24,6 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
-  // new RolesGuard(reflector),
-  // new PermissionsGuard(reflector),
-
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -36,7 +33,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   app.enableCors({
-    origin: '*',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
@@ -67,4 +64,3 @@ async function bootstrap() {
   );
 }
 bootstrap();
-

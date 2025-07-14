@@ -199,7 +199,7 @@ export class RecommendationService implements OnModuleInit {
       .lean();
 
     if (!targetProduct) {
-      throw new Error(`Product with ID ${productId} not found`);
+      return [];
     }
 
     let targetVector = this.productVectors.get(productId);
@@ -249,7 +249,7 @@ export class RecommendationService implements OnModuleInit {
     limit = 6,
   ): Promise<Products[]> {
     const userInteractedProducts = await this.getUserInteractedProducts(userId);
-
+    console.log(userInteractedProducts);
     if (userInteractedProducts.length === 0) {
       return this.getPopularProducts(limit);
     }
@@ -302,7 +302,7 @@ export class RecommendationService implements OnModuleInit {
     return fullProducts;
   }
 
-  private async getPopularProducts(limit: number): Promise<Products[]> {
+  async getPopularProducts(limit: number): Promise<Products[]> {
     return this.productModel
       .find({ isActive: { $ne: false } })
       .sort({ viewCount: -1, soldCount: -1 })
@@ -317,7 +317,7 @@ export class RecommendationService implements OnModuleInit {
     const histories = await this.viewHistoryModel
       .find({ userId })
       .sort({ createdAt: -1 })
-      .limit(20)
+      .limit(5)
       .select('productId')
       .lean();
 
@@ -361,7 +361,7 @@ export class RecommendationService implements OnModuleInit {
   //     string,
   //     { product: Products; totalScore: number }
   //   >();
-  //   console.log('sdvs');
+
   //   for (const productId of productIds) {
   //     try {
   //       const similarProducts = await this.getRecommendedProducts(

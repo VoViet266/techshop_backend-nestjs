@@ -40,7 +40,7 @@ export class ProductService {
         ...variant,
       })),
     );
-    console.log(createProductDto.name);
+
     // const slug = slugify(createProductDto.name, {
     //   lower: true,
     //   strict: true,
@@ -256,6 +256,7 @@ export class ProductService {
               _id: '$category._id',
               name: '$category.name',
               logo: '$category.logo',
+
             },
             brand: {
               _id: '$brand._id',
@@ -279,7 +280,7 @@ export class ProductService {
       totalItems = aggregateResults[0].totalItems[0]?.count || 0;
     } else {
       totalItems = await this.productModel.countDocuments(filter);
-      // Lấy sản phẩm và populate variants, category, brand
+
       result = await this.productModel
         .find(filter)
         .skip(offset)
@@ -288,7 +289,7 @@ export class ProductService {
           path: 'variants',
           select: 'name price color memory images',
         })
-        .populate('category', 'name description')
+        .populate('category', 'name description logo configFields')
         .populate('brand', 'name description logo')
         .exec();
 
@@ -331,7 +332,7 @@ export class ProductService {
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }
-
+    console.log(updateProductDto);
     const variantIds: string[] = [];
     await Promise.all(
       updateProductDto.variants.map(async (variant, index) => {

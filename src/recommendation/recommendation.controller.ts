@@ -19,7 +19,7 @@ export class RecommendationController {
   constructor(private readonly recommendationService: RecommendationService) {}
 
   @Public()
-  @Get('recomment/:id')
+  @Get('recommend/:id')
   async getRecommendedProducts(
     @Param('id') productId: string,
     @Query('limit') limit: string = '5',
@@ -30,10 +30,9 @@ export class RecommendationController {
     );
   }
 
-  @Post('recomment/record-view-history')
+  @Post('recommend/record-view-history')
   @Public()
   async recordViewHistory(@Body() recordDto: RecordDto) {
-   
     if (!recordDto.userId || !recordDto.productId) {
       throw new BadRequestException('userId and productId are required');
     }
@@ -44,9 +43,15 @@ export class RecommendationController {
     );
   }
 
-  @Get('recomment/get-by-user/:userId')
+  @Get('recommend/get-by-user/:userId')
   async getRecommendationsByUser(@Param('userId') userId: string) {
     return this.recommendationService.getRecommendationsForUser(userId);
+  }
+
+  @Get('/recommend/recommendation/get-popular')
+  @Public()
+  async getPopularProducts(@Query('limit') limit: string = '10') {
+    return this.recommendationService.getPopularProducts(parseInt(limit, 10));
   }
 
   // @Get()

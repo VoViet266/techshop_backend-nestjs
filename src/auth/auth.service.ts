@@ -41,9 +41,9 @@ export class AuthService {
         populate: { path: 'permissions', select: 'module action' },
       })
       .exec();
-
     if (user) {
       const isValid = this.userService.isValidPassword(pass, user.password);
+      console.log('isValid', isValid);
       if (isValid === true) {
         return user;
       }
@@ -51,20 +51,12 @@ export class AuthService {
     return null;
   }
 
-  async createAccessToken(user: IUser) {
-    const { _id, name, email, avatar } = user;
-    const payload = {
-      sub: 'token login',
-      iss: 'from server',
-      _id,
-      name,
-      email,
-      avatar,
-    };
+  async createAccessToken(payload: any) {
     return this.jwtService.sign(payload);
   }
   async login(user: IUser, res: Response) {
     const { _id, name, email, avatar } = user;
+    console.log('user', user);
     const userWithRole = await (
       await this.userService.findOneByID(user._id)
     ).populate({
@@ -96,12 +88,12 @@ export class AuthService {
     };
 
     const refresh_Token = this.createRefreshToken({ payload });
+    await this.userService.updateUserToken(_id, refresh_Token);
 
-    await this.userService.updateUserToken(_id.toString(), refresh_Token);
-
+    res.clearCookie('refresh_Token');
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite:
         this.configService.get<string>('NODE_ENV') === 'production'
           ? 'none'
@@ -240,8 +232,6 @@ export class AuthService {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = expiresAt;
     await user.save();
-
-    // Gửi email với token
     await this.mailService.sendResetPasswordEmail(email, token);
   }
 
@@ -267,7 +257,7 @@ export class AuthService {
           },
         },
       );
-      throw new BadRequestException('Token đã hết hạn.');
+      throw new BadRequestException('Token hết hạn.');
     }
 
     if (newPassword.length < 8) {
@@ -275,25 +265,20 @@ export class AuthService {
     }
 
     const hashedPassword = this.userService.hashPassword(newPassword);
-    return this.userModel
-      .updateOne(
-        { _id: user._id },
-        {
+
+    await this.userModel.updateOne(
+      { _id: user._id },
+      {
+        $set: {
           password: hashedPassword,
         },
-        {
-          $unset: {
-            resetPasswordToken: 1,
-            resetPasswordExpires: 1,
-          },
+        $unset: {
+          resetPasswordToken: 1,
+          resetPasswordExpires: 1,
         },
-      )
-      .then(() => {
-        console.log('Mật khẩu đã được cập nhật thành công.');
-      })
-      .catch((error) => {
-        console.error('Lỗi khi cập nhật mật khẩu:', error);
-        throw new BadRequestException('Không thể cập nhật mật khẩu.');
-      });
+      },
+    );
+    await this.userService.updateUserToken(user._id.toString(), null);
+    console.log('Mật khẩu đã được cập nhật thành công.');
   }
 }

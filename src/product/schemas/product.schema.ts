@@ -129,7 +129,7 @@ export class Products {
     type: [String],
     default: [],
   })
-  overviewImage: string[];
+  galleryImages: string[];
 
   @Prop({
     default: 0,

@@ -44,9 +44,11 @@ export class CloundinaryController {
   getAllImages(@Query('url') publicId: string) {
     return this.cloundinaryService.getImage(publicId);
   }
+
   @Delete('image')
   async deleteFile(@Query('url') url: string) {
-    console.log('Đang xóa ảnh:', url);
+
     return await this.cloundinaryService.deleteImage(url);
   }
 }
+ 

@@ -34,7 +34,6 @@ export class ProductController {
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
-    console.log('Create Product DTO:', createProductDto);
     return this.productService.create(createProductDto);
   }
   // @Post('insert')
@@ -88,8 +87,6 @@ export class ProductController {
   }
   @Patch('/:id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    console.log('Update Product ID:', id);
-    console.log('Update Product DTO:', updateProductDto);
     return this.productService.update(id, updateProductDto);
   }
 
@@ -107,5 +104,4 @@ export class ProductController {
   setOrderCount(@Param('id') id: string) {
     return this.productService.countOrders(id);
   }
-
 }
