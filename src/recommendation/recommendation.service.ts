@@ -249,7 +249,7 @@ export class RecommendationService implements OnModuleInit {
     limit = 6,
   ): Promise<Products[]> {
     const userInteractedProducts = await this.getUserInteractedProducts(userId);
-    console.log(userInteractedProducts);
+
     if (userInteractedProducts.length === 0) {
       return this.getPopularProducts(limit);
     }

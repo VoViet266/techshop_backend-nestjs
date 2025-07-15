@@ -67,13 +67,7 @@ export class ChatBotService implements OnModuleInit {
     this.genAI = new GoogleGenerativeAI(apiKey);
 
     const model = this.genAI.getGenerativeModel({
-      model: 'models/gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.8,
-        topK: 40,
-        maxOutputTokens: 1024,
-      },
+      model: 'gemini-1.5-flash',
     });
 
     this.chatSession = model.startChat({

@@ -174,12 +174,11 @@ export class ProductService {
     delete filter.page;
     delete filter.limit;
     filter.isDeleted = false;
-    const cacheKey = `products:page=${currentPage}&limit=${limit}`;
-    const cached = await this.redisClient.get(cacheKey);
-    console.log('cached', cached);
-    if (cached) {
-      return JSON.parse(cached);
-    }
+    // const cacheKey = `products-${qs}`;
+    // const cached = await this.redisClient.get(cacheKey);
+    // if (cached) {
+    //   return JSON.parse(cached);
+    // }
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
@@ -256,7 +255,6 @@ export class ProductService {
               _id: '$category._id',
               name: '$category.name',
               logo: '$category.logo',
-
             },
             brand: {
               _id: '$brand._id',
@@ -313,7 +311,7 @@ export class ProductService {
       },
       result,
     };
-    await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 120);
+    // await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 120);
     return response;
   }
 
@@ -332,7 +330,7 @@ export class ProductService {
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }
-    console.log(updateProductDto);
+
     const variantIds: string[] = [];
     await Promise.all(
       updateProductDto.variants.map(async (variant, index) => {
@@ -373,7 +371,7 @@ export class ProductService {
         variants: variantIds,
       },
     );
-
+    this.redisClient.del(`product`);
     return { message: 'Cập nhật thành công' };
   }
 

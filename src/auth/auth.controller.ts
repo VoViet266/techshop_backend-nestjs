@@ -92,7 +92,7 @@ export class AuthController {
 
     const access_token = await this.authService.createAccessToken(payload);
     const refresh_Token = this.authService.createRefreshToken({ payload });
-
+    await this.userService.updateUserToken(user._id, refresh_Token);
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

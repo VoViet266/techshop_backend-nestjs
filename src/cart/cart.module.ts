@@ -10,6 +10,7 @@ import { Branch, BranchSchema } from 'src/branch/schemas/branch.schema';
 @Module({
   controllers: [CartController],
   providers: [CartService],
+  exports: [CartService],
   imports: [
     MongooseModule.forFeature([
       {

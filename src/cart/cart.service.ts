@@ -24,7 +24,6 @@ export class CartService {
     // Tìm giỏ hàng của user
     let cart = await this.cartModel.findOne({ user: user._id });
     if (!cart) {
-      // Nếu chưa có giỏ hàng thì tạo mới với user, items rỗng
       cart = await this.cartModel.create({
         user: user._id,
         items: [],
@@ -53,7 +52,7 @@ export class CartService {
           `Biến thể ${newItem.variant} không tồn tại trong sản phẩm ${product._id}`,
         );
       }
-      const variant = this.variantModel.findById(newItem.variant);
+      const variant = await this.variantModel.findById(newItem.variant);
 
       // Tìm xem item trong giỏ hàng đã có sản phẩm + biến thể
       const itemIndex = cart.items.findIndex(
@@ -65,13 +64,16 @@ export class CartService {
       if (itemIndex > -1) {
         cart.items[itemIndex].quantity += newItem.quantity;
         cart.totalPrice =
-          cart.items[itemIndex].quantity * (await variant).price;
+          cart.items[itemIndex].quantity * variant.price -
+          (variant.price * product.discount) / 100;
       } else {
         cart.items.push({
           product: new Types.ObjectId(newItem.product),
           variant: new Types.ObjectId(newItem.variant),
           quantity: newItem.quantity,
-          price: (await variant).price * newItem.quantity,
+          price:
+            variant.price -
+            ((variant.price * product.discount) / 100) * newItem.quantity,
           branch: new Types.ObjectId(newItem.branch),
         });
       }
@@ -163,6 +165,8 @@ export class CartService {
     await cart.save();
     return cart;
   }
+
+  
   async remove(@User() user: IUser) {
     const cart = await this.cartModel.findOne({ user: user._id });
     if (cart.items.length === 0) {

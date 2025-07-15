@@ -25,6 +25,7 @@ import {
 import { Payment, PaymentDocument } from 'src/payment/schemas/payment.schema';
 import mongoose, { Types } from 'mongoose';
 import { TransactionSource } from 'src/constant/transaction.enum';
+import { CartService } from 'src/cart/cart.service';
 
 @Injectable()
 export class OrderService {
@@ -35,9 +36,6 @@ export class OrderService {
     private readonly productModel: SoftDeleteModel<ProductDocument>,
     @InjectModel(Cart.name)
     private readonly cartModel: SoftDeleteModel<CartDocument>,
-    // @InjectModel(Inventory.name)
-    // private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
-
     @InjectModel(Payment.name)
     private readonly paymentModel: SoftDeleteModel<PaymentDocument>,
 
@@ -45,6 +43,7 @@ export class OrderService {
     private readonly userModel: SoftDeleteModel<UserDocument>,
 
     private readonly inventoryService: InventoryService,
+    private readonly cartService: CartService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {
@@ -127,7 +126,7 @@ export class OrderService {
 
     // Nếu là online thì xóa giỏ hàng
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
-      await this.cartModel.findOneAndDelete({ user: user._id });
+      await this.cartService.remove(user);
     }
 
     return newOrder;

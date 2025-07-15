@@ -17,7 +17,6 @@ export class BranchController {
 
   @Post()
   create(@Body() createBranchDto: CreateBranchDto) {
-    console.log(createBranchDto);
     return this.branchService.create(createBranchDto);
   }
 

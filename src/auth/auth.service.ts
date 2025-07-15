@@ -26,8 +26,7 @@ export class AuthService {
     private jwtService: JwtService,
     private userService: UserService,
     private configService: ConfigService,
-
-    private mailService: MailService, // Assuming MailService is part of UserService
+    private mailService: MailService,
 
     @InjectModel(User.name)
     private userModel: SoftDeleteModel<UserDocument>,
@@ -56,7 +55,7 @@ export class AuthService {
   }
   async login(user: IUser, res: Response) {
     const { _id, name, email, avatar } = user;
-    console.log('user', user);
+
     const userWithRole = await (
       await this.userService.findOneByID(user._id)
     ).populate({
@@ -124,9 +123,8 @@ export class AuthService {
 
   refreshToken = async (refreshToken: string, res: Response) => {
     try {
-      let decoded: any;
       try {
-        decoded = this.jwtService.verify(refreshToken, {
+        this.jwtService.verify(refreshToken, {
           secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
         });
       } catch (err) {
@@ -168,26 +166,6 @@ export class AuthService {
         permission: permission,
       };
 
-      const newRefreshToken = this.jwtService.sign(payload, {
-        secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRE'),
-      });
-
-      await this.userService.updateUserToken(
-        user._id.toString(),
-        newRefreshToken,
-      );
-      res.clearCookie('refresh_Token');
-      res.cookie('refresh_Token', newRefreshToken, {
-        httpOnly: true,
-        secure: this.configService.get<string>('NODE_ENV') === 'production',
-        sameSite:
-          this.configService.get<string>('NODE_ENV') === 'production'
-            ? 'none'
-            : 'strict',
-        maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
-      });
-
       return {
         access_token: this.jwtService.sign(payload, {
           secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
@@ -206,7 +184,7 @@ export class AuthService {
     }
   };
   async logout(res: Response, user: IUser) {
-    await this.userService.updateUserToken(user._id.toString(), null);
+    await this.userService.updateUserToken(user._id.toString(), '');
     res.clearCookie('refresh_Token');
     return {
       message: 'Đăng xuất thành công',
