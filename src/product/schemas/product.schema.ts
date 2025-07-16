@@ -1,10 +1,13 @@
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Brand } from 'src/brand/schemas/brand.schema';
 import { Category } from 'src/category/schemas/category.schema';
 import { Variant } from './variant.schema';
 import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
+import { Type } from '@nestjs/common';
+import { Promotion } from 'src/benefit/schemas/promotion.schema';
+import { WarrantyPolicy } from 'src/benefit/schemas/warrantypolicy.schema';
 export type ProductDocument = HydratedDocument<Products>;
 
 export type CamerasDocument = HydratedDocument<Camera>;
@@ -121,6 +124,7 @@ export class Products {
     ref: Variant.name,
   })
   variants?: Variant[];
+  
 
   @Prop({ type: mongoose.Schema.Types.Mixed, default: {} })
   attributes: Record<string, any>;

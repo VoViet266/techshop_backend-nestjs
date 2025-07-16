@@ -187,59 +187,17 @@ export class VariantDto {
 }
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'iPhone 14', description: 'Tên sản phẩm' })
   name: string;
-
-  @ApiPropertyOptional({
-    example: 'Smartphone mới nhất từ Apple',
-    description: 'Mô tả sản phẩm',
-  })
   description?: string;
-
   galleryImages: string;
-
   slug: string;
-
+  promotions?: string[];
+  warranties?: string[];
   category: string;
-
-  @ApiProperty({
-    example: '60d5f9c2e1a5a3a3f0d6e0f2',
-    description: 'ID thương hiệu',
-    type: String,
-  })
   brand: string;
-
-  @ApiProperty({
-    type: [VariantDto],
-    description: 'Danh sách biến thể sản phẩm',
-  })
   variants?: VariantDto[];
-
-  @ApiProperty({ example: 10, description: 'Giảm giá (%)' })
   discount: number;
-
-  // @ApiPropertyOptional({
-  //   type: ProductSpecsDto,
-  //   description: 'Thông số kỹ thuật',
-  // })
-  // @ValidateNested()
-  // specifications?: ProductSpecsDto;
-
-  // @ApiPropertyOptional({ type: ConnectivityDto, description: 'Kết nối' })
-  // connectivity?: ConnectivityDto;
-
-  // @ApiPropertyOptional({ type: CameraDto, description: 'Thông tin camera' })
-  // camera?: CameraDto;
-  @ApiPropertyOptional({
-    type: Object,
-    description: 'Các thuộc tính tùy chỉnh của sản phẩm',
-  })
   attributes?: Record<string, any>;
-
-  @ApiPropertyOptional({
-    example: ['smartphone', 'apple'],
-    description: 'Tags sản phẩm',
-  })
   tags?: string[];
 
   viewCount?: number;

@@ -23,4 +23,6 @@ export enum Subjects {
   Cloudinary = 'cloudinary',
   StockMovement = 'stockmovement',
   Transfer = 'transfer',
+  Review = 'review',
+  Benefit = 'benefit',
 }

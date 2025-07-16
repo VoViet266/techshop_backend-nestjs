@@ -17,6 +17,11 @@ import { Payment, PaymentSchema } from 'src/payment/schemas/payment.schema';
 
 import { User, UserSchema } from 'src/user/schemas/user.schema';
 import { UserModule } from 'src/user/user.module';
+import {
+  Promotion,
+  PromotionSchema,
+} from 'src/benefit/schemas/promotion.schema';
+import { WarrantyPolicy, WarrantyPolicySchema } from 'src/benefit/schemas/warrantypolicy.schema';
 
 @Module({
   controllers: [OrderController],
@@ -30,6 +35,8 @@ import { UserModule } from 'src/user/user.module';
       { name: Cart.name, schema: CartSchema },
       { name: Payment.name, schema: PaymentSchema },
       { name: User.name, schema: UserSchema },
+      { name: Promotion.name, schema: PromotionSchema },
+      {name : WarrantyPolicy.name, schema : WarrantyPolicySchema}
     ]),
     ProductModule,
     CartModule,

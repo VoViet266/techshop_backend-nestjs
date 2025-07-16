@@ -50,9 +50,6 @@ export class Dashboard {
   @Prop({ type: [ProductStats], default: [] })
   mostViewedProducts: ProductStats[];
 
-  @Prop({ type: [ProductStats], default: [] })
-  lowStockProducts: ProductStats[];
-
   // Return & Payment
   @Prop({ default: 0 })
   totalReturns: number;

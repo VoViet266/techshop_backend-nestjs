@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
+import { Promotion } from 'src/benefit/schemas/promotion.schema';
+import { WarrantyPolicy } from 'src/benefit/schemas/warrantypolicy.schema';
 import { Branch } from 'src/branch/schemas/branch.schema';
 import { OrderStatus } from 'src/constant/orderStatus.enum';
 import {
@@ -7,7 +9,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from 'src/constant/payment.enum';
-import { Payment } from 'src/payment/schemas/payment.schema';
+
 import { Products } from 'src/product/schemas/product.schema';
 import { Variant } from 'src/product/schemas/variant.schema';
 
@@ -52,6 +54,30 @@ export class Order {
     branch: mongoose.Schema.Types.ObjectId;
   }[];
 
+  @Prop({
+    type: [
+      {
+        promotionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: Promotion.name,
+        },
+        title: { type: String },
+        valueType: { type: String, enum: ['percent', 'fixed'] },
+        value: { type: Number },
+        discountAmount: { type: Number },
+      },
+    ],
+    default: [],
+  })
+  appliedPromotions: {
+    promotionId: mongoose.Schema.Types.ObjectId;
+    title: string;
+    valueType: 'percent' | 'fixed';
+    value: number;
+    discountAmount: number;
+  }[];
+  @Prop()
+  discountAmount: number;
   @Prop({ enum: OrderSource })
   source: string;
 

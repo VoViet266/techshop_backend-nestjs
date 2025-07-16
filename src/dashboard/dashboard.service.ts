@@ -63,6 +63,13 @@ export class DashboardService {
     return stats;
   }
 
+  async getStatsByPeriod(period: string) {
+    const stats = await this.dashboardModel.find({ period: period }).sort({
+      date: -1,
+    });
+    return stats;
+  }
+
   // Lấy stats với so sánh kỳ trước
   async getStatsWithComparison(period: string, date?: Date) {
     const targetDate = date || new Date();
@@ -78,49 +85,41 @@ export class DashboardService {
     };
   }
 
-  // Cron job - Cập nhật stats hàng ngày lúc 00:01
-  @Cron('*/1 * * * *')
+  // Cron job - Cập nhật stats hóa đơn trong ngày
+  @Cron('0 0 * * *') // Mỗi ngày lúc 0h
   async updateDailyStats() {
     this.logger.log('Updating daily stats...');
-
     const dailyData = await this.aggregateDailyData();
     await this.createOrUpdateStats('daily', dailyData);
-
     this.logger.log('Daily stats updated successfully');
   }
 
-  // Cron job - Cập nhật stats hàng tuần vào Chủ nhật
-  @Cron('*/1 * * * *')
+  // Cron job - Cập nhật stats hàng tuần vào Thứ Hai
+  @Cron('0 0 * * 1') // 0h Thứ 2
   async updateWeeklyStats() {
     this.logger.log('Updating weekly stats...');
     const weeklyData = await this.aggregateWeeklyData();
     await this.createOrUpdateStats('weekly', weeklyData);
-
     this.logger.log('Weekly stats updated successfully');
   }
 
   // Cron job - Cập nhật stats hàng tháng vào ngày 1
-  @Cron('*/1 * * * *')
+  @Cron('0 0 1 * *') // 0h ngày 1 mỗi tháng
   async updateMonthlyStats() {
     this.logger.log('Updating monthly stats...');
-
     const monthlyData = await this.aggregateMonthlyData();
     await this.createOrUpdateStats('monthly', monthlyData);
-
     this.logger.log('Monthly stats updated successfully');
   }
 
   // Cron job - Cập nhật stats hàng năm vào 1/1
-  @Cron('*/1 * * * *')
+  @Cron('0 0 1 1 *') // 0h ngày 1 tháng 1
   async updateYearlyStats() {
     this.logger.log('Updating yearly stats...');
-
     const yearlyData = await this.aggregateYearlyData();
     await this.createOrUpdateStats('yearly', yearlyData);
-
     this.logger.log('Yearly stats updated successfully');
   }
-
   // Helper methods
   private getDateKey(date: Date, period: string): Date {
     const d = new Date(date);
@@ -218,10 +217,10 @@ export class DashboardService {
       .lean();
 
     // Sản phẩm tồn kho dưới ngưỡng
-    const lowStock = await this.productModel
-      .find({ stock: { $lt: 10 } }) // ngưỡng tồn kho thấp
-      .limit(5)
-      .lean();
+    // const lowStock = await this.productModel
+    //   .find({ stock: { $lt: 10 } }) // ngưỡng tồn kho thấp
+    //   .limit(5)
+    //   .lean();
 
     // Phân tích phương thức thanh toán
     const paymentStats = orders.reduce(
@@ -258,6 +257,7 @@ export class DashboardService {
         // salesQuantity: p.soldCount,
         // revenue: 0, // nếu cần, phải thống kê từ đơn hàng
         // views: p.viewCount || 0,
+        soldCount: p.soldCount || 0,
         // stockLevel: p.stock,
         // returnQuantity: 0, // nếu cần tính, lấy từ order
       })),
@@ -266,7 +266,7 @@ export class DashboardService {
         productName: p.name,
         // salesQuantity: p.soldCount,
         // revenue: 0,
-        // views: p.viewCount || 0,
+        viewCount: p.viewCount || 0,
         // stockLevel: p.stock,
         // returnQuantity: 0,
       })),
@@ -277,7 +277,6 @@ export class DashboardService {
     };
   }
 
-  // Aggregate data methods (cần implement dựa trên database thực tế)
   private async aggregateDailyData(): Promise<CreateDashboardStatsDto> {
     const today = new Date();
     const startOfDay = new Date(
@@ -336,8 +335,6 @@ export class DashboardService {
       date: startOfYear,
     };
   }
-
- 
 
   // Manual update methods
   // async updateProductViews(productId: string): Promise<void> {

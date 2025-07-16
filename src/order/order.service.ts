@@ -26,6 +26,14 @@ import { Payment, PaymentDocument } from 'src/payment/schemas/payment.schema';
 import mongoose, { Types } from 'mongoose';
 import { TransactionSource } from 'src/constant/transaction.enum';
 import { CartService } from 'src/cart/cart.service';
+import {
+  Promotion,
+  PromotionDocument,
+} from 'src/benefit/schemas/promotion.schema';
+import {
+  WarrantyPolicy,
+  WarrantyPolicyDocument,
+} from 'src/benefit/schemas/warrantypolicy.schema';
 
 @Injectable()
 export class OrderService {
@@ -38,27 +46,30 @@ export class OrderService {
     private readonly cartModel: SoftDeleteModel<CartDocument>,
     @InjectModel(Payment.name)
     private readonly paymentModel: SoftDeleteModel<PaymentDocument>,
-
+    @InjectModel(Promotion.name)
+    private readonly promotionModel: SoftDeleteModel<PromotionDocument>,
+    @InjectModel(WarrantyPolicy.name)
+    private readonly warrantyModel: SoftDeleteModel<WarrantyPolicyDocument>,
     @InjectModel(User.name)
     private readonly userModel: SoftDeleteModel<UserDocument>,
-
     private readonly inventoryService: InventoryService,
     private readonly cartService: CartService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {
+    // 1. Kiểm tra quyền chi nhánh nếu là nhân viên
     if (user.role === RolesUser.Staff) {
-      // Nếu là nhân viên, kiểm tra branch
       if (!user.branch) {
         throw new ForbiddenException('Bạn chưa được gán chi nhánh!');
       }
-
       if (createOrderDto.branch.toString() !== user.branch.toString()) {
         throw new ForbiddenException(
           'Bạn chỉ có quyền tạo đơn tại chi nhánh của mình!',
         );
       }
     }
+
+    // 2. Lấy items từ giỏ hàng hoặc từ POS (tạo tại quầy)
     let itemsToOrder = [];
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       const userCart = await this.cartModel.findOne({ user: user._id });
@@ -80,24 +91,98 @@ export class OrderService {
         branch: item.branch.toString(),
       }));
     } else {
-      // Nếu là nhân viên tạo tại quầy
       itemsToOrder = createOrderDto.items;
     }
 
-    // Get user phone
+    // 3. Lấy số điện thoại người dùng
     const findUser = await this.userModel.findById(user._id);
     let phone = findUser?.phone || '';
     createOrderDto.phone = createOrderDto.phone || phone;
 
-    // Xuất kho + tính tổng
+    // 4. Tính tổng tiền và áp dụng promotion
     let totalPrice = 0;
+    let totalPriceWithPromotion = 0;
+    const appliedPromotions = [];
+
+    // Tính tổng tiền gốc
     for (const item of itemsToOrder) {
       totalPrice += item.price * item.quantity;
     }
+
+    // Lấy tất cả promotion đang hoạt động
+    const currentDate = new Date();
+    const activePromotions = await this.promotionModel
+      .find({
+        isActive: true,
+        $or: [
+          { startDate: { $lte: currentDate }, endDate: { $gte: currentDate } },
+          { startDate: { $exists: false }, endDate: { $exists: false } },
+        ],
+      })
+      .sort({ value: -1 }); // Sắp xếp theo giá trị giảm giá từ cao xuống thấp
+
+    // Kiểm tra và áp dụng promotion phù hợp
+    let finalDiscount = 0;
+    for (const promotion of activePromotions) {
+      // Kiểm tra điều kiện của promotion
+      let isEligible = true;
+
+      if (promotion.conditions) {
+        // Kiểm tra điều kiện đơn hàng tối thiểu
+        if (
+          promotion.conditions.minOrder &&
+          totalPrice < promotion.conditions.minOrder
+        ) {
+          isEligible = false;
+        }
+
+        // Kiểm tra phương thức thanh toán
+
+        if (
+          promotion.conditions.payment &&
+          createOrderDto.paymentMethod.toLocaleLowerCase() !==
+            promotion.conditions.payment.toLocaleLowerCase()
+        ) {
+          isEligible = false;
+        }
+      }
+
+      if (isEligible) {
+        let discountAmount = 0;
+
+        if (promotion.valueType === 'fixed') {
+          discountAmount = promotion.value;
+        } else if (promotion.valueType === 'percent') {
+          discountAmount = (totalPrice * promotion.value) / 100;
+        }
+
+        // Chọn promotion có giá trị giảm giá cao nhất (chỉ áp dụng 1 promotion)
+        if (discountAmount > finalDiscount) {
+          finalDiscount = discountAmount;
+          appliedPromotions.length = 0; // Xóa promotion cũ
+          appliedPromotions.push({
+            promotionId: promotion._id,
+            title: promotion.title,
+            valueType: promotion.valueType,
+            value: promotion.value,
+            discountAmount: discountAmount,
+          });
+        }
+
+        break; // Chỉ áp dụng promotion đầu tiên phù hợp
+      }
+    }
+
+    // Tính tổng tiền sau khi áp dụng promotion
+    totalPriceWithPromotion = Math.max(0, totalPrice - finalDiscount);
+
+    // 5. Tạo đơn hàng
     const newOrder = await this.orderModel.create({
       phone: createOrderDto.phone,
       items: itemsToOrder,
-      totalPrice: totalPrice,
+      totalPrice: totalPriceWithPromotion,
+      discountAmount: finalDiscount,
+      appliedPromotions: appliedPromotions,
       user: user._id,
       paymentMethod: createOrderDto.paymentMethod,
       status: OrderStatus.PENDING,
@@ -109,10 +194,11 @@ export class OrderService {
       source: createOrderDto.items ? OrderSource.POS : OrderSource.ONLINE,
       shippingAddress: createOrderDto.shippingAddress || '',
     });
+
     const newPayment = await this.paymentModel.create({
       order: newOrder._id,
       user: user._id,
-      amount: totalPrice,
+      amount: totalPriceWithPromotion, // Sử dụng số tiền sau khi giảm giá
       payType: createOrderDto.paymentMethod,
       status: PaymentStatus.PENDING,
       paymentTime:
@@ -121,10 +207,11 @@ export class OrderService {
           : undefined,
     });
 
+    // 7. Gán payment và lưu order
     newOrder.payment = newPayment._id;
     await newOrder.save();
 
-    // Nếu là online thì xóa giỏ hàng
+    // 8. Nếu là đặt hàng online thì xoá giỏ hàng
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       await this.cartService.remove(user);
     }
@@ -144,8 +231,8 @@ export class OrderService {
         select: 'name ',
       })
       .populate({
-        path: 'branch',
-        select: 'name phone address email',
+        path: 'items.branch',
+        select: 'name',
       })
       .sort({ createdAt: -1 });
   }
@@ -217,8 +304,7 @@ export class OrderService {
         );
       }
     }
-    if((updateOrderDto.paymentStatus === PaymentStatus.COMPLETED)){
-      
+    if (updateOrderDto.paymentStatus === PaymentStatus.COMPLETED) {
     }
 
     return 'Update order successfully';

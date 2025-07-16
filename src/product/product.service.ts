@@ -322,6 +322,7 @@ export class ProductService {
         path: 'variants',
         select: 'name price color memory images',
       })
+      .populate('brand', 'name description logo')
       .populate('category', 'name description configFields ');
   }
 
