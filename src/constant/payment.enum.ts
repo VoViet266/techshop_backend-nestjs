@@ -12,6 +12,7 @@ export enum PaymentStatus {
   FAILED = 'FAILED', // Thanh toán thất bại
   CANCELLED = 'CANCELLED', // Đã hủy
   REFUNDED = 'REFUNDED', // Đã hoàn tiền
+  EXPIRED = 'EXPIRED', // Hệ thống hủy đơn hàng
 }
 
 export enum RefundStatus {

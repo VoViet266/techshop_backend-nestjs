@@ -28,8 +28,8 @@ export class CaslAbilityFactory {
         can(action, module);
       }
     });
-
-    if (user.role?.roleName === RolesUser.Admin) {
+    console.log('user', user.role);
+    if (user.role === RolesUser.Admin) {
       can(Actions.Manage, 'all');
     }
     // Cho phép user chỉ đọc order của chính mình

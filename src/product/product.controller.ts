@@ -33,6 +33,7 @@ export class ProductController {
   ) {}
 
   @Post()
+  @UseGuards(PoliciesGuard)
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }

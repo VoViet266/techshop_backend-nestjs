@@ -4,6 +4,7 @@ import { PaymentController } from './payment.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Payment, PaymentSchema } from './schemas/payment.schema';
 import { Order, OrderSchema } from 'src/order/schemas/order.schema';
+import { OrderModule } from 'src/order/order.module';
 
 @Module({
   controllers: [PaymentController],
@@ -11,10 +12,11 @@ import { Order, OrderSchema } from 'src/order/schemas/order.schema';
   imports: [
     MongooseModule.forFeature([
       { name: Payment.name, schema: PaymentSchema },
-      // Add other schemas if needed, e.g., Order schema
+
       { name: Order.name, schema: OrderSchema },
       { name: Payment.name, schema: PaymentSchema },
     ]),
+    OrderModule,
   ],
 })
 export class PaymentModule {}

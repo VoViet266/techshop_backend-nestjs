@@ -195,10 +195,7 @@ export class OrderService {
     orderExist.paymentStatus = updateOrderDto.paymentStatus;
     orderExist.save();
 
-    if (
-      (updateOrderDto.status = OrderStatus.DELIVERED) &&
-      updateOrderDto.paymentStatus === PaymentStatus.COMPLETED
-    ) {
+    if ((updateOrderDto.status = OrderStatus.DELIVERED)) {
       for (const item of orderExist.items) {
         await this.productModel.updateOne(
           { _id: item.product },
@@ -219,6 +216,9 @@ export class OrderService {
           user,
         );
       }
+    }
+    if((updateOrderDto.paymentStatus === PaymentStatus.COMPLETED)){
+      
     }
 
     return 'Update order successfully';

@@ -63,6 +63,21 @@ export class Payment {
 
   @Prop()
   paymentTime: Date;
+
+  @Prop()
+  refundTime: Date;
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
+
+  @Prop()
+  payUrl?: string;
+
+  @Prop()
+  deeplink: string;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

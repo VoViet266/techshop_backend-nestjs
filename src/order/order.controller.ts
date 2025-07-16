@@ -45,6 +45,12 @@ export class OrderController {
   }
 
   @Patch(':id')
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies(
+    (ability) =>
+      ability.can(Actions.Update, Subjects.Order) &&
+      ability.can(Actions.Read, Subjects.Order),
+  )
   update(
     @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,

@@ -26,6 +26,8 @@ import { RecommendationModule } from './recommendation/recommendation.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { ReviewModule } from './review/review.module';
 import { RedisModule } from './redis/redis.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { RedisModule } from './redis/redis.module';
       isGlobal: true,
       envFilePath: ['.env.development.local', '.env.production.local', '.env'],
     }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync(MongooseConfigService),
     RoleModule,
     PermissionModule,
@@ -56,6 +59,7 @@ import { RedisModule } from './redis/redis.module';
     ChatbotModule,
     ReviewModule,
     RedisModule,
+    DashboardModule,
   ],
 
   controllers: [AppController],

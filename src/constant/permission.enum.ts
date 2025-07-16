@@ -19,5 +19,8 @@ export enum Subjects {
   Payment = 'payment',
   Promotion = 'promotion',
   Branch = 'branch',
-  
+  Brand = 'brand',
+  Cloudinary = 'cloudinary',
+  StockMovement = 'stockmovement',
+  Transfer = 'transfer',
 }

@@ -34,44 +34,38 @@ export class PaymentController {
       payUrl: result.payUrl,
     };
   }
-  @Post('momo/notify')
-  async handleCallback(@Body() body: any) {
-    const { orderId, transId, resultCode, message, payType, responseTime } =
-      body;
+  @Post('notify')
+  async handleNotification(@Body() ipnData: any, @User() user: IUser) {
+    try {
+      console.log('Received MoMo IPN:', ipnData);
 
-    const status =
-      resultCode === 0 ? PaymentStatus.COMPLETED : PaymentStatus.FAILED;
+      const result = await this.paymentService.handleMoMoIPN(ipnData, user);
 
-    await this.paymentService.updatePaymentStatus({
-      orderId,
-      transId,
-      resultCode,
-      message,
-      payType,
-      responseTime,
-      status,
-    });
+      // MoMo expects specific response format
+      return {
+        partnerCode: ipnData.partnerCode,
+        requestId: ipnData.requestId,
+        orderId: ipnData.orderId,
+        resultCode: result.resultCode,
+        message: result.message,
+        responseTime: Date.now(),
+        extraData: ipnData.extraData,
+        signature: ipnData.signature,
+      };
+    } catch (error) {
+      console.error('IPN handling error:', error);
 
-    return { message: 'Callback received' };
-  }
-
-  @Get()
-  findAll() {
-    return this.paymentService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentService.findOne(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
-    return this.paymentService.update(id, updatePaymentDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymentService.remove(id);
+      // Still return success to MoMo to avoid retries
+      return {
+        partnerCode: ipnData.partnerCode,
+        requestId: ipnData.requestId,
+        orderId: ipnData.orderId,
+        resultCode: 99,
+        message: 'Error processing IPN',
+        responseTime: Date.now(),
+        extraData: ipnData.extraData,
+        signature: ipnData.signature,
+      };
+    }
   }
 }

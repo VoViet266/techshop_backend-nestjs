@@ -21,7 +21,7 @@ import { UserModule } from 'src/user/user.module';
 @Module({
   controllers: [OrderController],
   providers: [OrderService],
-  exports: [MongooseModule],
+  exports: [MongooseModule, OrderService],
   imports: [
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
