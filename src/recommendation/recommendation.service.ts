@@ -16,11 +16,22 @@ import {
   ViewHistory,
   ViewHistoryDocument,
 } from './schemas/view_histories.schema';
-import { create } from 'domain';
+import {
+  TfidfModel,
+  TfidfModelDocument,
+} from 'src/tfidf-mode/schemas/tfidf-mode.schema';
 
 interface SimilarityResult {
   product: Products;
   score: number;
+}
+
+interface ModelStatus {
+  isModelTrained: boolean;
+  lastTrainingTime: Date | null;
+  vocabularySize: number;
+  productCount: number;
+  modelSource: 'database' | 'memory' | 'none';
 }
 
 @Injectable()
@@ -31,6 +42,8 @@ export class RecommendationService implements OnModuleInit {
   private vocabulary: string[] = [];
   private isModelTrained = false;
   private lastTrainingTime: Date | null = null;
+  private isTraining = false;
+  private modelSource: 'database' | 'memory' | 'none' = 'none';
 
   constructor(
     @InjectModel(Products.name)
@@ -38,16 +51,26 @@ export class RecommendationService implements OnModuleInit {
 
     @InjectModel(ViewHistory.name)
     private readonly viewHistoryModel: SoftDeleteModel<ViewHistoryDocument>,
+
+    @InjectModel(TfidfModel.name)
+    private readonly tfidfModelModel: Model<TfidfModelDocument>,
   ) {
     this.tfidf = new natural.TfIdf();
   }
 
   async onModuleInit() {
     try {
-      await this.trainTfIdfModel();
-      this.logger.log('TF-IDF model trained on startup.');
+      // Thử load model từ database trước
+      const loaded = await this.loadModelFromDatabase();
+      if (!loaded) {
+        // Nếu không có model trong DB, train mới
+        await this.trainTfIdfModel();
+      }
+      this.logger.log(
+        `TF-IDF model loaded from ${this.modelSource} on startup.`,
+      );
     } catch (error) {
-      this.logger.error('Failed to train TF-IDF model on startup:', error);
+      this.logger.error('Failed to initialize TF-IDF model on startup:', error);
     }
   }
 
@@ -61,7 +84,86 @@ export class RecommendationService implements OnModuleInit {
     }
   }
 
+  async loadModelFromDatabase(): Promise<boolean> {
+    try {
+      this.logger.log('Loading TF-IDF model from database...');
+
+      const savedModel = await this.tfidfModelModel
+        .findOne()
+        .sort({ trainedAt: -1 })
+        .exec();
+
+      if (!savedModel) {
+        this.logger.log('No saved model found in database');
+        return false;
+      }
+      const daysDiff = Math.floor(
+        (Date.now() - savedModel.trainedAt.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      if (daysDiff > 7) {
+        this.logger.log(`Saved model is ${daysDiff} days old, retraining...`);
+        return false;
+      }
+
+      this.vocabulary = savedModel.vocabulary;
+      this.productVectors.clear();
+
+      // Convert Record<string, number[]> back to Map
+      for (const [productId, vector] of Object.entries(
+        savedModel.productVectors,
+      )) {
+        this.productVectors.set(productId, vector);
+      }
+
+      this.isModelTrained = true;
+      this.lastTrainingTime = savedModel.trainedAt;
+      this.modelSource = 'database';
+
+      this.logger.log(
+        `Model loaded from database. Products: ${this.productVectors.size}, ` +
+          `Vocabulary: ${this.vocabulary.length}, Age: ${daysDiff} days`,
+      );
+
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to load model from database:', error);
+      return false;
+    }
+  }
+
+  async saveModelToDatabase(): Promise<void> {
+    try {
+      this.logger.log('Saving TF-IDF model to database...');
+
+      const productVectorsRecord: Record<string, number[]> = {};
+      for (const [productId, vector] of this.productVectors) {
+        productVectorsRecord[productId] = vector;
+      }
+
+      // Xóa model cũ và lưu model mới
+      await this.tfidfModelModel.deleteMany({}).exec();
+
+      await this.tfidfModelModel.create({
+        vocabulary: this.vocabulary,
+        productVectors: productVectorsRecord,
+        trainedAt: new Date(),
+      });
+
+      this.logger.log('Model saved to database successfully');
+    } catch (error) {
+      this.logger.error('Failed to save model to database:', error);
+      throw error;
+    }
+  }
+
   async trainTfIdfModel(): Promise<void> {
+    if (this.isTraining) {
+      this.logger.warn('Model training already in progress, skipping...');
+      return;
+    }
+
+    this.isTraining = true;
     const startTime = Date.now();
     this.logger.log('Starting TF-IDF model training...');
 
@@ -76,7 +178,8 @@ export class RecommendationService implements OnModuleInit {
         .populate('brand', 'name')
         .populate('variants', 'price')
         .select('name category brand description tags')
-        .lean();
+        .lean()
+        .exec();
 
       if (products.length === 0) {
         this.logger.warn('No products found for training');
@@ -86,16 +189,19 @@ export class RecommendationService implements OnModuleInit {
       const vocabSet = new Set<string>();
       const documentsMap = new Map<string, string>();
 
+      // Build documents and vocabulary
       for (const product of products) {
         const combinedFeatures = this.extractProductFeatures(product);
         documentsMap.set(product._id.toString(), combinedFeatures);
         this.tfidf.addDocument(combinedFeatures);
+
         const tokens = this.tokenizeText(combinedFeatures);
         tokens.forEach((token) => vocabSet.add(token));
       }
 
       this.vocabulary = Array.from(vocabSet).sort();
 
+      // Create vectors for all products
       products.forEach((product, docIndex) => {
         const vector = this.createProductVector(docIndex);
         this.productVectors.set(product._id.toString(), vector);
@@ -103,6 +209,10 @@ export class RecommendationService implements OnModuleInit {
 
       this.isModelTrained = true;
       this.lastTrainingTime = new Date();
+      this.modelSource = 'memory';
+
+      // Save model to database
+      await this.saveModelToDatabase();
 
       const duration = Date.now() - startTime;
       this.logger.log(
@@ -112,6 +222,8 @@ export class RecommendationService implements OnModuleInit {
     } catch (error) {
       this.logger.error('TF-IDF model training failed:', error);
       throw error;
+    } finally {
+      this.isTraining = false;
     }
   }
 
@@ -121,7 +233,7 @@ export class RecommendationService implements OnModuleInit {
       product.category?.name || '',
       product.brand?.name || '',
       product.description || '',
-      ...(product.tags || []),
+      ...(Array.isArray(product.tags) ? product.tags : []),
     ]
       .filter(Boolean)
       .join(' ')
@@ -155,7 +267,7 @@ export class RecommendationService implements OnModuleInit {
 
     return vector;
   }
-  //Hàm tính độ tương đồng giữa 2 vector
+
   private calculateCosineSimilarity(vec1: number[], vec2: number[]): number {
     if (!vec1 || !vec2 || vec1.length !== vec2.length) {
       return 0;
@@ -173,6 +285,7 @@ export class RecommendationService implements OnModuleInit {
 
     magnitudeA = Math.sqrt(magnitudeA);
     magnitudeB = Math.sqrt(magnitudeB);
+
     if (magnitudeA === 0 || magnitudeB === 0) {
       return 0;
     }
@@ -185,9 +298,18 @@ export class RecommendationService implements OnModuleInit {
     limit = 6,
     minSimilarity = 0.1,
   ): Promise<Products[]> {
+    if (!productId) {
+      throw new BadRequestException('Product ID is required');
+    }
+
+    // Kiểm tra và load model nếu cần
     if (!this.isModelTrained) {
-      this.logger.warn('Model not trained yet, training now...');
-      await this.trainTfIdfModel();
+      this.logger.warn('Model not trained yet, loading from database...');
+      const loaded = await this.loadModelFromDatabase();
+      if (!loaded) {
+        this.logger.warn('No saved model found, training new model...');
+        await this.trainTfIdfModel();
+      }
     }
 
     const targetProduct = await this.productModel
@@ -195,10 +317,11 @@ export class RecommendationService implements OnModuleInit {
       .populate('category', 'name')
       .populate('brand', 'name')
       .populate('variants', 'price images')
-      .select('name discount category brand variants description ')
-      .lean();
+      .select('name discount category brand variants description isActive')
+      .lean()
+      .exec();
 
-    if (!targetProduct) {
+    if (!targetProduct || targetProduct.isActive === false) {
       return [];
     }
 
@@ -217,27 +340,40 @@ export class RecommendationService implements OnModuleInit {
 
     const similarities: SimilarityResult[] = [];
 
-    for (const [otherProductId, otherVector] of this.productVectors) {
-      if (otherProductId === productId) continue;
+    // Calculate similarities in batches
+    const batchSize = 100;
+    const productEntries = Array.from(this.productVectors.entries());
 
-      const similarity = this.calculateCosineSimilarity(
-        targetVector,
-        otherVector,
-      );
+    for (let i = 0; i < productEntries.length; i += batchSize) {
+      const batch = productEntries.slice(i, i + batchSize);
 
-      if (similarity >= minSimilarity) {
-        const product = await this.productModel
-          .findById(otherProductId)
-          .populate('category', 'name')
-          .populate('brand', 'name')
-          .populate('variants', 'price images')
-          .select('name category brand variants description tags')
-          .lean();
+      const batchPromises = batch.map(async ([otherProductId, otherVector]) => {
+        if (otherProductId === productId) return null;
 
-        if (product && product.isActive !== false) {
-          similarities.push({ product, score: similarity });
+        const similarity = this.calculateCosineSimilarity(
+          targetVector,
+          otherVector,
+        );
+
+        if (similarity >= minSimilarity) {
+          const product = await this.productModel
+            .findById(otherProductId)
+            .populate('category', 'name')
+            .populate('brand', 'name')
+            .populate('variants', 'price images')
+            .select('name category brand variants description tags isActive')
+            .lean()
+            .exec();
+
+          if (product && product.isActive !== false) {
+            return { product, score: similarity };
+          }
         }
-      }
+        return null;
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      similarities.push(...batchResults.filter(Boolean));
     }
 
     similarities.sort((a, b) => b.score - a.score);
@@ -248,6 +384,10 @@ export class RecommendationService implements OnModuleInit {
     userId: string,
     limit = 6,
   ): Promise<Products[]> {
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
     const userInteractedProducts = await this.getUserInteractedProducts(userId);
 
     if (userInteractedProducts.length === 0) {
@@ -259,47 +399,67 @@ export class RecommendationService implements OnModuleInit {
       { product: Products; totalScore: number }
     >();
 
-    for (const productId of userInteractedProducts) {
-      try {
-        const similarProducts = await this.getRecommendedProducts(
-          productId,
-          limit * 5,
-        );
+    const recommendationPromises = userInteractedProducts.map(
+      async (productId) => {
+        try {
+          const similarProducts = await this.getRecommendedProducts(
+            productId,
+            limit * 2,
+            0.05,
+          );
 
-        similarProducts.forEach((product) => {
-          const id = (product as any)._id.toString();
-          if (userInteractedProducts.includes(id)) return;
+          return { productId, similarProducts };
+        } catch (error) {
+          this.logger.warn(
+            `Failed to get recommendations for product ${productId}:`,
+            error,
+          );
+          return { productId, similarProducts: [] };
+        }
+      },
+    );
 
-          const existing = allRecommendations.get(id);
-          const score = 1;
+    const results = await Promise.all(recommendationPromises);
 
-          if (existing) {
-            existing.totalScore += score;
-          } else {
-            allRecommendations.set(id, { product, totalScore: score });
-          }
-        });
-      } catch (error) {
-        this.logger.warn(
-          `Failed to get recommendations for product ${productId}:`,
-          error,
-        );
-      }
-    }
+    results.forEach(({ productId, similarProducts }, index) => {
+      const weight = Math.pow(0.9, index);
+
+      similarProducts.forEach((product) => {
+        const id = (product as any)._id.toString();
+        if (userInteractedProducts.includes(id)) return;
+
+        const existing = allRecommendations.get(id);
+        const score = weight;
+
+        if (existing) {
+          existing.totalScore += score;
+        } else {
+          allRecommendations.set(id, { product, totalScore: score });
+        }
+      });
+    });
 
     const sortedProducts = Array.from(allRecommendations.values())
       .sort((a, b) => b.totalScore - a.totalScore)
       .slice(0, limit)
       .map((r) => r.product);
-    const fullProducts = await this.productModel
-      .find({ _id: { $in: sortedProducts } })
-      .populate('category', 'name')
-      .populate('brand', 'name')
-      .populate('variants', 'price images')
-      .select('name category brand variants description tags')
-      .lean();
 
-    return fullProducts;
+    if (sortedProducts.length < limit) {
+      const popularProducts = await this.getPopularProducts(
+        limit - sortedProducts.length,
+      );
+      const existingIds = new Set(
+        sortedProducts.map((p) => (p as any)._id.toString()),
+      );
+
+      const filteredPopular = popularProducts.filter(
+        (p) => !existingIds.has((p as any)._id.toString()),
+      );
+
+      sortedProducts.push(...filteredPopular);
+    }
+
+    return sortedProducts;
   }
 
   async getPopularProducts(limit: number): Promise<Products[]> {
@@ -310,16 +470,18 @@ export class RecommendationService implements OnModuleInit {
       .populate('brand', 'name')
       .populate('variants', 'price images')
       .limit(limit)
-      .lean();
+      .lean()
+      .exec();
   }
 
   private async getUserInteractedProducts(userId: string): Promise<string[]> {
     const histories = await this.viewHistoryModel
       .find({ userId })
       .sort({ createdAt: -1 })
-      .limit(5)
+      .limit(10)
       .select('productId')
-      .lean();
+      .lean()
+      .exec();
 
     return [...new Set(histories.map((h) => h.productId.toString()))];
   }
@@ -329,70 +491,142 @@ export class RecommendationService implements OnModuleInit {
     await this.trainTfIdfModel();
   }
 
-  getModelStatus() {
+  async clearSavedModel(): Promise<void> {
+    this.logger.log('Clearing saved TF-IDF model from database...');
+    await this.tfidfModelModel.deleteMany({}).exec();
+    this.logger.log('Saved model cleared successfully');
+  }
+
+  getModelStatus(): ModelStatus {
     return {
       isModelTrained: this.isModelTrained,
       lastTrainingTime: this.lastTrainingTime,
       vocabularySize: this.vocabulary.length,
       productCount: this.productVectors.size,
+      modelSource: this.modelSource,
     };
   }
 
-  async recordViewHistory(userId: string, productId: string) {
+  async recordViewHistory(userId: string, productId: string): Promise<void> {
+    if (!userId || !productId) {
+      throw new BadRequestException('User ID and Product ID are required');
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const existing = await this.viewHistoryModel.findOne({
-      productId,
-      userId,
-      createdAt: { $gte: today },
-    });
+    const existing = await this.viewHistoryModel
+      .findOne({
+        productId,
+        userId,
+        createdAt: { $gte: today },
+      })
+      .exec();
 
     if (!existing) {
       await this.viewHistoryModel.create({ productId, userId });
+
+      await this.productModel
+        .findByIdAndUpdate(productId, { $inc: { viewCount: 1 } }, { new: true })
+        .exec();
     }
   }
 
-  // async getRecommendationsFromViewedProducts(
-  //   productIds: string[],
-  //   limit = 10,
-  // ): Promise<Products[]> {
-  //   const allRecommendations = new Map<
-  //     string,
-  //     { product: Products; totalScore: number }
-  //   >();
+  async getRecommendationsFromViewedProducts(
+    productIds: string[],
+    limit = 10,
+    excludeIds: string[] = [],
+  ): Promise<Products[]> {
+    if (!productIds || productIds.length === 0) {
+      return this.getPopularProducts(limit);
+    }
 
-  //   for (const productId of productIds) {
-  //     try {
-  //       const similarProducts = await this.getRecommendedProducts(
-  //         productId,
-  //         limit * 2,
-  //       );
+    const allRecommendations = new Map<
+      string,
+      { product: Products; totalScore: number }
+    >();
 
-  //       similarProducts.forEach((product) => {
-  //         const id = (product as any)._id.toString();
-  //         if (productIds.includes(id)) return;
+    const recommendationPromises = productIds.map(async (productId, index) => {
+      try {
+        const similarProducts = await this.getRecommendedProducts(
+          productId,
+          limit * 2,
+          0.05,
+        );
 
-  //         const existing = allRecommendations.get(id);
-  //         const score = 1;
+        return { productId, similarProducts, index };
+      } catch (error) {
+        this.logger.warn(
+          `Failed to get recommendations for product ${productId}:`,
+          error,
+        );
+        return { productId, similarProducts: [], index };
+      }
+    });
 
-  //         if (existing) {
-  //           existing.totalScore += score;
-  //         } else {
-  //           allRecommendations.set(id, { product, totalScore: score });
-  //         }
-  //       });
-  //     } catch (error) {
-  //       this.logger.warn(
-  //         `Failed to get recommendations for product ${productId}:`,
-  //         error,
-  //       );
-  //     }
-  //   }
+    const results = await Promise.all(recommendationPromises);
 
-  //   return Array.from(allRecommendations.values())
-  //     .sort((a, b) => b.totalScore - a.totalScore)
-  //     .slice(0, limit)
-  //     .map((r) => r.product);
-  // }
+    results.forEach(({ productId, similarProducts, index }) => {
+      const weight = Math.pow(0.9, index);
+
+      similarProducts.forEach((product) => {
+        const id = (product as any)._id.toString();
+        if (productIds.includes(id) || excludeIds.includes(id)) return;
+
+        const existing = allRecommendations.get(id);
+        const score = weight;
+
+        if (existing) {
+          existing.totalScore += score;
+        } else {
+          allRecommendations.set(id, { product, totalScore: score });
+        }
+      });
+    });
+
+    return Array.from(allRecommendations.values())
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, limit)
+      .map((r) => r.product);
+  }
+
+  async getCategoryBasedRecommendations(
+    categoryId: string,
+    limit = 10,
+    excludeIds: string[] = [],
+  ): Promise<Products[]> {
+    return this.productModel
+      .find({
+        category: categoryId,
+        isActive: { $ne: false },
+        _id: { $nin: excludeIds },
+      })
+      .sort({ viewCount: -1, soldCount: -1 })
+      .populate('category', 'name')
+      .populate('brand', 'name')
+      .populate('variants', 'price images')
+      .limit(limit)
+      .lean()
+      .exec();
+  }
+
+  async getBrandBasedRecommendations(
+    brandId: string,
+    limit = 10,
+    excludeIds: string[] = [],
+  ): Promise<Products[]> {
+    return this.productModel
+      .find({
+        brand: brandId,
+        isActive: { $ne: false },
+        _id: { $nin: excludeIds },
+      })
+      .sort({ viewCount: -1, soldCount: -1 })
+      .populate('category', 'name')
+      .populate('brand', 'name')
+      .populate('variants', 'price images')
+      .limit(limit)
+      .lean()
+      .exec();
+  }
 }

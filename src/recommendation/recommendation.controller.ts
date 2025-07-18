@@ -54,6 +54,30 @@ export class RecommendationController {
     return this.recommendationService.getPopularProducts(parseInt(limit, 10));
   }
 
+  @Get('/recommend/recommendation/get-brand-based')
+  @Public()
+  async getBrandBasedRecommendations(
+    @Query('brandId') brandId: string,
+    @Query('limit') limit: string = '10',
+  ) {
+    return this.recommendationService.getBrandBasedRecommendations(
+      brandId,
+      parseInt(limit, 10),
+    );
+  }
+
+  @Get('/recommend/recommendation/get-category-based')
+  @Public()
+  async getCategoryBasedRecommendations(
+    @Query('categoryId') categoryId: string,
+    @Query('limit') limit: string = '10',
+  ) {
+    return this.recommendationService.getCategoryBasedRecommendations(
+      categoryId,
+      parseInt(limit, 10),
+    );
+  }
+
   // @Get()
   // @Public()
   // async getRecommendationsByProductIds(@Query('ids') ids: string) {

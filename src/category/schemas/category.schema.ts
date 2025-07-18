@@ -31,6 +31,7 @@ export class Category {
       options?: string[];
       required?: boolean;
       section?: 'specifications' | 'camera' | 'connectivity' | 'general';
+      filterable?: boolean;
     }>;
   };
 

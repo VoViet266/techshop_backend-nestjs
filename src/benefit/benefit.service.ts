@@ -35,6 +35,13 @@ export class ProductBenefitService {
     return this.promotionModel.findById(id);
   }
 
+  async updatePromotion(id: string, data: Partial<Promotion>) {
+    return this.promotionModel.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async deletePromotion(id: string) {
+    return this.promotionModel.findByIdAndDelete(id);
+  }
   // ============ WARRANTY POLICIES ============
 
   async createWarrantyPolicy(data: Partial<WarrantyPolicy>) {
@@ -47,5 +54,13 @@ export class ProductBenefitService {
 
   async getWarrantyById(id: string) {
     return this.warrantyModel.findById(id);
+  }
+
+  async updateWarranty(id: string, data: Partial<WarrantyPolicy>) {
+    return this.warrantyModel.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async deleteWarranty(id: string) {
+    return this.warrantyModel.findByIdAndDelete(id);
   }
 }

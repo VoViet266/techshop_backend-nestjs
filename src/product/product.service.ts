@@ -110,6 +110,7 @@ export class ProductService {
       },
       {
         $match: {
+          isActive: true,
           isDeleted: { $ne: true },
         },
       },

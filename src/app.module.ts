@@ -28,6 +28,7 @@ import { RedisModule } from './redis/redis.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BenefitModule } from './benefit/benefit.module';
+import { TfidfModeModule } from './tfidf-mode/tfidf-mode.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { BenefitModule } from './benefit/benefit.module';
     RedisModule,
     DashboardModule,
     BenefitModule,
+    TfidfModeModule,
   ],
 
   controllers: [AppController],

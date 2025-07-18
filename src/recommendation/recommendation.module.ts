@@ -9,6 +9,10 @@ import {
   ViewHistory,
   ViewHistorySchema,
 } from './schemas/view_histories.schema';
+import {
+  TfidfModel,
+  TfidfModelSchema,
+} from 'src/tfidf-mode/schemas/tfidf-mode.schema';
 
 @Module({
   imports: [
@@ -16,6 +20,7 @@ import {
     MongooseModule.forFeature([
       { name: Products.name, schema: ProductSchema },
       { name: ViewHistory.name, schema: ViewHistorySchema },
+      { name: TfidfModel.name, schema: TfidfModelSchema },
     ]),
   ],
   controllers: [RecommendationController],
