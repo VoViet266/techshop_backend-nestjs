@@ -177,7 +177,7 @@ export class RecommendationService implements OnModuleInit {
         .populate('category', 'name')
         .populate('brand', 'name')
         .populate('variants', 'price')
-        .select('name category brand description tags')
+        .select('name category brand description ')
         .lean()
         .exec();
 
@@ -189,7 +189,6 @@ export class RecommendationService implements OnModuleInit {
       const vocabSet = new Set<string>();
       const documentsMap = new Map<string, string>();
 
-      // Build documents and vocabulary
       for (const product of products) {
         const combinedFeatures = this.extractProductFeatures(product);
         documentsMap.set(product._id.toString(), combinedFeatures);
@@ -295,7 +294,7 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendedProducts(
     productId: string,
-    limit = 6,
+    limit = 4,
     minSimilarity = 0.1,
   ): Promise<Products[]> {
     if (!productId) {
@@ -599,7 +598,7 @@ export class RecommendationService implements OnModuleInit {
       .find({
         category: categoryId,
         isActive: { $ne: false },
-        _id: { $nin: excludeIds },
+        // _id: { $nin: excludeIds },
       })
       .sort({ viewCount: -1, soldCount: -1 })
       .populate('category', 'name')

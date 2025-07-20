@@ -18,6 +18,9 @@ export class Permission {
   @Prop({ required: true })
   action: string;
 
+  @Prop({ type: Boolean, default: true })
+  isActive: boolean;
+
   @Prop({
     type: Object,
   })

@@ -29,4 +29,6 @@ export class CreatePermissionDto {
   })
   @IsString()
   action: string;
+
+  isActive: boolean;
 }

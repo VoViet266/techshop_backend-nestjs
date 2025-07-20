@@ -31,18 +31,53 @@ export class RoleService {
     });
   }
 
-  update(id: string, updateRoleDto: UpdateRoleDto) {
-    return this.roleModel.updateOne(
-      { _id: id },
-      {
-        $addToSet: {
-          permissions: {
-            $each: updateRoleDto.permissions,
-          },
-        },
-      },
+  async update(id: string, updateRoleDto: UpdateRoleDto) {
+    const role = await this.roleModel.findById(id);
+    if (!role) throw new Error('Role not found');
+
+    const currentPermissions = new Set(
+      role.permissions.map((p) => p.toString()),
     );
+    const newPermissions = new Set(updateRoleDto.permissions);
+
+    const permissionsToAdd: string[] = [];
+    const permissionsToRemove: string[] = [];
+
+    for (const p of newPermissions) {
+      if (!currentPermissions.has(p)) {
+        permissionsToAdd.push(p);
+      }
+    }
+
+    for (const p of currentPermissions) {
+      if (!newPermissions.has(p)) {
+        permissionsToRemove.push(p);
+      }
+    }
+
+
+    if (permissionsToRemove.length) {
+      await this.roleModel.updateOne(
+        { _id: id },
+        { $pull: { permissions: { $in: permissionsToRemove } } },
+      );
+    }
+
+  
+    if (permissionsToAdd.length) {
+      await this.roleModel.updateOne(
+        { _id: id },
+        { $addToSet: { permissions: { $each: permissionsToAdd } } },
+      );
+    }
+    await this.roleModel.updateOne(
+      { _id: id },
+      { $set: { updatedAt: new Date() } },
+    );
+
+    return { success: true };
   }
+
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException('not found role');

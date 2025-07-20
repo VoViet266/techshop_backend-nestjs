@@ -22,7 +22,7 @@ export class RecommendationController {
   @Get('recommend/:id')
   async getRecommendedProducts(
     @Param('id') productId: string,
-    @Query('limit') limit: string = '5',
+    @Query('limit') limit: string = '4',
   ) {
     return this.recommendationService.getRecommendedProducts(
       productId,
@@ -66,12 +66,13 @@ export class RecommendationController {
     );
   }
 
-  @Get('/recommend/recommendation/get-category-based')
+  @Get('/recommend/recommendation/get-category-based/:id')
   @Public()
   async getCategoryBasedRecommendations(
-    @Query('categoryId') categoryId: string,
+    @Param('id') categoryId: string,
     @Query('limit') limit: string = '10',
   ) {
+    
     return this.recommendationService.getCategoryBasedRecommendations(
       categoryId,
       parseInt(limit, 10),

@@ -22,7 +22,6 @@ export class PermissionController {
 
   @Post()
   create(@Body() createPermissionDto: CreatePermissionDto) {
-    console.log(createPermissionDto);
     return this.permissionService.create(createPermissionDto);
   }
 
@@ -49,7 +48,6 @@ export class PermissionController {
   }
 
   @Delete(':id')
-  @UseGuards(PoliciesGuard)
   @UseGuards(PoliciesGuard)
   @CheckPolicies((ability: any) =>
     ability.can(Actions.Delete, Subjects.Permission),

@@ -9,6 +9,12 @@ export class ProductStats {
 
   @Prop({ required: true })
   productName: string;
+
+  @Prop({ default: 0 })
+  soldCount?: number;
+
+  @Prop({ default: 0 })
+  viewCount?: number;
 }
 
 @Schema()

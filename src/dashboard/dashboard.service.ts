@@ -86,7 +86,8 @@ export class DashboardService {
   }
 
   // Cron job - Cập nhật stats hóa đơn trong ngày
-  @Cron('0 0 * * *') // Mỗi ngày lúc 0h
+  // @Cron('0 0 * * *') // Mỗi ngày lúc 0h
+  @Cron('*/2 * * * *')
   async updateDailyStats() {
     this.logger.log('Updating daily stats...');
     const dailyData = await this.aggregateDailyData();
@@ -95,7 +96,8 @@ export class DashboardService {
   }
 
   // Cron job - Cập nhật stats hàng tuần vào Thứ Hai
-  @Cron('0 0 * * 1') // 0h Thứ 2
+  // @Cron('0 0 * * 1') // 0h Thứ 2
+  @Cron('*/2 * * * *')
   async updateWeeklyStats() {
     this.logger.log('Updating weekly stats...');
     const weeklyData = await this.aggregateWeeklyData();
@@ -104,7 +106,8 @@ export class DashboardService {
   }
 
   // Cron job - Cập nhật stats hàng tháng vào ngày 1
-  @Cron('0 0 1 * *') // 0h ngày 1 mỗi tháng
+  // @Cron('0 0 1 * *') // 0h ngày 1 mỗi tháng
+  @Cron('*/2 * * * *')
   async updateMonthlyStats() {
     this.logger.log('Updating monthly stats...');
     const monthlyData = await this.aggregateMonthlyData();
@@ -113,7 +116,8 @@ export class DashboardService {
   }
 
   // Cron job - Cập nhật stats hàng năm vào 1/1
-  @Cron('0 0 1 1 *') // 0h ngày 1 tháng 1
+  // @Cron('0 0 1 1 *') // 0h ngày 1 tháng 1
+  @Cron('*/2 * * * *') //
   async updateYearlyStats() {
     this.logger.log('Updating yearly stats...');
     const yearlyData = await this.aggregateYearlyData();

@@ -8,7 +8,6 @@ export class CreateDashboardStatsDto {
   averageOrderValue?: number;
   topSellingProducts?: ProductStats[];
   mostViewedProducts?: ProductStats[];
-
   totalReturns?: number;
   returnRate?: number;
   paymentMethods?: PaymentMethodStats[];
