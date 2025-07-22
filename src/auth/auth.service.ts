@@ -87,7 +87,10 @@ export class AuthService {
     };
 
     const refresh_Token = this.createRefreshToken({ payload });
-    await this.userService.updateUserToken(_id, refresh_Token);
+    const findUser = await this.userService.findOneByID(_id);
+    if (!findUser.refreshToken) {
+      await this.userService.updateUserToken(_id, refresh_Token);
+    }
 
     res.clearCookie('refresh_Token');
     res.cookie('refresh_Token', refresh_Token, {

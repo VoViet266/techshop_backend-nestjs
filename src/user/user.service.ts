@@ -18,7 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserDocument, User as userModel } from './schemas/user.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import { IUser } from './interface/user.interface';
 import mongoose from 'mongoose';
 import { Role, RoleDocument } from 'src/role/schemas/role.schema';
@@ -36,12 +36,12 @@ export class UserService {
     @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {}
   hashPassword = (password: string) => {
-    const salt = genSaltSync(10);
-    const hash = hashSync(password, salt);
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
     return hash;
   };
   isValidPassword(password: string, hash: string) {
-    return compareSync(password, hash);
+    return bcrypt.compare(password, hash);
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -158,7 +158,6 @@ export class UserService {
       throw new InternalServerErrorException('Lỗi hệ thống khi xác thực OTP');
     }
   }
-
 
   async resendOtp(email: string) {
     try {
