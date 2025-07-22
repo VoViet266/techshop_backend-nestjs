@@ -34,6 +34,11 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('get/all-users-has-permission')
+  findAllUserHasPermission() {
+    return this.userService.findAllUserHasPermission();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);

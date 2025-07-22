@@ -38,6 +38,9 @@ export class Payment {
   @Prop()
   momoTransId: string;
 
+  @Prop()
+  completedAt: Date;
+
   @Prop({
     type: String,
     enum: PaymentStatus,
@@ -54,6 +57,9 @@ export class Payment {
 
   @Prop({ enum: PaymentMethod })
   payType: string;
+
+  @Prop({ type: Object })
+  redirectData: Record<string, any>;
 
   @Prop()
   amount: number;

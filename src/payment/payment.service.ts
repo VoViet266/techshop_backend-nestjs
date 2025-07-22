@@ -42,45 +42,51 @@ export class PaymentService {
       const existingOrder = await this.orderModel.findById(dto.order);
       if (!existingOrder) throw new Error('Order not found');
 
-      const existingPayment = await this.paymentModel.findOne({
+      let existingPayment = await this.paymentModel.findOne({
         user: user._id,
         order: dto.order,
       });
 
-      // if (!existingPayment) {
-      //   throw new Error(
-      //     'Không tìm thấy thông tin thanh toán. Hãy đảm bảo đã tạo order và payment.',
-      //   );
-      // }
+      // CASE 1: Nếu chưa có payment record, tạo mới
+      if (!existingPayment) {
+        // Tạo payment record mới trước khi gọi MoMo
+        existingPayment = await this.paymentModel.create({
+          user: user._id,
+          order: dto.order,
+          amount: dto.amount,
+          method: PaymentMethod.MOMO,
+          status: PaymentStatus.PENDING,
+        });
+      }
 
-      // // Nếu đã thanh toán rồi thì không cần gọi lại
-      // if (existingPayment.status === PaymentStatus.COMPLETED) {
-      //   return {
-      //     resultCode: 9001,
-      //     message: 'Đơn hàng đã thanh toán trước đó',
-      //   };
-      // }
+      if (existingPayment.status === PaymentStatus.COMPLETED) {
+        return {
+          resultCode: 9001,
+          message: 'Đơn hàng đã thanh toán trước đó',
+        };
+      }
 
-      // // Nếu còn hiệu lực trong 15 phút thì trả lại link thanh toán cũ
-      // const now = new Date();
-      // const diffMinutes =
-      //   (now.getTime() - new Date(existingPayment.updatedAt).getTime()) /
-      //   (1000 * 60);
+      if (existingPayment.payUrl && existingPayment.deeplink) {
+        const now = new Date();
+        const diffMinutes =
+          (now.getTime() - new Date(existingPayment.updatedAt).getTime()) /
+          (1000 * 60);
 
-      // if (diffMinutes < 15) {
-      //   return {
-      //     resultCode: 9000,
-      //     message: 'Payment đã được tạo trước đó',
-      //     payUrl: existingPayment.payUrl,
-      //     deeplink: existingPayment.deeplink,
-      //   };
-      // }
+        if (diffMinutes < 15) {
+          return {
+            resultCode: 9000,
+            message: 'Payment đã được tạo trước đó',
+            payUrl: existingPayment.payUrl,
+            deeplink: existingPayment.deeplink,
+          };
+        }
+      }
 
       // Tạo request mới đến MoMo
       const orderInfo = `Thanh toán đơn hàng ${user._id} với đơn giá ${dto.amount} VNĐ`;
       const requestId = `${this.partnerCode}${Date.now()}`;
       const orderId = `${dto.order}-${Date.now()}`;
-      const redirectUrl = 'http://localhost:5173';
+      const redirectUrl = 'http://localhost:8080/api/v1/payment/momo/callback';
       const ipnUrl =
         'https://your-ngrok.ngrok-free.app/api/v1/payment/momo/notify';
       const extraData = Buffer.from(
@@ -99,7 +105,7 @@ export class PaymentService {
         partnerCode: this.partnerCode,
         accessKey: this.accessKey,
         requestId,
-        amount: dto.amount.toString(),
+        amount: dto.amount,
         orderId,
         orderInfo,
         redirectUrl,
@@ -117,6 +123,7 @@ export class PaymentService {
       const momoResponse = response.data;
 
       if (momoResponse.resultCode === 0) {
+        // Bây giờ chắc chắn existingPayment tồn tại
         await this.paymentModel.findByIdAndUpdate(existingPayment._id, {
           momoOrderId: orderId,
           requestId,
@@ -190,79 +197,178 @@ export class PaymentService {
       );
     }
   }
-
-  async handleMoMoIPN(ipnData: any, user: IUser) {
+  async handleMoMoRedirect(query: any) {
     try {
-      // 1. Verify signature
-      const { signature, ...dataToVerify } = ipnData;
-      const rawSignature = Object.keys(dataToVerify)
-        .sort()
-        .map((key) => `${key}=${dataToVerify[key]}`)
-        .join('&');
-
-      const expectedSignature = crypto
-        .createHmac('sha256', this.secretKey)
-        .update(rawSignature)
-        .digest('hex');
-
-      if (signature !== expectedSignature) {
-        throw new Error('Invalid signature');
-      }
-
-      // 2. Process payment result
       const payment = await this.paymentModel.findOne({
-        momoOrderId: ipnData.orderId,
-        requestId: ipnData.requestId,
+        momoOrderId: query.orderId,
+        requestId: query.requestId,
       });
 
       if (!payment) {
-        throw new Error('Payment not found');
+        console.error('Payment not found:', {
+          momoOrderId: query.orderId,
+          requestId: query.requestId,
+        });
+
+        // Thử tìm bằng orderId pattern (loại bỏ timestamp)
+        const baseOrderId = query.orderId.split('-')[0];
+        const fallbackPayment = await this.paymentModel.findOne({
+          order: baseOrderId,
+          user: payment.user,
+        });
+
+        if (!fallbackPayment) {
+          throw new Error('Không tìm thấy giao dịch tương ứng');
+        }
+
+        // Update payment với thông tin MoMo
+        await this.paymentModel.findByIdAndUpdate(fallbackPayment._id, {
+          momoOrderId: query.orderId,
+          requestId: query.requestId,
+        });
+
+        // Sử dụng fallbackPayment cho logic tiếp theo
+        return this.processPaymentResult(fallbackPayment, query);
       }
 
+      // 3. Check if already completed
       if (payment.status === PaymentStatus.COMPLETED) {
-        return { resultCode: 0, message: 'Already processed' };
+        return {
+          success: true,
+          message: 'Giao dịch đã hoàn tất trước đó',
+        };
       }
 
-      // 3. Update payment status based on result
-      if (ipnData.resultCode === 0) {
+      // 4. Process payment result
+      return this.processPaymentResult(payment, query);
+    } catch (error) {
+      console.error('Redirect Error:', error);
+      return {
+        success: false,
+        message: error.message || 'Lỗi không xác định khi xử lý redirect',
+      };
+    }
+  }
+
+  // Helper method để xử lý kết quả thanh toán
+  private async processPaymentResult(payment: any, query: any) {
+    try {
+      if (query.resultCode === '0') {
         // Payment successful
-        await this.paymentModel.findOneAndUpdate(
-          { _id: payment._id },
-          {
-            status: PaymentStatus.COMPLETED,
-            completedAt: new Date(),
-            momoTransId: ipnData.transId,
-            ipnData: ipnData,
-          },
-        );
+        await this.paymentModel.findByIdAndUpdate(payment._id, {
+          status: PaymentStatus.COMPLETED,
+          completedAt: new Date(),
+          momoTransId: query.transId,
+          redirectData: query,
+        });
 
         // Update order status
+        const order = await this.orderModel.findById(payment.order);
+
         await this.orderService.update(
           payment.order,
           { paymentStatus: PaymentStatus.COMPLETED },
-          user,
+          order.user,
         );
 
-        return { resultCode: 0, message: 'Payment completed successfully' };
+        return {
+          success: true,
+          message: 'Thanh toán thành công',
+          paymentId: payment._id,
+          orderId: payment.order,
+        };
       } else {
         // Payment failed
-        await this.paymentModel.findOneAndUpdate(
-          { _id: payment._id },
-          {
-            status: PaymentStatus.FAILED,
-            failedAt: new Date(),
-            failureReason: ipnData.message || 'Payment failed',
-            ipnData: ipnData,
-          },
-        );
+        await this.paymentModel.findByIdAndUpdate(payment._id, {
+          status: PaymentStatus.FAILED,
+          failedAt: new Date(),
+          failureReason: query.message || 'Thanh toán thất bại',
+          redirectData: query,
+        });
 
-        return { resultCode: 0, message: 'Payment failed processed' };
+        return {
+          success: false,
+          message: `Thanh toán thất bại: ${query.message || 'Lỗi không xác định'}`,
+          resultCode: query.resultCode,
+        };
       }
     } catch (error) {
-      console.error('MoMo IPN Error:', error);
-      throw error;
+      console.error('Process payment result error:', error);
+      throw new Error('Lỗi khi xử lý kết quả thanh toán');
     }
   }
+
+  // async handleMoMoIPN(ipnData: any, user: IUser) {
+  //   try {
+  //     const { signature, ...dataToVerify } = ipnData;
+  //     const rawSignature = Object.keys(dataToVerify)
+  //       .sort()
+  //       .map((key) => `${key}=${dataToVerify[key]}`)
+  //       .join('&');
+
+  //     const expectedSignature = crypto
+  //       .createHmac('sha256', this.secretKey)
+  //       .update(rawSignature)
+  //       .digest('hex');
+
+  //     if (signature !== expectedSignature) {
+  //       throw new Error('Invalid signature');
+  //     }
+
+  //     // 2. Process payment result
+  //     const payment = await this.paymentModel.findOne({
+  //       momoOrderId: ipnData.orderId,
+  //       requestId: ipnData.requestId,
+  //     });
+
+  //     if (!payment) {
+  //       throw new Error('Payment not found');
+  //     }
+
+  //     if (payment.status === PaymentStatus.COMPLETED) {
+  //       return { resultCode: 0, message: 'Already processed' };
+  //     }
+
+  //     // 3. Update payment status based on result
+  //     if (ipnData.resultCode === 0) {
+  //       // Payment successful
+  //       await this.paymentModel.findOneAndUpdate(
+  //         { _id: payment._id },
+  //         {
+  //           status: PaymentStatus.COMPLETED,
+  //           completedAt: new Date(),
+  //           momoTransId: ipnData.transId,
+  //           ipnData: ipnData,
+  //         },
+  //       );
+
+  //       // Update order status
+  //       await this.orderService.update(
+  //         payment.order,
+  //         { paymentStatus: PaymentStatus.COMPLETED },
+  //         user,
+  //       );
+
+  //       return { resultCode: 0, message: 'Payment completed successfully' };
+  //     } else {
+  //       // Payment failed
+  //       await this.paymentModel.findOneAndUpdate(
+  //         { _id: payment._id },
+  //         {
+  //           status: PaymentStatus.FAILED,
+  //           failedAt: new Date(),
+  //           failureReason: ipnData.message || 'Payment failed',
+  //           ipnData: ipnData,
+  //         },
+  //       );
+
+  //       return { resultCode: 0, message: 'Payment failed processed' };
+  //     }
+  //   } catch (error) {
+  //     console.error('MoMo IPN Error:', error);
+  //     throw error;
+  //   }
+  // }
   create(createPaymentDto: CreatePaymentDto) {
     return this.paymentModel.create(createPaymentDto);
   }

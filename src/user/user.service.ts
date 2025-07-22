@@ -26,6 +26,7 @@ import * as otpGenerator from 'otp-generator';
 import Redis from 'ioredis';
 import { MailService } from 'src/mail/mail.service';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { populate } from 'dotenv';
 @Injectable()
 export class UserService {
   constructor(
@@ -266,6 +267,21 @@ export class UserService {
       },
     });
   }
+  async findAllUserHasPermission() {
+  const users = await this.userModel.find().populate({
+    path: 'role',
+    populate: {
+      path: 'permissions',
+    },
+  });
+
+  // Ép kiểu để tránh TypeScript báo lỗi
+  const usersWithPermissions = users.filter((user: any) => {
+    return user.role?.permissions?.length > 0;
+  });
+    return usersWithPermissions;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const userExist = await this.userModel.findOne({ _id: id });
     if (!userExist) {
