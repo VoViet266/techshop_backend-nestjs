@@ -41,7 +41,7 @@ export class AuthService {
       })
       .exec();
     if (user) {
-      const isValid = this.userService.isValidPassword(pass, user.password);
+      const isValid = await this.userService.isValidPassword(pass, user.password);
       console.log('isValid', isValid);
       if (isValid === true) {
         return user;
