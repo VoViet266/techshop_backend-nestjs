@@ -34,6 +34,8 @@ import {
   WarrantyPolicy,
   WarrantyPolicyDocument,
 } from 'src/benefit/schemas/warrantypolicy.schema';
+import { an } from '@faker-js/faker/dist/airline-CLphikKp';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class OrderService {
@@ -54,6 +56,7 @@ export class OrderService {
     private readonly userModel: SoftDeleteModel<UserDocument>,
     private readonly inventoryService: InventoryService,
     private readonly cartService: CartService,
+    private readonly userService: UserService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, user: IUser) {
@@ -267,7 +270,7 @@ export class OrderService {
       .populate('items.variant');
   }
 
-  async update(id: string, updateOrderDto: UpdateOrderDto, user: IUser) {
+  async update(id: string, updateOrderDto: UpdateOrderDto, user: any) {
     const orderExist = await this.orderModel.findById(id);
     if (!orderExist) {
       throw new HttpException(
@@ -281,7 +284,10 @@ export class OrderService {
     orderExist.status = updateOrderDto.status;
     orderExist.paymentStatus = updateOrderDto.paymentStatus;
     orderExist.save();
+    const userInfor = await this.userService.findOne(user._id.toString());
 
+    const userEmail = userInfor.email;
+    const userName = userInfor.name;
     if ((updateOrderDto.status = OrderStatus.DELIVERED)) {
       for (const item of orderExist.items) {
         await this.productModel.updateOne(
@@ -293,6 +299,7 @@ export class OrderService {
           {
             branchId: item.branch.toString(),
             productId: item.product.toString(),
+            source: TransactionSource.ORDER,
             variants: [
               {
                 variantId: item.variant.toString(),
@@ -300,11 +307,12 @@ export class OrderService {
               },
             ],
           },
-          user,
+          {
+            email: userEmail,
+            name: userName,
+          },
         );
       }
-    }
-    if (updateOrderDto.paymentStatus === PaymentStatus.COMPLETED) {
     }
 
     return 'Update order successfully';

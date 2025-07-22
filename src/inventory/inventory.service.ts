@@ -27,6 +27,7 @@ import {
 import { Transfer, TransferDocument } from './schemas/transfer.schema';
 import mongoose, { Types } from 'mongoose';
 import {
+  TransactionSource,
   TransactionStatus,
   TransactionType,
 } from 'src/constant/transaction.enum';
@@ -240,10 +241,11 @@ export class InventoryService {
     await inventory.save();
     await this.movementModel.create({
       type: TransactionType.IMPORT,
+
       branchId,
       productId,
       variants,
-      source: dto.source,
+      source: TransactionSource.MANUAL,
       createdBy: {
         email: user.email,
         name: user.name,
@@ -277,7 +279,7 @@ export class InventoryService {
       .populate('toBranchId', 'name location')
       .populate('items.productId', 'name ')
       .populate('items.variantId', 'name sku')
-    
+
       .lean();
   }
   async findTransfer() {
@@ -291,9 +293,9 @@ export class InventoryService {
       .lean();
   }
 
-  async exportStock(dto: CreateStockMovementDto, user: IUser) {
+  async exportStock(dto: CreateStockMovementDto, user: any) {
     const { branchId, productId, variants } = dto;
-    console.log(dto.variants);
+
     const inventory = await this.inventoryModel.findOne({
       branch: branchId,
       product: productId,
@@ -325,6 +327,7 @@ export class InventoryService {
 
     await inventory.save();
     await this.movementModel.create({
+      ...dto,
       type: TransactionType.EXPORT,
       branchId,
       productId,
@@ -348,6 +351,7 @@ export class InventoryService {
         quantity: item.quantity,
         unit: item.unit,
       })),
+
       status: TransactionStatus.PENDING,
       createdBy: {
         _id: user._id,
@@ -372,6 +376,7 @@ export class InventoryService {
           {
             branchId: updateTransferDto.fromBranchId,
             productId: item.productId,
+            source: TransactionSource.TRANSFER,
             variants: [
               {
                 variantId: item.variantId,
@@ -382,11 +387,11 @@ export class InventoryService {
           user,
         );
 
-    
         await this.importStock(
           {
             branchId: updateTransferDto.toBranchId,
             productId: item.productId,
+            source: TransactionSource.TRANSFER,
             variants: [
               {
                 variantId: item.variantId,
