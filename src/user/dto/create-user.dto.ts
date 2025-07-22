@@ -33,6 +33,9 @@ export class CreateUserDto {
   @IsString()
   name: string;
 
+  @IsString()
+  branch: string;
+
   @ApiProperty({ example: 'user@example.com' })
   @IsNotEmpty({ message: 'Email không được để trống' })
   @IsEmail({}, { message: 'Email không hợp lệ' })

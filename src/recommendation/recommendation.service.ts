@@ -381,7 +381,7 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendationsForUser(
     userId: string,
-    limit = 6,
+    limit = 5,
   ): Promise<Products[]> {
     if (!userId) {
       throw new BadRequestException('User ID is required');
