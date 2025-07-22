@@ -1,7 +1,12 @@
 import {
+  BadRequestException,
+  Body,
   ConflictException,
+  Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
+  Post,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -17,17 +22,18 @@ import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { IUser } from './interface/user.interface';
 import mongoose from 'mongoose';
 import { Role, RoleDocument } from 'src/role/schemas/role.schema';
-import { RolesUser } from 'src/constant/roles.enum';
-import { console } from 'inspector';
-import { populate } from 'dotenv';
-
+import * as otpGenerator from 'otp-generator';
+import Redis from 'ioredis';
+import { MailService } from 'src/mail/mail.service';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(userModel.name)
     private readonly userModel: SoftDeleteModel<UserDocument>,
-    @InjectModel(Role.name)
-    private readonly roleModel: SoftDeleteModel<RoleDocument>,
+    private readonly mailService: MailService,
+
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {}
   hashPassword = (password: string) => {
     const salt = genSaltSync(10);
@@ -57,27 +63,154 @@ export class UserService {
       role: roleId,
     });
   }
+  async register(registerDto: RegisterUserDto) {
+    try {
+      // Kiểm tra email đã tồn tại
+      const existingUser = await this.userModel.findOne({
+        email: registerDto.email,
+      });
 
-  async register(user: RegisterUserDto) {
-    const { name, email, password, age, gender, addresses, phone } = user;
-    const isExitEmail = await this.userModel.findOne({ email });
-    if (isExitEmail) {
-      throw new ConflictException(
-        `Email: ${email} đã tồn tại trên hệ thống xin vui lòng chọn email khác`,
-      );
+      if (existingUser) {
+        throw new ConflictException('Email đã được sử dụng');
+      }
+
+      const hashedPassword = await this.hashPassword(registerDto.password);
+
+      const tempUserData = {
+        ...registerDto,
+        password: hashedPassword,
+      };
+
+      const otp = otpGenerator.generate(6, {
+        digits: true,
+        lowerCaseAlphabets: false,
+        upperCaseAlphabets: false,
+        specialChars: false,
+      });
+
+      const tempUserKey = `temp_user:${registerDto.email}`;
+      const otpKey = `otp:${registerDto.email}`;
+
+      const pipeline = this.redisClient.pipeline();
+      pipeline.setex(tempUserKey, 600, JSON.stringify(tempUserData)); // 10 phút
+      pipeline.setex(otpKey, 600, otp); // 10 phút
+      await pipeline.exec();
+
+      // Gửi OTP qua email
+      await this.mailService.sendOtpEmail(registerDto.email, otp);
+
+      return {
+        success: true,
+        message: 'Vui lòng kiểm tra email để nhận mã xác thực',
+        email: registerDto.email,
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Lỗi hệ thống khi đăng ký');
     }
-    const hashedPassword = this.hashPassword(password);
+  }
 
-    let newRegister = await this.userModel.create({
-      name,
-      email,
-      password: hashedPassword,
-      age,
-      gender,
-      phone,
-      addresses,
-    });
-    return newRegister;
+  async verifyOtp({ email, otp }: VerifyOtpDto) {
+    try {
+      const otpKey = `otp:${email}`;
+      const tempUserKey = `temp_user:${email}`;
+
+      const [storedOtp, tempUserData] = await Promise.all([
+        this.redisClient.get(otpKey),
+        this.redisClient.get(tempUserKey),
+      ]);
+
+      if (!storedOtp || !tempUserData) {
+        throw new BadRequestException('Mã OTP không hợp lệ hoặc đã hết hạn');
+      }
+
+      if (storedOtp !== otp) {
+        throw new BadRequestException('Mã OTP không chính xác');
+      }
+
+      const userData = JSON.parse(tempUserData);
+
+      const newUser = await this.userModel.create(userData);
+
+      // Xóa dữ liệu tạm thời khỏi Redis
+      const pipeline = this.redisClient.pipeline();
+      pipeline.del(otpKey);
+      pipeline.del(tempUserKey);
+      await pipeline.exec();
+
+      return {
+        success: true,
+        message: 'Xác thực thành công, tài khoản đã được tạo',
+        user: {
+          id: newUser._id,
+          email: newUser.email,
+          // Các thông tin khác cần thiết
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Lỗi hệ thống khi xác thực OTP');
+    }
+  }
+
+
+  async resendOtp(email: string) {
+    try {
+      const tempUserKey = `temp_user:${email}`;
+      const tempUserData = await this.redisClient.get(tempUserKey);
+
+      if (!tempUserData) {
+        throw new BadRequestException(
+          'Không tìm thấy thông tin đăng ký, vui lòng đăng ký lại',
+        );
+      }
+
+      // Tạo OTP mới
+      const newOtp = otpGenerator.generate(6, {
+        digits: true,
+        lowerCaseAlphabets: false,
+        upperCaseAlphabets: false,
+        specialChars: false,
+      });
+
+      // Cập nhật OTP trong Redis
+      const otpKey = `otp:${email}`;
+      await this.redisClient.setex(otpKey, 600, newOtp); // 10 phút
+
+      // Gửi OTP mới
+      await this.mailService.sendOtpEmail(email, newOtp);
+
+      return {
+        success: true,
+        message: 'Đã gửi lại mã OTP mới',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Lỗi hệ thống khi gửi lại OTP');
+    }
+  }
+
+  // Thêm method để cleanup các OTP hết hạn (optional)
+  async cleanupExpiredOtp() {
+    try {
+      const pattern = 'otp:*';
+      const keys = await this.redisClient.keys(pattern);
+
+      if (keys.length > 0) {
+        await this.redisClient.del(keys);
+      }
+    } catch (error) {
+      console.error('Error cleaning up expired OTPs:', error);
+    }
   }
 
   changePassword = async (changePassword: ChangePasswordDto, user: IUser) => {

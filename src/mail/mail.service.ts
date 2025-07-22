@@ -10,8 +10,8 @@ export class MailService {
     this.transporter = nodemailer.createTransport({
       service: 'gmail', // Hoặc SMTP của nhà cung cấp khác
       auth: {
-        user: this.configService.get<string>('MAIL_USER'), // Thay bằng email của bạn
-        pass: this.configService.get<string>('MAIL_PASSWORD'), // Thay bằng mật khẩu email của bạn
+        user: this.configService.get<string>('MAIL_USER'),
+        pass: this.configService.get<string>('MAIL_PASSWORD'),
       },
     });
   }
@@ -314,6 +314,59 @@ export class MailService {
     </div>
 </body>
 </html>`,
+    });
+  }
+
+  async sendOtpEmail(email: string, otp: string) {
+    await this.transporter.sendMail({
+      from: this.configService.get<string>('MAIL_USER'),
+      to: email,
+      subject: 'Mã xác thực tài khoản',
+      html: `
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Mã xác thực</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 5px;">
+        <h2 style="color: #333; text-align: center; margin-bottom: 30px;">
+          Mã xác thực tài khoản
+        </h2>
+        
+        <p style="color: #666; margin-bottom: 20px;">
+          Xin chào,
+        </p>
+        
+        <p style="color: #666; margin-bottom: 20px;">
+          Bạn đã yêu cầu mã xác thực cho tài khoản của mình. Vui lòng sử dụng mã sau:
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="background-color: #f8f9fa; padding: 15px 25px; font-size: 24px; font-weight: bold; color: #333; border: 2px solid #ddd; border-radius: 5px; letter-spacing: 3px;">
+            ${otp}
+          </span>
+        </div>
+        
+        <p style="color: #666; margin-bottom: 20px;">
+          Mã này có hiệu lực trong <strong>5 phút</strong>. Vui lòng không chia sẻ mã này với bất kỳ ai.
+        </p>
+        
+        <p style="color: #666; margin-bottom: 20px;">
+          Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này.
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        
+        <p style="color: #999; font-size: 14px; text-align: center; margin: 0;">
+          Đây là email tự động, vui lòng không phản hồi lại email này.
+        </p>
+      </div>
+    </body>
+    </html>
+    `,
     });
   }
 }

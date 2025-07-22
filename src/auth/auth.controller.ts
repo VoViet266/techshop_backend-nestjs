@@ -26,6 +26,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import ms from 'ms';
 import { ConfigService } from '@nestjs/config';
+import { VerifyOtpDto } from 'src/user/dto/verify-otp.dto';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -130,7 +131,6 @@ export class AuthController {
   }
   @ResponseMessage('Đăng xuất thành công')
   @Get('/logout')
-  // @Public()
   handleLogout(@Res({ passthrough: true }) res: Response, @User() user: IUser) {
     return this.authService.logout(res, user);
   }
@@ -168,5 +168,15 @@ export class AuthController {
     return {
       message: 'Mật khẩu đã được đặt lại thành công.',
     };
+  }
+
+  @Post('resend-otp')
+  async resendOtp(@Body() email: string) {
+    return await this.userService.resendOtp(email);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.userService.verifyOtp(verifyOtpDto);
   }
 }
