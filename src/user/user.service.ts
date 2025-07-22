@@ -268,17 +268,20 @@ export class UserService {
     });
   }
   async findAllUserHasPermission() {
-  const users = await this.userModel.find().populate({
-    path: 'role',
-    populate: {
-      path: 'permissions',
-    },
-  });
+    const users = await this.userModel
+      .find()
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'permissions',
+        },
+      })
+      .populate('branch');
 
-  // Ép kiểu để tránh TypeScript báo lỗi
-  const usersWithPermissions = users.filter((user: any) => {
-    return user.role?.permissions?.length > 0;
-  });
+    // Ép kiểu để tránh TypeScript báo lỗi
+    const usersWithPermissions = users.filter((user: any) => {
+      return user.role?.permissions?.length > 0;
+    });
     return usersWithPermissions;
   }
 
