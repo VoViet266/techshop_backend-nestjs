@@ -206,25 +206,58 @@ export class DashboardService {
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // Top 5 sản phẩm bán chạy
-    const topSelling = await this.productModel
-      .find()
-      .sort({ soldCount: -1 }) // field thống kê số lần bán
-      .limit(5)
-      .lean();
+    // === Tổng hợp dữ liệu bán ra, doanh thu, lượt xem ===
+    const productStatsMap: Record<
+      string,
+      {
+        productName: string;
+        soldCount: number;
+        viewCount: number;
+        revenue: number;
+      }
+    > = {};
 
-    // Top 5 sản phẩm được xem nhiều nhất
-    const mostViewed = await this.productModel
-      .find()
-      .sort({ viewCount: -1 }) // field thống kê số lượt xem
-      .limit(5)
-      .lean();
+    for (const order of orders) {
+      for (const item of order.items) {
+        const productId = item.product.toString();
+        if (!productStatsMap[productId]) {
+          const product = await this.productModel.findById(productId).lean();
+          if (!product) continue;
 
-    // Sản phẩm tồn kho dưới ngưỡng
-    // const lowStock = await this.productModel
-    //   .find({ stock: { $lt: 10 } }) // ngưỡng tồn kho thấp
-    //   .limit(5)
-    //   .lean();
+          productStatsMap[productId] = {
+            productName: product.name,
+            soldCount: 0,
+            viewCount: 0,
+            revenue: 0,
+          };
+        }
+        productStatsMap[productId].soldCount += item.quantity;
+        productStatsMap[productId].viewCount += item.quantity;
+        productStatsMap[productId].revenue += item.quantity * item.price;
+      }
+    }
+
+    // Lấy top 5 sản phẩm bán chạy theo soldCount
+    const topSellingProducts = Object.entries(productStatsMap)
+      .sort((a, b) => b[1].soldCount - a[1].soldCount)
+      .slice(0, 5)
+      .map(([productId, stats]) => ({
+        productId,
+        productName: stats.productName,
+        soldCount: stats.soldCount,
+        revenue: stats.revenue,
+      }));
+
+    // Lấy top 5 sản phẩm được xem nhiều nhất trong khoảng thời gian
+    const mostViewedProducts = Object.entries(productStatsMap)
+      .sort((a, b) => b[1].viewCount - a[1].viewCount)
+      .slice(0, 5)
+      .map(([productId, stats]) => ({
+        productId,
+        productName: stats.productName,
+        viewCount: stats.viewCount,
+        revenue: stats.revenue,
+      }));
 
     // Phân tích phương thức thanh toán
     const paymentStats = orders.reduce(
@@ -255,28 +288,10 @@ export class DashboardService {
       totalRevenue,
       totalOrders,
       averageOrderValue,
-      topSellingProducts: topSelling.map((p) => ({
-        productId: p._id.toString(),
-        productName: p.name,
-        // salesQuantity: p.soldCount,
-        // revenue: 0, // nếu cần, phải thống kê từ đơn hàng
-        // views: p.viewCount || 0,
-        soldCount: p.soldCount || 0,
-        // stockLevel: p.stock,
-        // returnQuantity: 0, // nếu cần tính, lấy từ order
-      })),
-      mostViewedProducts: mostViewed.map((p) => ({
-        productId: p._id.toString(),
-        productName: p.name,
-        // salesQuantity: p.soldCount,
-        // revenue: 0,
-        viewCount: p.viewCount || 0,
-        // stockLevel: p.stock,
-        // returnQuantity: 0,
-      })),
-
-      totalReturns: 0, // nếu muốn, lọc từ orders
-      returnRate: 0, // tính từ totalReturns / totalOrders
+      topSellingProducts,
+      mostViewedProducts,
+      totalReturns: 0,
+      returnRate: 0,
       paymentMethods,
     };
   }

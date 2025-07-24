@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-
-import { PermissionsEnum } from 'src/constant/permission.enum';
+import { Actions, Subjects } from 'src/constant/permission.enum';
 
 export type PermissionDocument = HydratedDocument<Permission>;
 @Schema({ timestamps: true })
@@ -12,10 +11,10 @@ export class Permission {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: Subjects })
   module: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: Actions })
   action: string;
 
   @Prop({ type: Boolean, default: true })

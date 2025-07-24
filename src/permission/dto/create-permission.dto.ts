@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
+import { Actions, Subjects } from 'src/constant/permission.enum';
 
 export class CreatePermissionDto {
   @ApiProperty({
@@ -21,14 +22,14 @@ export class CreatePermissionDto {
     description: 'Module của permission, ví dụ: "USER", "POST"',
   })
   @IsString()
-  module: string;
+  module: Subjects;
 
   @ApiProperty({
     example: 'READ',
     description: 'Action của permission, ví dụ: "READ", "WRITE"',
   })
   @IsString()
-  action: string;
+  action: Actions;
 
   isActive: boolean;
 }

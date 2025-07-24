@@ -14,6 +14,9 @@ export class ProductStats {
   soldCount?: number;
 
   @Prop({ default: 0 })
+  revenue?: number;
+
+  @Prop({ default: 0 })
   viewCount?: number;
 }
 

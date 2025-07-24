@@ -100,7 +100,7 @@ export class AuthController {
       sameSite:
         this.configService.get<string>('NODE_ENV') === 'production'
           ? 'none'
-          : 'strict',
+          : 'lax',
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
     });
     res.redirect(
@@ -114,9 +114,14 @@ export class AuthController {
   @ResponseMessage('Lấy thông tin tài khoản thành công')
   @Get('/account')
   handleGetAccount(@User() user: IUser) {
-    return {
-      user,
-    };
+    const userInformation = this.userService.findOneByID(user._id).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        select: 'name module action',
+      },
+    });
+    return userInformation;
   }
 
   @ResponseMessage('Lấy Refresh Token thành công')

@@ -1,4 +1,3 @@
-export enum PermissionsEnum {}
 export enum Actions {
   Manage = 'manage',
   Create = 'create',

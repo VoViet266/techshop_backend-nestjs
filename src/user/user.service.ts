@@ -97,7 +97,6 @@ export class UserService {
       pipeline.setex(otpKey, 600, otp); // 10 phút
       await pipeline.exec();
 
-      // Gửi OTP qua email
       await this.mailService.sendOtpEmail(registerDto.email, otp);
 
       return {

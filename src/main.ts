@@ -39,7 +39,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
     credentials: true,
   });
-  // Cấu hình Swagger
+
   const config = new DocumentBuilder()
     .setTitle('API TechShop')
     .setDescription('API mô tả Techshop')

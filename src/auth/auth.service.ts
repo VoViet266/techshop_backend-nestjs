@@ -32,7 +32,7 @@ export class AuthService {
     private userModel: SoftDeleteModel<UserDocument>,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, pass: string) {
     const user = await this.userService
       .findOneByEmail(username)
       .populate({
@@ -45,7 +45,6 @@ export class AuthService {
         pass,
         user.password,
       );
-      console.log('isValid', isValid);
       if (isValid === true) {
         return user;
       }
@@ -71,11 +70,6 @@ export class AuthService {
     const role: any = userWithRole.role;
 
     const roleName = role?.name;
-    const permission = role?.permissions?.map((per: any) => ({
-      name: per.name,
-      module: per.module,
-      action: per.action,
-    }));
 
     const payload = {
       sub: 'token login',
@@ -86,23 +80,19 @@ export class AuthService {
       avatar,
       branch: user.branch,
       role: roleName,
-      permission: permission,
     };
 
+    // Luôn tạo refresh token mới cho mỗi lần đăng nhập
     const refresh_Token = this.createRefreshToken({ payload });
-    const findUser = await this.userService.findOneByID(_id);
-    if (!findUser.refreshToken) {
-      await this.userService.updateUserToken(_id, refresh_Token);
-    }
 
+    // Cập nhật refresh token mới vào database
+    await this.userService.updateUserToken(_id, refresh_Token);
+    // Cập nhật refresh token mới vào cookie
     res.clearCookie('refresh_Token');
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
       secure: false,
-      sameSite:
-        this.configService.get<string>('NODE_ENV') === 'production'
-          ? 'none'
-          : 'strict',
+      sameSite: 'lax',
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
     });
 
@@ -114,7 +104,6 @@ export class AuthService {
       avatar,
       branch: user.branch,
       role: roleName,
-      permission: permission,
     };
   }
 
@@ -190,7 +179,7 @@ export class AuthService {
     }
   };
   async logout(res: Response, user: IUser) {
-    await this.userService.updateUserToken(user._id.toString(), '');
+    await this.userService.updateUserToken(user._id.toString(), null);
     res.clearCookie('refresh_Token');
     return {
       message: 'Đăng xuất thành công',
