@@ -175,11 +175,11 @@ export class ProductService {
     delete filter.page;
     delete filter.limit;
     filter.isDeleted = false;
-    // const cacheKey = `products-${qs}`;
-    // const cached = await this.redisClient.get(cacheKey);
-    // if (cached) {
-    //   return JSON.parse(cached);
-    // }
+    const cacheKey = `products-${qs}`;
+    const cached = await this.redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
@@ -287,6 +287,7 @@ export class ProductService {
         .populate({
           path: 'variants',
           select: 'name price color memory images',
+          // options: { sort: { price: -1 } },
         })
         .populate('category', 'name description logo configFields')
         .populate('brand', 'name description logo')
@@ -312,7 +313,7 @@ export class ProductService {
       },
       result,
     };
-    // await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 120);
+    await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 300);
     return response;
   }
 

@@ -360,7 +360,9 @@ export class RecommendationService implements OnModuleInit {
             .populate('category', 'name')
             .populate('brand', 'name')
             .populate('variants', 'price images')
-            .select('name category brand discount variants description tags isActive')
+            .select(
+              'name category brand discount variants description tags isActive',
+            )
             .lean()
             .exec();
 
@@ -381,14 +383,14 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendationsForUser(
     userId: string,
-    limit = 5,
+    limit = 10,
   ): Promise<Products[]> {
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
 
     const userInteractedProducts = await this.getUserInteractedProducts(userId);
-
+    console.log('userInteractedProducts', userInteractedProducts);
     if (userInteractedProducts.length === 0) {
       return this.getPopularProducts(limit);
     }
@@ -537,6 +539,7 @@ export class RecommendationService implements OnModuleInit {
     limit = 10,
     excludeIds: string[] = [],
   ): Promise<Products[]> {
+    console.log('productIds', productIds);
     if (!productIds || productIds.length === 0) {
       return this.getPopularProducts(limit);
     }
