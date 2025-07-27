@@ -284,10 +284,10 @@ export class ProductService {
         .find(filter)
         .skip(offset)
         .limit(defaultLimit)
+
         .populate({
           path: 'variants',
           select: 'name price color memory images',
-          // options: { sort: { price: -1 } },
         })
         .populate('category', 'name description logo configFields')
         .populate('brand', 'name description logo')
