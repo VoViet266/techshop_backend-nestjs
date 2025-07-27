@@ -34,7 +34,7 @@ export class OrderController {
   findAllByStaff(@User() user: IUser) {
     return this.orderService.findAllByStaff(user);
   }
-  
+
   @Get('user')
   findAllByCustomer(@User() user: IUser) {
     return this.orderService.findAllByCustomer(user);

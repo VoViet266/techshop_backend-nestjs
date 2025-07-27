@@ -334,6 +334,7 @@ export class OrderService {
   }
   async cancelOrder(id: string, user: IUser) {
     const order = await this.orderModel.findById(id);
+
     if (!order) {
       throw new HttpException(
         {
@@ -367,12 +368,16 @@ export class OrderService {
         HttpStatus.BAD_REQUEST,
       );
     }
+    await this.orderModel.findByIdAndUpdate(id, {
+      status: OrderStatus.CANCELLED,
+      paymentStatus: PaymentStatus.CANCELLED,
+    });
 
-    order.paymentStatus = PaymentStatus.CANCELLED;
-    await order.save();
     const payment = await this.paymentModel.findById(order.payment);
-    payment.status = PaymentStatus.CANCELLED;
-    await payment.save();
+
+    await this.paymentModel.findByIdAndUpdate(payment._id, {
+      status: PaymentStatus.CANCELLED,
+    });
 
     return { message: 'Đơn hàng đã được hủy thành công' };
   }
@@ -413,6 +418,7 @@ export class OrderService {
     }
 
     order.paymentStatus = PaymentStatus.REFUNDED;
+    order.status = OrderStatus.RETURNED;
     await order.save();
     const payment = await this.paymentModel.findById(order.payment);
     payment.status = PaymentStatus.REFUNDED;
@@ -433,6 +439,6 @@ export class OrderService {
         user,
       );
     }
-    return { message: 'Đơn hàng đã được hủy thanh toán' };
+    return { message: 'Đơn hàng đã được hoàn' };
   }
 }

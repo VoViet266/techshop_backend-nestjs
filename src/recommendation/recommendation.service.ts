@@ -360,7 +360,7 @@ export class RecommendationService implements OnModuleInit {
             .populate('category', 'name')
             .populate('brand', 'name')
             .populate('variants', 'price images')
-            .select('name category brand variants description tags isActive')
+            .select('name category brand discount variants description tags isActive')
             .lean()
             .exec();
 
@@ -468,6 +468,7 @@ export class RecommendationService implements OnModuleInit {
       .populate('category', 'name')
       .populate('brand', 'name')
       .populate('variants', 'price images')
+      .select('name discount category brand variants description isActive')
       .limit(limit)
       .lean()
       .exec();
@@ -604,6 +605,7 @@ export class RecommendationService implements OnModuleInit {
       .populate('category', 'name')
       .populate('brand', 'name')
       .populate('variants', 'price images')
+      .select('name discount category brand variants description isActive')
       .limit(limit)
       .lean()
       .exec();
