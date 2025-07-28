@@ -65,7 +65,10 @@ export class OrderService {
       if (!user.branch) {
         throw new ForbiddenException('Bạn chưa được gán chi nhánh!');
       }
-      if (createOrderDto.branch.toString() !== user.branch.toString()) {
+      const hasBranch = createOrderDto.items.some(
+        (item) => item.branch !== user.branch,
+      );
+      if (hasBranch) {
         throw new ForbiddenException(
           'Bạn chỉ có quyền tạo đơn tại chi nhánh của mình!',
         );
@@ -97,7 +100,7 @@ export class OrderService {
       itemsToOrder = createOrderDto.items;
     }
 
-    // 3. Lấy số điện thoại người dùng
+    // 3. Lấy số điện thoại người đặt
     const findUser = await this.userModel.findById(user._id);
     let phone = findUser?.phone || '';
     createOrderDto.phone = createOrderDto.phone || phone;
@@ -178,11 +181,18 @@ export class OrderService {
 
     // Tính tổng tiền sau khi áp dụng promotion
     totalPriceWithPromotion = Math.max(0, totalPrice - finalDiscount);
+    if (!createOrderDto.recipient) {
+      throw new HttpException(
+        'Thông tin người nhận không được để trống',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     // 5. Tạo đơn hàng
     const newOrder = await this.orderModel.create({
       phone: createOrderDto.phone,
       items: itemsToOrder,
+      recipient: createOrderDto.recipient,
       totalPrice: totalPriceWithPromotion,
       discountAmount: finalDiscount,
       appliedPromotions: appliedPromotions,
@@ -194,8 +204,10 @@ export class OrderService {
         name: user.name,
         email: user.email,
       },
-      source: createOrderDto.items ? OrderSource.POS : OrderSource.ONLINE,
-      shippingAddress: createOrderDto.shippingAddress || '',
+      source:
+        createOrderDto.items && createOrderDto.items.length > 0
+          ? OrderSource.POS
+          : OrderSource.ONLINE,
     });
 
     const newPayment = await this.paymentModel.create({
@@ -205,7 +217,7 @@ export class OrderService {
       payType: createOrderDto.paymentMethod,
       status: PaymentStatus.PENDING,
       paymentTime:
-        createOrderDto.paymentMethod === OrderSource.POS
+        createOrderDto.paymentStatus === PaymentStatus.COMPLETED
           ? new Date()
           : undefined,
     });

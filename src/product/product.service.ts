@@ -175,11 +175,11 @@ export class ProductService {
     delete filter.page;
     delete filter.limit;
     filter.isDeleted = false;
-    const cacheKey = `products-${qs}`;
-    const cached = await this.redisClient.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
+    // const cacheKey = `products-${qs}`;
+    // const cached = await this.redisClient.get(cacheKey);
+    // if (cached) {
+    //   return JSON.parse(cached);
+    // }
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
@@ -313,7 +313,7 @@ export class ProductService {
       },
       result,
     };
-    await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 300);
+    // await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 300);
     return response;
   }
 

@@ -40,18 +40,14 @@ export class PaymentController {
 
   @Get('momo/callback')
   @Public()
-  async handleMomoRedirect(
-    @Query() query: any,
-    @Res() res: any,
-    
-  ) {
+  async handleMomoRedirect(@Query() query: any, @Res() res: any) {
     const result = await this.paymentService.handleMoMoRedirect(query);
 
     if (result.success) {
-      return res.redirect(`/payment/success}`);
+      return res.redirect(`http://localhost:5173/payment-success`);
     } else {
       return res.redirect(
-        `/payment/failure?message=${encodeURIComponent(result.message)}`,
+        `http://localhost:5173/payment-failure?message=${encodeURIComponent(result.message)}`,
       );
     }
   }

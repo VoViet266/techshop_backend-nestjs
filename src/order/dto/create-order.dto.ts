@@ -7,6 +7,7 @@ import {
   IsObject,
   IsMongoId,
   Min,
+  IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -23,6 +24,12 @@ export class CartItemDto {
   quantity?: number;
 
   @ApiProperty({
+    example: '64a2b3c4d5e6f7890a1b2c3d',
+    description: 'ID chi nhánh nơi đặt hàng',
+  })
+  branch?: string;
+
+  @ApiProperty({
     example: 1500,
     description: 'Giá của sản phẩm tại thời điểm đặt hàng',
   })
@@ -34,10 +41,31 @@ export class CartItemDto {
   })
   variant?: string;
 }
+class RecipientDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsOptional()
+  note?: string;
+}
 export class CreateOrderDto {
   @ApiProperty({ example: 'userId123' })
   user?: string;
+
+  @ValidateNested()
+  @Type(() => RecipientDto)
+  @IsObject()
+  recipient: RecipientDto;
 
   @ApiProperty({ type: [CartItemDto] })
   items?: CartItemDto[];
@@ -55,7 +83,6 @@ export class CreateOrderDto {
   status?: string;
 
   source?: string;
-  
 
   paymentStatus: string;
 

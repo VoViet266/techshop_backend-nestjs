@@ -197,7 +197,7 @@ export class RecommendationService implements OnModuleInit {
         const tokens = this.tokenizeText(combinedFeatures);
         tokens.forEach((token) => vocabSet.add(token));
       }
-
+      // Create vocabulary từ set
       this.vocabulary = Array.from(vocabSet).sort();
 
       // Create vectors for all products
@@ -225,7 +225,7 @@ export class RecommendationService implements OnModuleInit {
       this.isTraining = false;
     }
   }
-
+  // Triển khai hàm tạo vector cho mô tả
   private extractProductFeatures(product: any): string {
     const features = [
       product.name || '',
@@ -241,7 +241,7 @@ export class RecommendationService implements OnModuleInit {
 
     return features;
   }
-
+  // Tokenize text
   private tokenizeText(text: string): string[] {
     if (!text) return [];
 
@@ -252,7 +252,7 @@ export class RecommendationService implements OnModuleInit {
       .filter((token) => token.length > 2)
       .map((token) => natural.PorterStemmer.stem(token));
   }
-
+  // Tạo vector cho một sản phẩm
   private createProductVector(docIndex: number): number[] {
     const vector = new Array(this.vocabulary.length).fill(0);
 
@@ -267,6 +267,7 @@ export class RecommendationService implements OnModuleInit {
     return vector;
   }
 
+  // Tính độ tương đồng giữa hai vector
   private calculateCosineSimilarity(vec1: number[], vec2: number[]): number {
     if (!vec1 || !vec2 || vec1.length !== vec2.length) {
       return 0;
@@ -383,14 +384,14 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendationsForUser(
     userId: string,
-    limit = 10,
+    limit = 5,
   ): Promise<Products[]> {
     if (!userId) {
       throw new BadRequestException('User ID is required');
     }
 
     const userInteractedProducts = await this.getUserInteractedProducts(userId);
-    console.log('userInteractedProducts', userInteractedProducts);
+
     if (userInteractedProducts.length === 0) {
       return this.getPopularProducts(limit);
     }
@@ -481,7 +482,7 @@ export class RecommendationService implements OnModuleInit {
       .find({ userId })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select('productId')
+      // .select('productId ')
       .lean()
       .exec();
 
@@ -536,61 +537,82 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendationsFromViewedProducts(
     productIds: string[],
-    limit = 10,
+    limit = 5,
     excludeIds: string[] = [],
   ): Promise<Products[]> {
-    console.log('productIds', productIds);
+    // Nếu người dùng chưa xem sản phẩm nào thì trả về danh sách sản phẩm phổ biến
     if (!productIds || productIds.length === 0) {
       return this.getPopularProducts(limit);
     }
 
+    // Khởi tạo Map để lưu trữ sản phẩm gợi ý
+
+    // totalScore dùng để xếp hạng độ ưu tiên sản phẩm
     const allRecommendations = new Map<
       string,
       { product: Products; totalScore: number }
     >();
 
+    //Tạo danh sách promise để gọi hàm lấy sản phẩm tương tự cho từng sản phẩm đã xem
     const recommendationPromises = productIds.map(async (productId, index) => {
       try {
+        // Gọi hàm lấy sản phẩm tương tự
+        // Lấy nhiều hơn limit (limit * 2) để có thêm lựa chọn
+        // Tham số 0.05 là ngưỡng độ tương đồng
         const similarProducts = await this.getRecommendedProducts(
           productId,
           limit * 2,
           0.05,
         );
 
+        // Trả về kết quả (productId, danh sách sản phẩm tương tự và index)
         return { productId, similarProducts, index };
       } catch (error) {
+        // Nếu lỗi (vd: không lấy được gợi ý cho sản phẩm này), log cảnh báo
         this.logger.warn(
           `Failed to get recommendations for product ${productId}:`,
           error,
         );
+        // Trả về danh sách rỗng để không làm hỏng luồng xử lý
         return { productId, similarProducts: [], index };
       }
     });
 
     const results = await Promise.all(recommendationPromises);
 
+    // ✅Duyệt qua từng kết quả để tính điểm gợi ý cho các sản phẩm tương tự
     results.forEach(({ productId, similarProducts, index }) => {
+      // Gán trọng số giảm dần theo thứ tự sản phẩm mà user đã xem
+      // Sản phẩm xem trước quan trọng hơn (index càng lớn → weight càng nhỏ)
       const weight = Math.pow(0.9, index);
 
       similarProducts.forEach((product) => {
         const id = (product as any)._id.toString();
+
+        // Bỏ qua nếu:
+        // - Sản phẩm đang gợi ý chính là sản phẩm user đã xem (productIds)
+        // - Sản phẩm nằm trong danh sách cần loại bỏ (excludeIds)
         if (productIds.includes(id) || excludeIds.includes(id)) return;
 
+        // Kiểm tra sản phẩm đã có trong Map chưa
         const existing = allRecommendations.get(id);
         const score = weight;
 
         if (existing) {
+          // Nếu đã tồn tại thì cộng dồn điểm
           existing.totalScore += score;
         } else {
+          // Nếu chưa có thêm mới với điểm khởi tạo
           allRecommendations.set(id, { product, totalScore: score });
         }
       });
     });
 
+    //Chuyển Map → mảng, sắp xếp theo totalScore giảm dần, giới hạn số lượng, và trả về product
     return Array.from(allRecommendations.values())
-      .sort((a, b) => b.totalScore - a.totalScore)
-      .slice(0, limit)
-      .map((r) => r.product);
+      .sort((a, b) => b.totalScore - a.totalScore) // xếp sản phẩm có điểm cao hơn lên đầu
+      .slice(0, limit) // chỉ lấy số lượng theo limit
+      .map((r) => r.product); // chỉ lấy thông tin sản phẩm (bỏ điểm số)
   }
 
   async getCategoryBasedRecommendations(

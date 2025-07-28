@@ -24,6 +24,22 @@ export class Order {
   user?: mongoose.Schema.Types.ObjectId;
 
   @Prop({
+    type: {
+      name: { type: String, required: true },
+      phone: { type: String, required: true },
+      address: { type: String, required: true },
+      note: { type: String },
+    },
+    required: true,
+  })
+  recipient: {
+    name: string;
+    phone: string;
+    address: string;
+    note?: string;
+  };
+
+  @Prop({
     type: [
       {
         product: {
@@ -92,9 +108,6 @@ export class Order {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' })
   payment: Types.ObjectId;
-
-  @Prop({ type: String })
-  shippingAddress: string;
 
   @Prop({ enum: PaymentMethod })
   paymentMethod: string;
