@@ -52,6 +52,7 @@ class RecipientDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsOptional()
   address: string;
 
   @IsString()
@@ -65,7 +66,18 @@ export class CreateOrderDto {
   @ValidateNested()
   @Type(() => RecipientDto)
   @IsObject()
+  @IsOptional()
   recipient: RecipientDto;
+
+  @ApiProperty({
+    example: '64a2b3c4d5e6f7890a1b2c3f',
+    description: 'ID người dùng',
+  })
+  @ValidateNested()
+  @Type(() => RecipientDto)
+  @IsObject()
+  @IsOptional()
+  buyer?: RecipientDto;
 
   @ApiProperty({ type: [CartItemDto] })
   items?: CartItemDto[];

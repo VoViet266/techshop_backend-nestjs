@@ -193,6 +193,11 @@ export class OrderService {
       phone: createOrderDto.phone,
       items: itemsToOrder,
       recipient: createOrderDto.recipient,
+      buyer: createOrderDto.buyer || {
+        name: findUser?.name,
+        phone: findUser?.phone || '',
+      },
+
       totalPrice: totalPriceWithPromotion,
       discountAmount: finalDiscount,
       appliedPromotions: appliedPromotions,

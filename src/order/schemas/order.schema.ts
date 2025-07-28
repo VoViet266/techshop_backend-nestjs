@@ -30,13 +30,23 @@ export class Order {
       address: { type: String, required: true },
       note: { type: String },
     },
-    required: true,
   })
   recipient: {
     name: string;
     phone: string;
     address: string;
     note?: string;
+  };
+  @Prop({
+    type: {
+      name: { type: String, required: true },
+      phone: { type: String, required: true },
+    },
+  })
+  buyer: {
+    name: string;
+    phone: string;
+    address: string;
   };
 
   @Prop({
@@ -111,9 +121,6 @@ export class Order {
 
   @Prop({ enum: PaymentMethod })
   paymentMethod: string;
-
-  @Prop({ type: String })
-  phone: string;
 
   @Prop()
   createdAt: Date;
