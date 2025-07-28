@@ -100,8 +100,6 @@ export class CreateOrderDto {
 
   payment: string;
 
-  @ApiProperty({ example: '123 Đường ABC, Quận 1, TP.HCM' })
-  shippingAddress?: string;
 
   @ApiProperty({
     example: 'credit_card',
