@@ -47,7 +47,7 @@ export class Inventory {
   // Mức tồn kho tối thiểu để cảnh báo
   @Prop({
     default: 0,
-    min: 0,
+    min: 0, 
   })
   minStockLevel: number;
 

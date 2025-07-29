@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -398,64 +400,154 @@ export class OrderService {
 
     return { message: 'Đơn hàng đã được hủy thành công' };
   }
+  async requestReturn(
+    orderId: string,
+    dto: {
+      returnReason: string;
+    },
+  ) {
+    console.log(dto);
+    const order = await this.orderModel.findById(orderId);
+    if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
 
-  async refundOrder(id: string, user: IUser) {
-    const order = await this.orderModel.findById(id);
-    if (!order) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: 'Đơn hàng không tồn tại',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+    if (order.isReturned) {
+      throw new BadRequestException('Đơn hàng đã có yêu cầu trả hàng trước đó');
     }
 
-    if (order.user.toString() !== user._id.toString()) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.FORBIDDEN,
-          message: 'Không có quyện hủy đơn hàng nây',
-        },
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    if (
-      order.paymentStatus === PaymentStatus.CANCELLED ||
-      order.paymentStatus === PaymentStatus.REFUNDED
-    ) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Không thể hủy đơn hàng!!!!',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    order.paymentStatus = PaymentStatus.REFUNDED;
-    order.status = OrderStatus.RETURNED;
+    order.isReturned = true;
+    order.returnReason = dto.returnReason;
+    order.returnStatus = 'requested';
     await order.save();
-    const payment = await this.paymentModel.findById(order.payment);
-    payment.status = PaymentStatus.REFUNDED;
-    await payment.save();
-    for (const item of order.items) {
-      await this.inventoryService.importStock(
-        {
-          branchId: item.branch.toString(),
-          productId: item.product?.toString(),
-          variants: [
-            {
-              variantId: item.variant?.toString(),
-              quantity: item.quantity,
-            },
-          ],
-          source: TransactionSource.RETURN,
-        },
-        user,
-      );
-    }
-    return { message: 'Đơn hàng đã được hoàn' };
+
+    return { message: 'Yêu cầu trả hàng đã được gửi', order };
   }
+  async confirmReturn(
+    orderId: string,
+
+    returnStatus: string,
+
+    user: IUser,
+  ) {
+    const order = await this.orderModel.findById(orderId);
+    if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+
+    if (!order.isReturned) {
+      throw new BadRequestException('Đơn hàng này chưa có yêu cầu trả hàng');
+    }
+
+    order.returnStatus = returnStatus;
+
+    // Nếu duyệt → cập nhật số tiền hoàn
+    if (returnStatus === 'approved') {
+      order.paymentStatus = PaymentStatus.REFUNDED;
+      order.status = OrderStatus.RETURNED;
+    }
+
+    // Nếu từ chối → reset trạng thái trả hàng
+    if (returnStatus === 'rejected') {
+      order.isReturned = false;
+    }
+
+    order.returnProcessedBy = {
+      name: user.name,
+      email: user.email,
+    };
+
+    if (returnStatus === 'completed') {
+      if (order.payment) {
+        const payment = await this.paymentModel.findById(order.payment);
+        if (payment) {
+          payment.status = PaymentStatus.REFUNDED;
+          await payment.save();
+        }
+      }
+      for (const item of order.items) {
+        await this.inventoryService.importStock(
+          {
+            branchId: item.branch.toString(),
+            productId: item.product?.toString(),
+            variants: [
+              {
+                variantId: item.variant?.toString(),
+                quantity: item.quantity,
+              },
+            ],
+            source: TransactionSource.RETURN,
+          },
+          user,
+        );
+      }
+    }
+
+    await order.save();
+    return { message: `Đã ${returnStatus} yêu cầu trả hàng`, order };
+  }
+
+  // async refundOrder(
+  //   id: string,
+  //   user: IUser,
+  //   dto: {
+  //     returnReason: string;
+  //     returnStatus: string;
+  //     isReturned: boolean;
+  //   },
+  // ) {
+  //   const order = await this.orderModel.findById(id);
+  //   if (!order) {
+  //     throw new HttpException(
+  //       {
+  //         statusCode: HttpStatus.NOT_FOUND,
+  //         message: 'Đơn hàng không tồn tại',
+  //       },
+  //       HttpStatus.NOT_FOUND,
+  //     );
+  //   }
+
+  //   if (order.user.toString() !== user._id.toString()) {
+  //     throw new HttpException(
+  //       {
+  //         statusCode: HttpStatus.FORBIDDEN,
+  //         message: 'Không có quyện hủy đơn hàng nây',
+  //       },
+  //       HttpStatus.FORBIDDEN,
+  //     );
+  //   }
+
+  //   if (
+  //     order.paymentStatus === PaymentStatus.CANCELLED ||
+  //     order.paymentStatus === PaymentStatus.REFUNDED
+  //   ) {
+  //     throw new HttpException(
+  //       {
+  //         statusCode: HttpStatus.BAD_REQUEST,
+  //         message: 'Không thể hủy đơn hàng!!!!',
+  //       },
+  //       HttpStatus.BAD_REQUEST,
+  //     );
+  //   }
+
+  //   order.paymentStatus = PaymentStatus.REFUNDED;
+  //   order.status = OrderStatus.RETURNED;
+  //   await order.save();
+  //   const payment = await this.paymentModel.findById(order.payment);
+  //   payment.status = PaymentStatus.REFUNDED;
+  //   await payment.save();
+  //   for (const item of order.items) {
+  //     await this.inventoryService.importStock(
+  //       {
+  //         branchId: item.branch.toString(),
+  //         productId: item.product?.toString(),
+  //         variants: [
+  //           {
+  //             variantId: item.variant?.toString(),
+  //             quantity: item.quantity,
+  //           },
+  //         ],
+  //         source: TransactionSource.RETURN,
+  //       },
+  //       user,
+  //     );
+  //   }
+  //   return { message: 'Đơn hàng đã được hoàn' };
+  // }
 }

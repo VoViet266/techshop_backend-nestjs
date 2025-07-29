@@ -100,6 +100,14 @@ export class CreateOrderDto {
 
   payment: string;
 
+  isReturn: boolean;
+
+  @ApiProperty({ example: 'pending', description: 'Trạng thái đơn hàng' })
+  returnStatus?: string;
+
+  returnProcessedBy?: any;
+
+  returnReason?: string;
 
   @ApiProperty({
     example: 'credit_card',

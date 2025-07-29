@@ -13,7 +13,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
-import { Public } from 'src/decorator/publicDecorator';
+
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
@@ -70,8 +70,43 @@ export class OrderController {
     return this.orderService.cancelOrder(id, user);
   }
 
-  @Patch('/refund/:id')
-  refundOrder(@Param('id') id: string, @User() user: IUser) {
-    return this.orderService.refundOrder(id, user);
+  // @Patch('/refund/:id')
+  // refundOrder(
+  //   @Param('id') id: string,
+  //   @User() user: IUser,
+  //   dto: {
+  //     returnReason: string;
+  //     returnStatus: string;
+  //     isReturned: boolean;
+  //   },
+  // ) {
+  //   return this.orderService.refundOrder(id, user, {
+  //     returnReason: dto.returnReason,
+  //     returnStatus: dto.returnStatus,
+  //     isReturned: dto.isReturned,
+  //   });
+  // }
+
+  @Patch('/request-return/:id')
+  requestReturn(
+    @Param('id') id: string,
+    @User() user: IUser,
+
+    @Body()
+    dto: {
+      returnReason: string;
+    },
+  ) {
+    return this.orderService.requestReturn(id, dto);
+  }
+
+  @Patch('/confirm-return/:id')
+  confirmReturn(
+    @Param('id') id: string,
+    @User() user: IUser,
+    @Body('returnStatus') returnStatus: string,
+  ) {
+    console.log(returnStatus);
+    return this.orderService.confirmReturn(id, returnStatus, user);
   }
 }

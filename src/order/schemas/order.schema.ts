@@ -104,6 +104,7 @@ export class Order {
   }[];
   @Prop()
   discountAmount: number;
+
   @Prop({ enum: OrderSource })
   source: string;
 
@@ -122,6 +123,24 @@ export class Order {
   @Prop({ enum: PaymentMethod })
   paymentMethod: string;
 
+  @Prop({ type: Boolean, default: false })
+  isReturned: boolean;
+
+  @Prop({
+    type: String,
+    enum: ['requested', 'approved', 'rejected', 'completed', 'not_returned'],
+    default: 'not_returned',
+  })
+  returnStatus: string;
+
+  @Prop({ type: String })
+  returnReason: string;
+
+  @Prop({ type: Object })
+  returnProcessedBy?: {
+    name: string;
+    email: string;
+  };
   @Prop()
   createdAt: Date;
 
