@@ -147,23 +147,24 @@ export class UserService {
         user: {
           id: newUser._id,
           email: newUser.email,
-          // Các thông tin khác cần thiết
         },
       };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
+      console.log(error);
 
       throw new InternalServerErrorException('Lỗi hệ thống khi xác thực OTP');
     }
   }
 
   async resendOtp(email: string) {
+   
     try {
       const tempUserKey = `temp_user:${email}`;
       const tempUserData = await this.redisClient.get(tempUserKey);
-
+      
       if (!tempUserData) {
         throw new BadRequestException(
           'Không tìm thấy thông tin đăng ký, vui lòng đăng ký lại',

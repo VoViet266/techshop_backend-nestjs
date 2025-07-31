@@ -177,7 +177,7 @@ export class RecommendationService implements OnModuleInit {
         .populate('category', 'name')
         .populate('brand', 'name')
         .populate('variants', 'price')
-        .select('name category brand description ')
+        .select('name category brand description attributes variants')
         .lean()
         .exec();
 
@@ -232,7 +232,7 @@ export class RecommendationService implements OnModuleInit {
       product.category?.name || '',
       product.brand?.name || '',
       product.description || '',
-      ...(Array.isArray(product.tags) ? product.tags : []),
+      product.attributes || '',
     ]
       .filter(Boolean)
       .join(' ')
@@ -295,7 +295,7 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendedProducts(
     productId: string,
-    limit = 4,
+    limit = 5,
     minSimilarity = 0.1,
   ): Promise<Products[]> {
     if (!productId) {
@@ -317,7 +317,9 @@ export class RecommendationService implements OnModuleInit {
       .populate('category', 'name')
       .populate('brand', 'name')
       .populate('variants', 'price images')
-      .select('name discount category brand variants description isActive')
+      .select(
+        'name discount category brand variants description attributes isActive',
+      )
       .lean()
       .exec();
 
@@ -356,13 +358,14 @@ export class RecommendationService implements OnModuleInit {
         );
 
         if (similarity >= minSimilarity) {
+          /// Lay thong tin san pham
           const product = await this.productModel
             .findById(otherProductId)
             .populate('category', 'name')
             .populate('brand', 'name')
             .populate('variants', 'price images')
             .select(
-              'name category brand discount variants description tags isActive',
+              'name category brand discount variants description attributes isActive',
             )
             .lean()
             .exec();
@@ -384,7 +387,7 @@ export class RecommendationService implements OnModuleInit {
 
   async getRecommendationsForUser(
     userId: string,
-    limit = 5,
+    limit = 10,
   ): Promise<Products[]> {
     if (!userId) {
       throw new BadRequestException('User ID is required');
@@ -580,7 +583,7 @@ export class RecommendationService implements OnModuleInit {
 
     const results = await Promise.all(recommendationPromises);
 
-    // ✅Duyệt qua từng kết quả để tính điểm gợi ý cho các sản phẩm tương tự
+    // Duyệt qua từng kết quả để tính điểm gợi ý cho các sản phẩm tương tự
     results.forEach(({ productId, similarProducts, index }) => {
       // Gán trọng số giảm dần theo thứ tự sản phẩm mà user đã xem
       // Sản phẩm xem trước quan trọng hơn (index càng lớn → weight càng nhỏ)

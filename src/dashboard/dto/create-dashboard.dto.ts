@@ -11,6 +11,7 @@ export class CreateDashboardStatsDto {
   totalReturns?: number;
   returnRate?: number;
   paymentMethods?: PaymentMethodStats[];
+  branchOverview: any;
 }
 
 export class UpdateDashboardStatsDto {
@@ -23,4 +24,5 @@ export class UpdateDashboardStatsDto {
   totalReturns?: number;
   returnRate?: number;
   paymentMethods?: PaymentMethodStats[];
+  branchOverview?: any;
 }

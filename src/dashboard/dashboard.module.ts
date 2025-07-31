@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Dashboard, DashboardStatsSchema } from './schemas/dashboard.schema';
 import { Order, OrderSchema } from 'src/order/schemas/order.schema';
 import { Products, ProductSchema } from 'src/product/schemas/product.schema';
+import { Branch, BranchSchema } from 'src/branch/schemas/branch.schema';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Products, ProductSchema } from 'src/product/schemas/product.schema';
       { name: Dashboard.name, schema: DashboardStatsSchema },
       { name: Order.name, schema: OrderSchema },
       { name: Products.name, schema: ProductSchema },
+      { name: Branch.name, schema: BranchSchema },
     ]),
   ],
   controllers: [DashboardController],

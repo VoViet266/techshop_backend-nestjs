@@ -9,6 +9,24 @@ import {
   DashboardDocument,
 } from '../dashboard/schemas/dashboard.schema';
 import { CreateDashboardStatsDto } from '../dashboard/dto/create-dashboard.dto';
+import { Branch, BranchDocument } from 'src/branch/schemas/branch.schema';
+
+// Interface cho branch stats
+interface BranchStats {
+  branchId: string;
+  branchName: string;
+  address: string;
+  totalRevenue: number;
+  totalOrders: number;
+  totalCustomers: number;
+  averageOrderValue: number;
+  topSellingProducts: Array<{
+    productId: string;
+    productName: string;
+    soldCount: number;
+    revenue: number;
+  }>;
+}
 
 @Injectable()
 export class DashboardService {
@@ -21,6 +39,8 @@ export class DashboardService {
     private readonly orderModel: SoftDeleteModel<OrderDocument>,
     @InjectModel(Products.name)
     private readonly productModel: SoftDeleteModel<ProductDocument>,
+    @InjectModel(Branch.name)
+    private readonly branchModel: SoftDeleteModel<BranchDocument>,
   ) {}
 
   // Tạo hoặc cập nhật stats
@@ -50,9 +70,9 @@ export class DashboardService {
       });
     }
   }
+
   async getStats(period: string, date?: Date): Promise<Dashboard> {
     const targetDate = date || new Date();
-
     const dateKey = this.getDateKey(targetDate, period);
 
     const stats = await this.dashboardModel.findOne({
@@ -82,6 +102,206 @@ export class DashboardService {
       current: currentStats,
       previous: previousStats,
       comparison: this.calculateComparison(currentStats, previousStats),
+    };
+  }
+
+  // Cải thiện method getBranchStats với chi tiết hơn
+  async getBranchStats(period: string, date?: Date) {
+    const { start, end } = this.getDateRange(period, date);
+
+    // Aggregation pipeline chi tiết hơn
+    return this.orderModel.aggregate([
+      { $match: { createdAt: { $gte: start, $lt: end } } },
+
+      // Tách từng sản phẩm trong đơn
+      { $unwind: '$items' },
+
+      // Gom nhóm theo branch trong items
+      {
+        $group: {
+          _id: '$items.branch',
+          totalRevenue: {
+            $sum: { $multiply: ['$items.quantity', '$items.price'] },
+          },
+          totalOrders: { $addToSet: '$_id' },
+          customers: { $addToSet: '$user' },
+          products: {
+            $push: {
+              productId: '$items.product',
+              quantity: '$items.quantity',
+              price: '$items.price',
+              revenue: { $multiply: ['$items.quantity', '$items.price'] },
+            },
+          },
+        },
+      },
+
+      // Lookup để lấy thông tin branch
+      {
+        $lookup: {
+          from: 'branches',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'branchInfo',
+        },
+      },
+
+      { $unwind: '$branchInfo' },
+
+      // Lookup để lấy thông tin product cho top selling
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'products.productId',
+          foreignField: '_id',
+          as: 'productInfo',
+        },
+      },
+
+      // Chuẩn hóa dữ liệu trả về
+      {
+        $project: {
+          branchId: '$_id',
+          branchName: '$branchInfo.name',
+          address: '$branchInfo.address',
+          totalRevenue: 1,
+          totalOrders: { $size: '$totalOrders' },
+          totalCustomers: { $size: '$customers' },
+          averageOrderValue: {
+            $cond: {
+              if: { $gt: [{ $size: '$totalOrders' }, 0] },
+              then: { $divide: ['$totalRevenue', { $size: '$totalOrders' }] },
+              else: 0,
+            },
+          },
+        },
+      },
+
+      { $sort: { totalRevenue: -1 } },
+    ]);
+  }
+
+  // Lấy tổng quan branch với so sánh kỳ trước
+  async getBranchOverview(period: string, date?: Date) {
+    const currentBranchStats = await this.getBranchStats(period, date);
+
+    // Lấy stats kỳ trước để so sánh
+    const previousDate = this.getPreviousDate(date || new Date(), period);
+    const previousBranchStats = await this.getBranchStats(period, previousDate);
+
+    const totalBranches = await this.branchModel.countDocuments();
+    const topPerformingBranch = currentBranchStats[0] || null;
+
+    // Tính toán so sánh growth cho từng branch
+    const branchComparison = currentBranchStats.map((current) => {
+      const previous = previousBranchStats.find(
+        (p) => p.branchId === current.branchId,
+      );
+
+      return {
+        branchId: current.branchId,
+        branchName: current.branchName,
+        revenueGrowth: previous
+          ? this.calculatePercentageChange(
+              current.totalRevenue,
+              previous.totalRevenue,
+            )
+          : 0,
+        orderGrowth: previous
+          ? this.calculatePercentageChange(
+              current.totalOrders,
+              previous.totalOrders,
+            )
+          : 0,
+        customerGrowth: previous
+          ? this.calculatePercentageChange(
+              current.totalCustomers,
+              previous.totalCustomers,
+            )
+          : 0,
+      };
+    });
+
+    return {
+      totalBranches,
+      topPerformingBranch,
+      branchStats: currentBranchStats,
+      branchComparison,
+    };
+  }
+
+  // Lấy chi tiết performance của một branch cụ thể
+  async getBranchDetailStats(branchId: string, period: string, date?: Date) {
+    const { start, end } = this.getDateRange(period, date);
+
+    const branchStats = await this.orderModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: start, $lt: end },
+          'items.branch': branchId,
+        },
+      },
+
+      { $unwind: '$items' },
+      { $match: { 'items.branch': branchId } },
+
+      {
+        $group: {
+          _id: null,
+          totalRevenue: {
+            $sum: { $multiply: ['$items.quantity', '$items.price'] },
+          },
+          totalOrders: { $addToSet: '$_id' },
+          customers: { $addToSet: '$user' },
+          products: {
+            $push: {
+              productId: '$items.product',
+              quantity: '$items.quantity',
+              price: '$items.price',
+              revenue: { $multiply: ['$items.quantity', '$items.price'] },
+            },
+          },
+          hourlyData: {
+            $push: {
+              hour: { $hour: '$createdAt' },
+              revenue: { $multiply: ['$items.quantity', '$items.price'] },
+              orderId: '$_id',
+            },
+          },
+        },
+      },
+
+      {
+        $project: {
+          totalRevenue: 1,
+          totalOrders: { $size: '$totalOrders' },
+          totalCustomers: { $size: '$customers' },
+          averageOrderValue: {
+            $cond: {
+              if: { $gt: [{ $size: '$totalOrders' }, 0] },
+              then: { $divide: ['$totalRevenue', { $size: '$totalOrders' }] },
+              else: 0,
+            },
+          },
+          products: 1,
+          hourlyData: 1,
+        },
+      },
+    ]);
+
+    // Lấy thông tin branch
+    const branchInfo = await this.branchModel.findById(branchId);
+
+    return {
+      branchInfo,
+      stats: branchStats[0] || {
+        totalRevenue: 0,
+        totalOrders: 0,
+        totalCustomers: 0,
+        averageOrderValue: 0,
+        products: [],
+        hourlyData: [],
+      },
     };
   }
 
@@ -124,6 +344,7 @@ export class DashboardService {
     await this.createOrUpdateStats('yearly', yearlyData);
     this.logger.log('Yearly stats updated successfully');
   }
+
   // Helper methods
   private getDateKey(date: Date, period: string): Date {
     const d = new Date(date);
@@ -145,6 +366,46 @@ export class DashboardService {
       default:
         return d;
     }
+  }
+
+  private getDateRange(
+    period: string,
+    date?: Date,
+  ): { start: Date; end: Date } {
+    const targetDate = date || new Date();
+    let start: Date;
+    let end: Date;
+
+    switch (period) {
+      case 'daily':
+        start = new Date(
+          targetDate.getFullYear(),
+          targetDate.getMonth(),
+          targetDate.getDate(),
+        );
+        end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+        break;
+      case 'weekly':
+        start = new Date(targetDate);
+        start.setDate(targetDate.getDate() - targetDate.getDay());
+        start.setHours(0, 0, 0, 0);
+        end = new Date(start);
+        end.setDate(start.getDate() + 7);
+        break;
+      case 'monthly':
+        start = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+        end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+        break;
+      case 'yearly':
+        start = new Date(targetDate.getFullYear(), 0, 1);
+        end = new Date(targetDate.getFullYear() + 1, 0, 1);
+        break;
+      default:
+        start = new Date(0);
+        end = new Date();
+    }
+
+    return { start, end };
   }
 
   private getPreviousDate(date: Date, period: string): Date {
@@ -194,6 +455,7 @@ export class DashboardService {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   }
+
   private async aggregateDataFromRange(
     start: Date,
     end: Date,
@@ -282,6 +544,9 @@ export class DashboardService {
       }),
     );
 
+    // Thêm branch overview vào dữ liệu aggregation
+    const branchOverview = await this.getBranchOverview('daily', start);
+
     return {
       date: start,
       period: 'daily',
@@ -293,6 +558,7 @@ export class DashboardService {
       totalReturns: 0,
       returnRate: 0,
       paymentMethods,
+      branchOverview,
     };
   }
 
@@ -354,35 +620,4 @@ export class DashboardService {
       date: startOfYear,
     };
   }
-
-  // Manual update methods
-  // async updateProductViews(productId: string): Promise<void> {
-  //   const today = new Date();
-  //   const dailyStats = await this.getStats('daily', today);
-
-  //   if (dailyStats) {
-  //     const product = dailyStats.mostViewedProducts.find(
-  //       (p) => p.productId === productId,
-  //     );
-  //     if (product) {
-  //       product.views += 1;
-  //     }
-  //     await dailyStats.save();
-  //   }
-  // }
-
-  // async updateStockLevel(productId: string, newStock: number): Promise<void> {
-  //   const today = new Date();
-  //   const dailyStats = await this.getStats('daily', today);
-
-  //   if (dailyStats) {
-  //     const product = dailyStats.lowStockProducts.find(
-  //       (p) => p.productId === productId,
-  //     );
-  //     if (product) {
-  //       product.stockLevel = newStock;
-  //     }
-  //     await dailyStats.save();
-  //   }
-  // }
 }

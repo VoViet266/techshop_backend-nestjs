@@ -176,11 +176,14 @@ export class AuthController {
   }
 
   @Post('resend-otp')
-  async resendOtp(@Body() email: string) {
+  @Public()
+  async resendOtp(@Body('email') email: string) {
+    console.log(email);
     return await this.userService.resendOtp(email);
   }
 
   @Post('verify-otp')
+  @Public()
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     return await this.userService.verifyOtp(verifyOtpDto);
   }

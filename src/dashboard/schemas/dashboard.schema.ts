@@ -66,6 +66,9 @@ export class Dashboard {
   @Prop({ default: 0 })
   returnRate: number;
 
+  @Prop({ type: Object, default: {} })
+  branchOverview: any;
+
   @Prop({ type: [PaymentMethodStats], default: [] })
   paymentMethods: PaymentMethodStats[];
 
