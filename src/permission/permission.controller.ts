@@ -6,11 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { PermissionService } from './permission.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { PoliciesGuard } from 'src/common/guards/policies.guard';
+import { CheckPolicies } from 'src/decorator/policies.decorator';
+import { Actions, Subjects } from 'src/constant/permission.enum';
 @ApiBearerAuth('access-token')
 @Controller('api/v1/permissions')
 export class PermissionController {
@@ -18,7 +22,6 @@ export class PermissionController {
 
   @Post()
   create(@Body() createPermissionDto: CreatePermissionDto) {
-    console.log(createPermissionDto);
     return this.permissionService.create(createPermissionDto);
   }
 
@@ -33,6 +36,10 @@ export class PermissionController {
   }
 
   @Patch(':id')
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability: any) =>
+    ability.can(Actions.Update, Subjects.Permission),
+  )
   update(
     @Param('id') id: string,
     @Body() updatePermissionDto: UpdatePermissionDto,
@@ -41,6 +48,10 @@ export class PermissionController {
   }
 
   @Delete(':id')
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability: any) =>
+    ability.can(Actions.Delete, Subjects.Permission),
+  )
   remove(@Param('id') id: string) {
     return this.permissionService.remove(id);
   }

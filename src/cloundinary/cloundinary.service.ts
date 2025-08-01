@@ -47,17 +47,24 @@ export class CloundinaryService {
   }
 
   async deleteImage(url: string): Promise<string> {
+    console.log('Xóa ảnh:', url);
     const publicId = url.split('/').slice(-2).join('/').split('.')[0];
     return new Promise((resolve, reject) => {
       cloudinary.uploader.destroy(publicId, (error, result) => {
         if (error) {
-          throw new NotFoundException('Không tìm thấy ảnh');
+          return reject(
+            new NotFoundException('Không tìm thấy ảnh hoặc lỗi khi xóa'),
+          );
+        }
+
+        if (!result || !result.result) {
+          return reject(new Error('Không có kết quả trả về từ Cloudinary'));
         }
         if (result.result === 'ok') {
           console.log('Xóa ảnh thành công:', url);
           return resolve('Xóa ảnh thành công');
         } else {
-          return reject('Không thể xóa ảnh');
+          return reject(new NotFoundException('Không thể xóa ảnh'));
         }
       });
     });

@@ -18,11 +18,17 @@ import { MailModule } from './mail/mail.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
-import { PromotionModule } from './promotion/promotion.module';
 import { CloundinaryModule } from './cloundinary/cloundinary.module';
 import { FileModule } from './file/file.module';
 import { CaslModule } from './casl/casl.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
+import { ReviewModule } from './review/review.module';
+import { RedisModule } from './redis/redis.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { BenefitModule } from './benefit/benefit.module';
+import { TfidfModeModule } from './tfidf-mode/tfidf-mode.module';
 
 @Module({
   imports: [
@@ -35,6 +41,7 @@ import { RecommendationModule } from './recommendation/recommendation.module';
       isGlobal: true,
       envFilePath: ['.env.development.local', '.env.production.local', '.env'],
     }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync(MongooseConfigService),
     RoleModule,
     PermissionModule,
@@ -45,11 +52,16 @@ import { RecommendationModule } from './recommendation/recommendation.module';
     CartModule,
     OrderModule,
     PaymentModule,
-    PromotionModule,
     CloundinaryModule,
     FileModule,
     CaslModule,
     RecommendationModule,
+    ChatbotModule,
+    ReviewModule,
+    RedisModule,
+    DashboardModule,
+    BenefitModule,
+    TfidfModeModule,
   ],
 
   controllers: [AppController],

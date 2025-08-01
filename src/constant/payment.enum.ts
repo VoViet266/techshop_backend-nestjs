@@ -1,8 +1,6 @@
 export enum PaymentMethod {
   CASH = 'cash',
-  CREDIT_CARD = 'credit_card',
   MOMO = 'momo',
-  ZALOPAY = 'zalopay',
   BANK_TRANSFER = 'bank_transfer',
 }
 
@@ -12,6 +10,7 @@ export enum PaymentStatus {
   FAILED = 'FAILED', // Thanh toán thất bại
   CANCELLED = 'CANCELLED', // Đã hủy
   REFUNDED = 'REFUNDED', // Đã hoàn tiền
+  EXPIRED = 'EXPIRED', // Hệ thống hủy đơn hàng
 }
 
 export enum RefundStatus {
@@ -19,4 +18,8 @@ export enum RefundStatus {
   PROCESSING = 'processing',
   COMPLETED = 'completed',
   FAILED = 'failed',
+}
+export enum OrderSource {
+  ONLINE = 'online',
+  POS = 'pos',
 }

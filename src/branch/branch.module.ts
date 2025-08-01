@@ -4,6 +4,7 @@ import { BranchController } from './branch.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Branch, BranchSchema } from './schemas/branch.schema';
 import { User, UserSchema } from 'src/user/schemas/user.schema';
+import { CaslModule } from 'src/casl/casl.module';
 
 @Module({
   controllers: [BranchController],
@@ -12,6 +13,7 @@ import { User, UserSchema } from 'src/user/schemas/user.schema';
       { name: Branch.name, schema: BranchSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    CaslModule,
   ],
   providers: [branchService],
 })

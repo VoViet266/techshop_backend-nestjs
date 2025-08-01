@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -19,6 +21,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 import { Payment, PaymentDocument } from './schemas/payment.schema';
+import { Public } from 'src/decorator/publicDecorator';
 @Controller('api/v1/payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
@@ -34,45 +37,52 @@ export class PaymentController {
       payUrl: result.payUrl,
     };
   }
-  @Post('momo/notify')
-  async handleCallback(@Body() body: any) {
-    console.log('📦 MoMo Callback:', body);
 
-    const { orderId, transId, resultCode, message, payType, responseTime } =
-      body;
+  @Get('momo/callback')
+  @Public()
+  async handleMomoRedirect(@Query() query: any, @Res() res: any) {
+    const result = await this.paymentService.handleMoMoRedirect(query);
 
-    const status = resultCode === 0 ? 'SUCCESS' : 'FAILED';
-
-    await this.paymentService.updatePaymentStatus({
-      orderId,
-      transId,
-      resultCode,
-      message,
-      payType,
-      responseTime,
-      status,
-    });
-
-    return { message: 'Callback received' };
+    if (result.success) {
+      return res.redirect(`http://localhost:5173/payment-success`);
+    } else {
+      return res.redirect(
+        `http://localhost:5173/payment-failure?message=${encodeURIComponent(result.message)}`,
+      );
+    }
   }
+  // @Post('notify')
+  // async handleNotification(@Body() ipnData: any, @User() user: IUser) {
+  //   try {
+  //     console.log('Received MoMo IPN:', ipnData);
 
-  @Get()
-  findAll() {
-    return this.paymentService.findAll();
-  }
+  //     const result = await this.paymentService.handleMoMoIPN(ipnData, user);
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentService.findOne(id);
-  }
+  //     // MoMo expects specific response format
+  //     return {
+  //       partnerCode: ipnData.partnerCode,
+  //       requestId: ipnData.requestId,
+  //       orderId: ipnData.orderId,
+  //       resultCode: result.resultCode,
+  //       message: result.message,
+  //       responseTime: Date.now(),
+  //       extraData: ipnData.extraData,
+  //       signature: ipnData.signature,
+  //     };
+  //   } catch (error) {
+  //     console.error('IPN handling error:', error);
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePaymentDto: UpdatePaymentDto) {
-    return this.paymentService.update(id, updatePaymentDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymentService.remove(id);
-  }
+  //     // Still return success to MoMo to avoid retries
+  //     return {
+  //       partnerCode: ipnData.partnerCode,
+  //       requestId: ipnData.requestId,
+  //       orderId: ipnData.orderId,
+  //       resultCode: 99,
+  //       message: 'Error processing IPN',
+  //       responseTime: Date.now(),
+  //       extraData: ipnData.extraData,
+  //       signature: ipnData.signature,
+  //     };
+  //   }
+  // }
 }

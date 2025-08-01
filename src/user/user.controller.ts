@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ConflictException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ChangePasswordDto, CreateUserDto } from './dto/create-user.dto';
@@ -20,12 +21,22 @@ export class UserController {
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
+    const existingUser = this.userService.findOne(createUserDto.email);
+
+    if (existingUser) {
+      throw new ConflictException('User already exists');
+    }
     return this.userService.create(createUserDto);
   }
 
   @Get()
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Get('get/all-users-has-permission')
+  findAllUserHasPermission() {
+    return this.userService.findAllUserHasPermission();
   }
 
   @Get(':id')
@@ -42,7 +53,6 @@ export class UserController {
   }
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    console.log('csca', updateUserDto);
     return this.userService.update(id, updateUserDto);
   }
 

@@ -13,22 +13,37 @@ import { Brand, BrandSchema } from 'src/brand/schemas/brand.schema';
 import { CaslModule } from 'src/casl/casl.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { MulterConfigService } from 'src/config/multer.config';
+import { Review, ReviewSchema } from 'src/review/schemas/review.schema';
+import { ReviewModule } from 'src/review/review.module';
+import { RedisModule } from 'src/redis/redis.module';
+import {
+  Promotion,
+  PromotionSchema,
+} from 'src/benefit/schemas/promotion.schema';
+import {
+  WarrantyPolicy,
+  WarrantyPolicySchema,
+} from 'src/benefit/schemas/warrantypolicy.schema';
 
 @Module({
   controllers: [ProductController],
   providers: [ProductService],
   imports: [
+    RedisModule,
+    ReviewModule,
     MongooseModule.forFeature([
       { name: Products.name, schema: ProductSchema },
       { name: Inventory.name, schema: InventorySchema },
       { name: Variant.name, schema: VariantSchema },
       { name: Category.name, schema: CategorySchema },
       { name: Brand.name, schema: BrandSchema },
+      { name: Review.name, schema: ReviewSchema },
     ]),
     MulterModule.registerAsync({
       useClass: MulterConfigService,
     }),
     CaslModule,
   ],
+  exports: [ProductModule, MongooseModule],
 })
 export class ProductModule {}

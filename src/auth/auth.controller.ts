@@ -24,12 +24,16 @@ import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import ms from 'ms';
+import { ConfigService } from '@nestjs/config';
+import { VerifyOtpDto } from 'src/user/dto/verify-otp.dto';
 
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly configService: ConfigService,
   ) {}
 
   @UseGuards(LocalAuthGuard)
@@ -45,31 +49,79 @@ export class AuthController {
   @Post('/register')
   @ResponseMessage('Đăng ký thành công')
   async register(@Body() register: RegisterUserDto) {
-    console.log(register);
     return this.userService.register(register);
   }
   @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-    // Tự động redirect đến Google
-  }
+  async googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req: any) {
+  @Public()
+  async googleAuthRedirect(@Request() req: any, @Res() res: Response) {
+    const user = req.user;
+
+    const userWithRole = await (
+      await this.userService.findOneByID(user._id)
+    ).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        select: 'name module action',
+      },
+    });
+    const role: any = userWithRole.role;
+
+    const roleName = role?.name;
+    const permission = role?.permissions?.map((per: any) => ({
+      name: per.name,
+      module: per.module,
+      action: per.action,
+    }));
+    const payload = {
+      sub: 'token login',
+      iss: 'from server',
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      branch: user?.branch,
+      role: roleName,
+      permission: permission,
+    };
+
+    const access_token = await this.authService.createAccessToken(payload);
+    const refresh_Token = this.authService.createRefreshToken({ payload });
+    await this.userService.updateUserToken(user._id, refresh_Token);
+    res.cookie('refresh_Token', refresh_Token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite:
+        this.configService.get<string>('NODE_ENV') === 'production'
+          ? 'none'
+          : 'lax',
+      maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
+    });
+    res.redirect(
+      `http://localhost:5173/oauth-success?access_token=${access_token}`,
+    );
     return {
       message: 'Đăng nhập thành công!',
-      user: req.user,
     };
   }
 
   @ResponseMessage('Lấy thông tin tài khoản thành công')
   @Get('/account')
   handleGetAccount(@User() user: IUser) {
-    return {
-      user,
-    };
+    const userInformation = this.userService.findOneByID(user._id).populate({
+      path: 'role',
+      populate: {
+        path: 'permissions',
+        select: 'name module action',
+      },
+    });
+    return userInformation;
   }
 
   @ResponseMessage('Lấy Refresh Token thành công')
@@ -84,7 +136,6 @@ export class AuthController {
   }
   @ResponseMessage('Đăng xuất thành công')
   @Get('/logout')
-  // @Public()
   handleLogout(@Res({ passthrough: true }) res: Response, @User() user: IUser) {
     return this.authService.logout(res, user);
   }
@@ -122,5 +173,18 @@ export class AuthController {
     return {
       message: 'Mật khẩu đã được đặt lại thành công.',
     };
+  }
+
+  @Post('resend-otp')
+  @Public()
+  async resendOtp(@Body('email') email: string) {
+    console.log(email);
+    return await this.userService.resendOtp(email);
+  }
+
+  @Post('verify-otp')
+  @Public()
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.userService.verifyOtp(verifyOtpDto);
   }
 }

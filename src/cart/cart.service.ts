@@ -8,6 +8,7 @@ import { ProductDocument, Products } from 'src/product/schemas/product.schema';
 import { IUser } from 'src/user/interface/user.interface';
 import { Types } from 'mongoose';
 import { Variant, VariantDocument } from 'src/product/schemas/variant.schema';
+import { User } from 'src/decorator/userDecorator';
 
 @Injectable()
 export class CartService {
@@ -23,7 +24,6 @@ export class CartService {
     // Tìm giỏ hàng của user
     let cart = await this.cartModel.findOne({ user: user._id });
     if (!cart) {
-      // Nếu chưa có giỏ hàng thì tạo mới với user, items rỗng
       cart = await this.cartModel.create({
         user: user._id,
         items: [],
@@ -52,7 +52,7 @@ export class CartService {
           `Biến thể ${newItem.variant} không tồn tại trong sản phẩm ${product._id}`,
         );
       }
-      const variant = this.variantModel.findById(newItem.variant);
+      const variant = await this.variantModel.findById(newItem.variant);
 
       // Tìm xem item trong giỏ hàng đã có sản phẩm + biến thể
       const itemIndex = cart.items.findIndex(
@@ -64,13 +64,17 @@ export class CartService {
       if (itemIndex > -1) {
         cart.items[itemIndex].quantity += newItem.quantity;
         cart.totalPrice =
-          cart.items[itemIndex].quantity * (await variant).price;
+          cart.items[itemIndex].quantity * variant.price -
+          (variant.price * product.discount) / 100;
       } else {
         cart.items.push({
           product: new Types.ObjectId(newItem.product),
           variant: new Types.ObjectId(newItem.variant),
           quantity: newItem.quantity,
-          price: (await variant).price * newItem.quantity,
+          price:
+            variant.price -
+            ((variant.price * product.discount) / 100) * newItem.quantity,
+          branch: new Types.ObjectId(newItem.branch),
         });
       }
     }
@@ -87,26 +91,27 @@ export class CartService {
     return cart;
   }
 
-  findAll() {
-    return this.cartModel
-      .find()
+  findAll(user: IUser) {
+    const cart = this.cartModel
+      .findOne({ user: user._id })
       .populate({
         path: 'user',
         select: 'email name ',
       })
       .populate({
         path: 'items.product',
-        select: 'name slug',
+        select: 'name slug discount',
       })
       .populate({
         path: 'items.variant',
-        select: 'sku name price color memory',
+        select: 'sku images name price color memory',
       });
+    return cart;
   }
 
   findOne(id: number) {
     return this.cartModel
-      .findOne()
+      .findOne({ _id: id })
       .populate({
         path: 'user',
         select: 'email name ',
@@ -126,13 +131,52 @@ export class CartService {
       {
         _id: id,
       },
-      updateCartDto,
+      {
+        ...updateCartDto,
+      },
     );
   }
 
-  remove(id: string) {
-    return this.cartModel.deleteOne({
-      _id: id,
-    });
+  async removeItemFromCart(user: IUser, productId: string, variantId: string) {
+    // Tìm cart của user
+    const cart = await this.cartModel.findOne({ user: user._id });
+
+    if (!cart) {
+      throw new NotFoundException(`Không tìm thấy giỏ hàng của người dùng.`);
+    }
+
+    const itemIndex = cart.items.findIndex(
+      (item) =>
+        item.product.toString() === productId &&
+        item.variant.toString() === variantId,
+    );
+
+    if (itemIndex === -1) {
+      throw new NotFoundException(`Không tìm thấy sản phẩm trong giỏ hàng.`);
+    }
+
+    cart.items.splice(itemIndex, 1);
+    cart.totalQuantity = cart.items.reduce(
+      (acc, item) => acc + item.quantity,
+      0,
+    );
+    cart.totalPrice = cart.items.reduce((acc, item) => acc + item.price, 0);
+
+    await cart.save();
+    return cart;
+  }
+
+  async remove(@User() user: IUser) {
+   
+    const cart = await this.cartModel.findOne({ user: user._id });
+    if (cart.items.length === 0) {
+      throw new NotFoundException(
+        `Giỏ hàng của người dùng đang rỗng or chưa có giỏ hàng!`,
+      );
+    }
+    return await this.cartModel.updateOne(
+      { user: user._id },
+      { $set: { items: [] } },
+    );
   }
 }

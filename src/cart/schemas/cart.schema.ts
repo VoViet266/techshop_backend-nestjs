@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
+import { Branch } from 'src/branch/schemas/branch.schema';
 import { Products } from 'src/product/schemas/product.schema';
 import { Variant } from 'src/product/schemas/variant.schema';
 import { User } from 'src/user/schemas/user.schema';
@@ -26,7 +27,14 @@ export class CartItem {
   quantity: number;
 
   @Prop()
-  price: number; // Giá tại thời điểm thêm vào giỏ (để không bị lệ thuộc khi thay đổi giá sản phẩm)
+  price: number;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: Branch.name,
+    required: true,
+  })
+  branch: Types.ObjectId;
 }
 
 const CartItemSchema = SchemaFactory.createForClass(CartItem);

@@ -1,4 +1,3 @@
-export enum PermissionsEnum {}
 export enum Actions {
   Manage = 'manage',
   Create = 'create',
@@ -19,5 +18,10 @@ export enum Subjects {
   Payment = 'payment',
   Promotion = 'promotion',
   Branch = 'branch',
-  
+  Brand = 'brand',
+  Cloudinary = 'cloudinary',
+  StockMovement = 'stockmovement',
+  Transfer = 'transfer',
+  Review = 'review',
+  Benefit = 'benefit',
 }

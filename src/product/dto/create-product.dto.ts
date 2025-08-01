@@ -162,16 +162,16 @@ export class VariantMemoryDto {
 
 export class VariantDto {
   @ApiProperty({ example: 'Standard', description: 'Tên biến thể' })
-  name: string;
+  name?: string;
 
   @ApiProperty({ example: 999, description: 'Giá bán' })
-  price: number;
+  price?: number;
 
   @ApiProperty({ type: VariantColorDto, description: 'Thông tin màu sắc' })
-  color: VariantColorDto;
+  color?: VariantColorDto;
 
   @ApiProperty({ type: VariantMemoryDto, description: 'Thông tin bộ nhớ' })
-  memory: VariantMemoryDto;
+  memory?: VariantMemoryDto;
 
   @ApiProperty({
     example: ['image1.jpg', 'image2.jpg'],
@@ -187,54 +187,17 @@ export class VariantDto {
 }
 
 export class CreateProductDto {
-  @ApiProperty({ example: 'iPhone 14', description: 'Tên sản phẩm' })
   name: string;
-
-  @ApiPropertyOptional({
-    example: 'Smartphone mới nhất từ Apple',
-    description: 'Mô tả sản phẩm',
-  })
   description?: string;
-
-  overviewImage: string;
-
+  galleryImages: string;
   slug: string;
-
+  promotions?: string[];
+  warranties?: string[];
   category: string;
-
-  @ApiProperty({
-    example: '60d5f9c2e1a5a3a3f0d6e0f2',
-    description: 'ID thương hiệu',
-    type: String,
-  })
   brand: string;
-
-  @ApiProperty({
-    type: [VariantDto],
-    description: 'Danh sách biến thể sản phẩm',
-  })
-  variants: VariantDto[];
-
-  @ApiProperty({ example: 10, description: 'Giảm giá (%)' })
+  variants?: VariantDto[];
   discount: number;
-
-  @ApiPropertyOptional({
-    type: ProductSpecsDto,
-    description: 'Thông số kỹ thuật',
-  })
-  @ValidateNested()
-  specifications?: ProductSpecsDto;
-
-  @ApiPropertyOptional({ type: ConnectivityDto, description: 'Kết nối' })
-  connectivity?: ConnectivityDto;
-
-  @ApiPropertyOptional({ type: CameraDto, description: 'Thông tin camera' })
-  camera?: CameraDto;
-
-  @ApiPropertyOptional({
-    example: ['smartphone', 'apple'],
-    description: 'Tags sản phẩm',
-  })
+  attributes?: Record<string, any>;
   tags?: string[];
 
   viewCount?: number;

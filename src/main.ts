@@ -24,9 +24,6 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
-  // new RolesGuard(reflector),
-  // new PermissionsGuard(reflector),
-
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -36,13 +33,13 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   app.enableCors({
-    origin: '*',
+    origin: configService.get<string>('URL_REACT_FRONTEND'),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
     credentials: true,
   });
-  // Cấu hình Swagger
+
   const config = new DocumentBuilder()
     .setTitle('API TechShop')
     .setDescription('API mô tả Techshop')
@@ -67,4 +64,3 @@ async function bootstrap() {
   );
 }
 bootstrap();
-

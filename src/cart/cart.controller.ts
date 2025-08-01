@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
@@ -14,6 +15,7 @@ import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 import { Public } from 'src/decorator/publicDecorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ResponseMessage } from 'src/decorator/messageDecorator';
 @ApiBearerAuth('access-token')
 @Controller('api/v1/carts')
 export class CartController {
@@ -25,14 +27,8 @@ export class CartController {
   }
 
   @Get()
-  @Public()
-  findAll() {
-    return this.cartService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cartService.findOne(+id);
+  findAll(@User() user: IUser) {
+    return this.cartService.findAll(user);
   }
 
   @Patch(':id')
@@ -40,8 +36,19 @@ export class CartController {
     return this.cartService.update(id, updateCartDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartService.remove(id);
+  @Delete('remove-all')
+  @ResponseMessage('Xóa giỏ hàng thành công')
+  remove(@User() user: IUser) {
+    return this.cartService.remove(user);
+  }
+
+  @Delete('remove-item')
+  @ResponseMessage('Xóa item thành công')
+  async removeItem(
+    @User() user: IUser,
+    @Body('productId') productId: string,
+    @Body('variantId') variantId: string,
+  ) {
+    return this.cartService.removeItemFromCart(user, productId, variantId);
   }
 }

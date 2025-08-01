@@ -47,7 +47,7 @@ export class Inventory {
   // Mức tồn kho tối thiểu để cảnh báo
   @Prop({
     default: 0,
-    min: 0,
+    min: 0, 
   })
   minStockLevel: number;
 
@@ -57,9 +57,6 @@ export class Inventory {
     min: 0,
   })
   maxStockLevel: number;
-
-  //nhà cung cấp
-  ///
 
   // Thời gian nhập hàng gần nhất
   @Prop({ type: Date })
@@ -84,7 +81,7 @@ export class Inventory {
     name: string;
   };
 
-   @Prop({
+  @Prop({
     type: {
       email: String,
       name: String,
@@ -94,7 +91,6 @@ export class Inventory {
     email: string;
     name: string;
   };
-
 
   @Prop()
   createdAt: Date;

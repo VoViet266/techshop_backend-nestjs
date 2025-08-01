@@ -1,10 +1,13 @@
-import mongoose, { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Brand } from 'src/brand/schemas/brand.schema';
 import { Category } from 'src/category/schemas/category.schema';
 import { Variant } from './variant.schema';
 import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
+import { Type } from '@nestjs/common';
+import { Promotion } from 'src/benefit/schemas/promotion.schema';
+import { WarrantyPolicy } from 'src/benefit/schemas/warrantypolicy.schema';
 export type ProductDocument = HydratedDocument<Products>;
 
 export type CamerasDocument = HydratedDocument<Camera>;
@@ -75,7 +78,6 @@ export class Camera {
 })
 export class Products {
   @Prop({
-    required: true,
     unique: true,
     index: true,
     trim: true,
@@ -83,7 +85,6 @@ export class Products {
   name: string;
 
   @Prop({
-    required: true,
     index: true,
     trim: true,
   })
@@ -123,33 +124,28 @@ export class Products {
     ref: Variant.name,
   })
   variants?: Variant[];
+  
 
-  @Prop({ type: ProductSpecs })
-  specifications: ProductSpecs;
-
-  @Prop({ type: Connectivity })
-  connectivity: Connectivity;
-
-  @Prop({ type: Camera })
-  camera: Camera;
-
-  @Prop({
-    type: [String],
-    index: true,
-  })
-  tags: string[]; // For search and filtering
+  @Prop({ type: mongoose.Schema.Types.Mixed, default: {} })
+  attributes: Record<string, any>;
 
   @Prop({
     type: [String],
     default: [],
   })
-  overviewImage: string[];
+  galleryImages: string[];
 
   @Prop({
     default: 0,
     min: 0,
   })
   viewCount: number;
+
+  @Prop({
+    default: 0,
+    min: 0,
+  })
+  soldCount: number;
 
   @Prop({
     default: 0,
@@ -175,8 +171,6 @@ export class Products {
     index: true,
   })
   isFeatured: boolean;
-
- 
 
   @Prop({
     default: false,

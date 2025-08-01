@@ -19,6 +19,7 @@ import { GoogleStrategy } from './passport/google.straregy';
     ConfigModule,
     RoleModule,
     MailModule,
+
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -29,7 +30,6 @@ import { GoogleStrategy } from './passport/google.straregy';
         },
       }),
     }),
-    
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
   controllers: [AuthController],

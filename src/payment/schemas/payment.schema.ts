@@ -28,6 +28,7 @@ export class Payment {
 
   @Prop()
   momoOrderId?: string;
+
   @Prop()
   momoRequestId?: string;
 
@@ -37,6 +38,9 @@ export class Payment {
   @Prop()
   momoTransId: string;
 
+  @Prop()
+  completedAt: Date;
+
   @Prop({
     type: String,
     enum: PaymentStatus,
@@ -44,8 +48,18 @@ export class Payment {
   })
   status: PaymentStatus;
 
+  @Prop({
+    type: String,
+    enum: RefundStatus,
+    default: RefundStatus.NONE,
+  })
+  refundStatus: RefundStatus;
+
   @Prop({ enum: PaymentMethod })
   payType: string;
+
+  @Prop({ type: Object })
+  redirectData: Record<string, any>;
 
   @Prop()
   amount: number;
@@ -55,6 +69,21 @@ export class Payment {
 
   @Prop()
   paymentTime: Date;
+
+  @Prop()
+  refundTime: Date;
+
+  @Prop()
+  createdAt: Date;
+
+  @Prop()
+  updatedAt: Date;
+
+  @Prop()
+  payUrl?: string;
+
+  @Prop()
+  deeplink: string;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);

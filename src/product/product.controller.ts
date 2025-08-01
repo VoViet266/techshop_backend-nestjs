@@ -22,32 +22,37 @@ import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ReviewService } from 'src/review/review.service';
 
 @ApiBearerAuth('access-token')
 @Controller('api/v1/products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly productService: ProductService,
+    private readonly reviewService: ReviewService,
+  ) {}
 
   @Post()
+  @UseGuards(PoliciesGuard)
   create(@Body() createProductDto: CreateProductDto) {
-    console.log('Create Product DTO:', createProductDto);
     return this.productService.create(createProductDto);
   }
-  @Post('insert')
-  @Public()
-  Insert(@Body() createProductDto: CreateProductDto[]) {
-    return this.productService.insertManyProduct(createProductDto);
-  }
+  // @Post('insert')
+  // @Public()
+  // Insert(@Body() createProductDto: CreateProductDto[]) {
+  //   return this.productService.insertManyProduct(createProductDto);
+  // }
 
-  @Post('import-csv')
-  @UseInterceptors(FileInterceptor('file'))
-  async importCSV(@UploadedFile() file: Express.Multer.File) {
-    if (!file) throw new BadRequestException('File không được để trống');
+  // @Post('import-csv')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async importCSV(@UploadedFile() file: Express.Multer.File) {
+  //   if (!file) throw new BadRequestException('File không được để trống');
 
-    const filePath = file.path;
-    const result = await this.productService.importProductsFromCsv(filePath);
-    return result;
-  }
+  //   const filePath = file.path;
+
+  //   const result = await this.productService.importProductsFromCsv(filePath);
+  //   return result;
+  // }
 
   @Get()
   @Public()
@@ -72,15 +77,32 @@ export class ProductController {
   async autocomplete(@Query('query') query: string) {
     return this.productService.autocompleteSearch(query);
   }
-
+  @Public()
+  @Get(':productId/rating-stats')
+  async getRatingStats(@Param('productId') productId: string) {
+    const stats = await this.reviewService.getProductRatingStats(productId);
+    return {
+      success: true,
+      data: stats,
+    };
+  }
   @Patch('/:id')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    console.log(updateProductDto);
     return this.productService.update(id, updateProductDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
+  }
+
+  @Patch('/:id/view-count')
+  setViewCount(@Param('id') id: string) {
+    return this.productService.countViews(id);
+  }
+
+  @Patch('/:id/order-count')
+  setOrderCount(@Param('id') id: string) {
+    return this.productService.countOrders(id);
   }
 }

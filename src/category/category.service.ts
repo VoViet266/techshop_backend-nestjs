@@ -8,6 +8,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Category, CategoryDocument } from './schemas/category.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import slugify from 'slugify';
 
 @Injectable()
 export class CategoryService {
@@ -26,7 +27,13 @@ export class CategoryService {
         `Category with name ${createCategoryDto.name} already exists`,
       );
     }
-    return this.categoryModel.create(createCategoryDto);
+
+    const slug = slugify(createCategoryDto.name, {
+      lower: true,
+      strict: true,
+      locale: 'vi',
+    });
+    return this.categoryModel.create({ ...createCategoryDto, slug });
   }
 
   findAll() {

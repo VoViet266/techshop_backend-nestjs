@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { BannerPosition } from 'src/constant/positionBanner';
 export type BannerDocument = HydratedDocument<Banner>;
 @Schema()
 export class Banner {
@@ -11,10 +12,21 @@ export class Banner {
   imageUrl: string;
   @Prop()
   linkTo: string;
-  @Prop()
-  position: string; // e.g., 'top', 'bottom', 'sidebar'
+  @Prop({
+    required: true,
+    enum: BannerPosition,
+  })
+  position: string;
+
   @Prop()
   isActive: boolean;
+
+  @Prop()
+  clicks: number;
+
+  @Prop()
+  views: number;
+
   @Prop()
   startDate: Date;
   @Prop()

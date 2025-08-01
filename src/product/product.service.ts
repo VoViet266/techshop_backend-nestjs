@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Get,
+  Inject,
+  Injectable,
+  Param,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -13,14 +19,8 @@ import { console } from 'inspector';
 import slugify from 'slugify';
 import aqp from 'api-query-params';
 import { Variant, VariantDocument } from './schemas/variant.schema';
-import { Brand, BrandDocument } from 'src/brand/schemas/brand.schema';
-import {
-  Category,
-  CategoryDocument,
-} from 'src/category/schemas/category.schema';
-import * as mongooseDelete from 'mongoose-delete';
-import csvParser from 'csv-parser';
-import { ImportProductFromCsvDto } from './dto/import-product.dto';
+
+import Redis from 'ioredis';
 
 @Injectable()
 export class ProductService {
@@ -31,30 +31,25 @@ export class ProductService {
     private readonly variantModel: SoftDeleteModel<VariantDocument>,
     @InjectModel(Inventory.name)
     private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
-
-    @InjectModel(Brand.name)
-    private readonly brandModel: SoftDeleteModel<BrandDocument>,
-    @InjectModel(Category.name)
-    private readonly categoryModel: SoftDeleteModel<CategoryDocument>,
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
     const createdVariants = await this.variantModel.insertMany(
-      createProductDto.variants.map((variant) => ({
+      createProductDto?.variants?.map((variant) => ({
         ...variant,
-        compareAtPrice:
-          variant.price + (variant.price * createProductDto.discount) / 100,
       })),
     );
-    const slug = slugify(createProductDto.name, {
-      lower: true,
-      strict: true,
-      locale: 'vi',
-    });
+
+    // const slug = slugify(createProductDto.name, {
+    //   lower: true,
+    //   strict: true,
+    //   locale: 'vi',
+    // });
     const createdProduct = await this.productModel.create({
       ...createProductDto,
-      slug: slug,
-      variants: createdVariants.map((variant) => variant._id),
+      // slug: slug,
+      variants: createdVariants?.map((variant) => variant._id) || [],
     });
     return createdProduct;
   }
@@ -84,50 +79,6 @@ export class ProductService {
     const createdProducts =
       await this.productModel.insertMany(productsToInsert);
     return createdProducts;
-  }
-  async importProductsFromCsv(filePath: string): Promise<any> {
-    const rows: any[] = [];
-
-    await new Promise((resolve, reject) => {
-      fs.createReadStream(filePath)
-        .pipe(csvParser())
-        .on('data', (row) => {
-          rows.push(row);
-        })
-        .on('end', () => resolve(null))
-        .on('error', (err) => reject(err));
-    });
-
-    const products = [];
-
-    // Xử lý async tuần tự hoặc song song ở đây
-    for (const row of rows) {
-      try {
-        const product = {
-          name: row.name,
-          slug: slugify(row.name, {
-            lower: true,
-            strict: true,
-            locale: 'vi',
-          }),
-          description: row.description,
-          category: row.category,
-          brand: row.brand,
-          discount: Number(row.discount),
-          isActive: row.isActive === 'true',
-          isFeatured: row.isFeatured === 'true',
-          tags: row.tags?.split(';').map((tag) => tag.trim()),
-        };
-
-        products.push(product);
-      } catch (err) {
-        throw new Error('Error processing row: ' + err.message);
-      }
-    }
-
-    const inserted = await this.productModel.insertMany(products);
-
-    return { success: true, insertedCount: inserted.length };
   }
 
   async autocompleteSearch(query: string) {
@@ -159,6 +110,7 @@ export class ProductService {
       },
       {
         $match: {
+          isActive: true,
           isDeleted: { $ne: true },
         },
       },
@@ -202,6 +154,7 @@ export class ProductService {
             _id: '$brand._id',
             name: '$brand.name',
           },
+          attributes: 1,
           variants: 1,
           isActive: 1,
           isFeatured: 1,
@@ -217,12 +170,16 @@ export class ProductService {
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
-    const { filter, sort, population } = aqp(qs);
+    const { filter } = aqp(qs);
 
     delete filter.page;
     delete filter.limit;
     filter.isDeleted = false;
-
+    // const cacheKey = `products-${qs}`;
+    // const cached = await this.redisClient.get(cacheKey);
+    // if (cached) {
+    //   return JSON.parse(cached);
+    // }
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
@@ -291,13 +248,19 @@ export class ProductService {
             name: 1,
             description: 1,
             discount: 1,
+            tags: 1,
+            slug: 1,
+            overviewImage: 1,
+            attributes: 1,
             category: {
               _id: '$category._id',
               name: '$category.name',
+              logo: '$category.logo',
             },
             brand: {
               _id: '$brand._id',
               name: '$brand.name',
+              logo: '$brand.logo',
             },
             variants: '$variants',
           },
@@ -316,16 +279,29 @@ export class ProductService {
       totalItems = aggregateResults[0].totalItems[0]?.count || 0;
     } else {
       totalItems = await this.productModel.countDocuments(filter);
+
       result = await this.productModel
         .find(filter)
         .skip(offset)
         .limit(defaultLimit)
-        .sort(sort as any)
-        .populate(population)
-        .populate('variants', 'name price color memory images')
-        .populate('category', 'name description')
+
+        .populate({
+          path: 'variants',
+          select: 'name price color memory images',
+        })
+        .populate('category', 'name description logo configFields')
         .populate('brand', 'name description logo')
         .exec();
+
+      result = result.sort((a: any, b: any) => {
+        const maxPriceA = Math.max(
+          ...(a.variants?.map((v: any) => v.price) ?? [0]),
+        );
+        const maxPriceB = Math.max(
+          ...(b.variants?.map((v: any) => v.price) ?? [0]),
+        );
+        return maxPriceB - maxPriceA;
+      });
     }
     const totalPages = Math.ceil(totalItems / defaultLimit);
     const response = {
@@ -337,44 +313,82 @@ export class ProductService {
       },
       result,
     };
+    // await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 300);
     return response;
   }
 
   async findOneById(id: string) {
-    return await this.productModel.findById({ _id: id }).populate({
-      path: 'variants',
-      select: 'name price color memory images',
-    });
+    return await this.productModel
+      .findById({ _id: id })
+      .populate({
+        path: 'variants',
+        select: 'name price color memory images',
+      })
+      .populate('brand', 'name description logo')
+      .populate('category', 'name description configFields ');
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
     const product = await this.productModel.findById(id);
-
     if (!product) {
       throw new BadRequestException('Sản phẩm không tồn tại');
     }
-    let variantId = [];
+
+    const variantIds: string[] = [];
     await Promise.all(
-      product.variants.map(async (v, index) => {
-        const variantUpdate = updateProductDto.variants[index];
-
-        const updatedVariant = await this.variantModel.findByIdAndUpdate(v, {
-          name: variantUpdate.name,
-          price: variantUpdate.price,
-          color: variantUpdate.color,
-          memory: variantUpdate.memory,
-          images: variantUpdate.images,
-        });
-
-        variantId.push(updatedVariant._id);
+      updateProductDto.variants.map(async (variant, index) => {
+        if (product.variants[index]) {
+          const existingVariantId = product.variants[index];
+          const updated = await this.variantModel.findByIdAndUpdate(
+            existingVariantId,
+            {
+              ...variant,
+            },
+            { new: true },
+          );
+          if (!updated) {
+            throw new BadRequestException(
+              `Không tìm thấy biến thể với ID ${existingVariantId}`,
+            );
+          }
+          variantIds.push(updated._id.toString());
+        } else {
+          const created = await this.variantModel.create({
+            ...variant,
+          });
+          variantIds.push(created._id.toString());
+        }
       }),
     );
-    return this.productModel.updateOne(
+
+    if (product.variants.length > variantIds.length) {
+      const toDelete = product.variants.slice(variantIds.length);
+      await this.variantModel.deleteMany({ _id: { $in: toDelete } });
+    }
+
+    await this.productModel.updateOne(
       { _id: id },
-      { ...updateProductDto, variants: variantId },
       {
-        new: true,
+        ...updateProductDto,
+        attributes: updateProductDto.attributes,
+        variants: variantIds,
       },
+    );
+    this.redisClient.del(`product`);
+    return { message: 'Cập nhật thành công' };
+  }
+
+  async countViews(id: string) {
+    return await this.productModel.updateOne(
+      { _id: id },
+      { $inc: { viewCount: 1 } },
+    );
+  }
+
+  async countOrders(id: string) {
+    return await this.productModel.updateOne(
+      { _id: id },
+      { $inc: { soldCount: 1 } },
     );
   }
 
