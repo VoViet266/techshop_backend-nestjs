@@ -33,7 +33,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   app.enableCors({
-    origin: 'https://techshop.zeabur.app/,
+    origin: configService.get<string>('URL_REACT_FRONTEND')
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
