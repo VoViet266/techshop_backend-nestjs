@@ -234,7 +234,9 @@ export class OrderService {
     await newOrder.save();
 
     // 8. Nếu là đặt hàng online thì xoá giỏ hàng
-    if (!createOrderDto.items || createOrderDto.items.length === 0) {
+   
+    if (createOrderDto.items || createOrderDto.items.length === 0) {
+      
       await this.cartService.remove(user);
     }
 

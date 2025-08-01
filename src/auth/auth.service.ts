@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
 import { Response } from 'express';
 
-import { randomBytes, randomUUID } from 'crypto';
+import { randomBytes } from 'crypto';
 
 import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
