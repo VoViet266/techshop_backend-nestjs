@@ -91,10 +91,14 @@ export class AuthService {
     res.clearCookie('refresh_Token');
     res.cookie('refresh_Token', refresh_Token, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite:
+        this.configService.get<string>('NODE_ENV') === 'production'
+          ? 'none'
+          : 'strict',
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
     });
+
 
     return {
       access_token: this.jwtService.sign(payload),

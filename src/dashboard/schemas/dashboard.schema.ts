@@ -50,6 +50,9 @@ export class Dashboard {
   totalOrders: number;
 
   @Prop({ default: 0 })
+  totalProfit: number;
+
+  @Prop({ default: 0 })
   averageOrderValue: number;
 
   // Product data

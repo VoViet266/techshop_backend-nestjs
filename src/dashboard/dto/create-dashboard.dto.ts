@@ -4,6 +4,7 @@ export class CreateDashboardStatsDto {
   date: Date;
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   totalRevenue?: number;
+  totalProfit: number;
   totalOrders?: number;
   averageOrderValue?: number;
   topSellingProducts?: ProductStats[];
@@ -17,6 +18,7 @@ export class CreateDashboardStatsDto {
 export class UpdateDashboardStatsDto {
   totalRevenue?: number;
   totalOrders?: number;
+  totalProfit: number;
   averageOrderValue?: number;
   topSellingProducts?: ProductStats[];
   mostViewedProducts?: ProductStats[];

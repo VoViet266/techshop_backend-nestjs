@@ -10,6 +10,10 @@ import {
 } from '../dashboard/schemas/dashboard.schema';
 import { CreateDashboardStatsDto } from '../dashboard/dto/create-dashboard.dto';
 import { Branch, BranchDocument } from 'src/branch/schemas/branch.schema';
+import {
+  Inventory,
+  InventoryDocument,
+} from 'src/inventory/schemas/inventory.schema';
 
 // Interface cho branch stats
 interface BranchStats {
@@ -41,6 +45,8 @@ export class DashboardService {
     private readonly productModel: SoftDeleteModel<ProductDocument>,
     @InjectModel(Branch.name)
     private readonly branchModel: SoftDeleteModel<BranchDocument>,
+    @InjectModel(Inventory.name)
+    private readonly inventoryModel: SoftDeleteModel<InventoryDocument>,
   ) {}
 
   // Tạo hoặc cập nhật stats
@@ -163,10 +169,8 @@ export class DashboardService {
         $project: {
           branchId: '$_id',
           branchName: '$branchInfo.name',
-          address: '$branchInfo.address',
           totalRevenue: 1,
           totalOrders: { $size: '$totalOrders' },
-          totalCustomers: { $size: '$customers' },
           averageOrderValue: {
             $cond: {
               if: { $gt: [{ $size: '$totalOrders' }, 0] },
@@ -184,49 +188,11 @@ export class DashboardService {
   // Lấy tổng quan branch với so sánh kỳ trước
   async getBranchOverview(period: string, date?: Date) {
     const currentBranchStats = await this.getBranchStats(period, date);
-
-    // Lấy stats kỳ trước để so sánh
-    const previousDate = this.getPreviousDate(date || new Date(), period);
-    const previousBranchStats = await this.getBranchStats(period, previousDate);
-
     const totalBranches = await this.branchModel.countDocuments();
-    const topPerformingBranch = currentBranchStats[0] || null;
-
     // Tính toán so sánh growth cho từng branch
-    const branchComparison = currentBranchStats.map((current) => {
-      const previous = previousBranchStats.find(
-        (p) => p.branchId === current.branchId,
-      );
-
-      return {
-        branchId: current.branchId,
-        branchName: current.branchName,
-        revenueGrowth: previous
-          ? this.calculatePercentageChange(
-              current.totalRevenue,
-              previous.totalRevenue,
-            )
-          : 0,
-        orderGrowth: previous
-          ? this.calculatePercentageChange(
-              current.totalOrders,
-              previous.totalOrders,
-            )
-          : 0,
-        customerGrowth: previous
-          ? this.calculatePercentageChange(
-              current.totalCustomers,
-              previous.totalCustomers,
-            )
-          : 0,
-      };
-    });
-
     return {
       totalBranches,
-      topPerformingBranch,
       branchStats: currentBranchStats,
-      branchComparison,
     };
   }
 
@@ -307,11 +273,13 @@ export class DashboardService {
 
   // Cron job - Cập nhật stats hóa đơn trong ngày
   // @Cron('0 0 * * *') // Mỗi ngày lúc 0h
-  @Cron('*/2 * * * *')
+  @Cron('*/1 * * * *') // Mỗi 1 phút
   async updateDailyStats() {
     this.logger.log('Updating daily stats...');
     const dailyData = await this.aggregateDailyData();
-    await this.createOrUpdateStats('daily', dailyData);
+    console.log('Daily data: ', dailyData);
+    const result = await this.createOrUpdateStats('daily', dailyData);
+    console.log('Result: ', result);
     this.logger.log('Daily stats updated successfully');
   }
 
@@ -460,6 +428,7 @@ export class DashboardService {
     start: Date,
     end: Date,
   ): Promise<CreateDashboardStatsDto> {
+    // Lấy orders trong khoảng thời gian
     const orders = await this.orderModel.find({
       createdAt: { $gte: start, $lt: end },
     });
@@ -468,7 +437,28 @@ export class DashboardService {
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    // === Tổng hợp dữ liệu bán ra, doanh thu, lượt xem ===
+    //Gom tất cả variantId từ orders
+    const allVariantIds = orders.flatMap((order) =>
+      order.items.map((item) => item.variant.toString()),
+    );
+
+    // Lấy inventory 1 lần cho tất cả variantId
+    const inventories = await this.inventoryModel
+      .find({
+        'variants.variantId': { $in: allVariantIds },
+        isDeleted: false,
+      })
+      .lean();
+
+    // Map variantId -> cost
+    const variantCostMap = new Map<string, number>();
+    for (const inv of inventories) {
+      for (const v of inv.variants) {
+        variantCostMap.set(v.variantId.toString(), v.cost);
+      }
+    }
+
+    // Map thống kê sản phẩm
     const productStatsMap: Record<
       string,
       {
@@ -479,9 +469,14 @@ export class DashboardService {
       }
     > = {};
 
+    let totalProfit: number = 0;
+
+    // 6️⃣ Duyệt qua orders để tính thống kê
     for (const order of orders) {
       for (const item of order.items) {
         const productId = item.product.toString();
+
+        // Nếu product chưa có trong map thì fetch tên
         if (!productStatsMap[productId]) {
           const product = await this.productModel.findById(productId).lean();
           if (!product) continue;
@@ -493,13 +488,24 @@ export class DashboardService {
             revenue: 0,
           };
         }
+
+        // Cập nhật số lượng, view, revenue
         productStatsMap[productId].soldCount += item.quantity;
         productStatsMap[productId].viewCount += item.quantity;
         productStatsMap[productId].revenue += item.quantity * item.price;
+
+        // ✅ Lấy cost từ map (nếu không có cost, coi là 0)
+        const cost = variantCostMap.get(item.variant.toString()) || 0;
+
+        // ✅ Tính profit cho item
+        const profit = (item.price - cost) * item.quantity;
+
+        // ✅ Cộng profit vào tổng
+        totalProfit += profit;
       }
     }
 
-    // Lấy top 5 sản phẩm bán chạy theo soldCount
+    // 7️⃣ Lấy top 5 sản phẩm bán chạy
     const topSellingProducts = Object.entries(productStatsMap)
       .sort((a, b) => b[1].soldCount - a[1].soldCount)
       .slice(0, 5)
@@ -510,7 +516,7 @@ export class DashboardService {
         revenue: stats.revenue,
       }));
 
-    // Lấy top 5 sản phẩm được xem nhiều nhất trong khoảng thời gian
+    // 8️⃣ Lấy top 5 sản phẩm xem nhiều
     const mostViewedProducts = Object.entries(productStatsMap)
       .sort((a, b) => b[1].viewCount - a[1].viewCount)
       .slice(0, 5)
@@ -521,7 +527,7 @@ export class DashboardService {
         revenue: stats.revenue,
       }));
 
-    // Phân tích phương thức thanh toán
+    // 9️⃣ Thống kê phương thức thanh toán
     const paymentStats = orders.reduce(
       (acc, order) => {
         const method = order.paymentMethod || 'unknown';
@@ -544,19 +550,17 @@ export class DashboardService {
       }),
     );
 
-    // Thêm branch overview vào dữ liệu aggregation
     const branchOverview = await this.getBranchOverview('daily', start);
-
     return {
       date: start,
       period: 'daily',
       totalRevenue,
+      totalProfit,
       totalOrders,
       averageOrderValue,
       topSellingProducts,
       mostViewedProducts,
       totalReturns: 0,
-      returnRate: 0,
       paymentMethods,
       branchOverview,
     };
@@ -572,6 +576,7 @@ export class DashboardService {
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
     const data = await this.aggregateDataFromRange(startOfDay, endOfDay);
+    console.log('data: ', data);
     return {
       ...data,
       period: 'daily',

@@ -60,42 +60,42 @@ export class DashboardController {
 
     return await this.dashboardService.getStats(period, targetDate);
   }
-  @Get('branches/stats/:period')
-  @Public()
-  async getBranchStats(
-    @Param('period') period: string,
-    @Query('date') date?: string,
-  ) {
-    try {
-      const targetDate = date ? new Date(date) : new Date();
+  // @Get('branches/stats/:period')
+  // @Public()
+  // async getBranchStats(
+  //   @Param('period') period: string,
+  //   @Query('date') date?: string,
+  // ) {
+  //   try {
+  //     const targetDate = date ? new Date(date) : new Date();
 
-      // Lấy stats với comparison
-      const statsWithComparison =
-        await this.dashboardService.getStatsWithComparison(period, targetDate);
+  //     // Lấy stats với comparison
+  //     const statsWithComparison =
+  //       await this.dashboardService.getStatsWithComparison(period, targetDate);
 
-      // Lấy branch overview
-      const branchOverview = await this.dashboardService.getBranchOverview(
-        period,
-        targetDate,
-      );
+  //     // Lấy branch overview
+  //     const branchOverview = await this.dashboardService.getBranchOverview(
+  //       period,
+  //       targetDate,
+  //     );
 
-      return {
-        success: true,
-        data: {
-          period,
-          date: targetDate,
-          stats: statsWithComparison,
-          branchOverview,
-        },
-        message: 'Dashboard overview retrieved successfully',
-      };
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to get dashboard overview',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
+  //     return {
+  //       success: true,
+  //       data: {
+  //         period,
+  //         date: targetDate,
+  //         stats: statsWithComparison,
+  //         branchOverview,
+  //       },
+  //       message: 'Dashboard overview retrieved successfully',
+  //     };
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       error.message || 'Failed to get dashboard overview',
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
   // Lấy dữ liệu lịch sử theo period (cho biểu đồ)
   @Get('/stats/:period/historical')
   @Public()

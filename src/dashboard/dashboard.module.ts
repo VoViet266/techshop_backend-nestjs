@@ -7,6 +7,10 @@ import { Dashboard, DashboardStatsSchema } from './schemas/dashboard.schema';
 import { Order, OrderSchema } from 'src/order/schemas/order.schema';
 import { Products, ProductSchema } from 'src/product/schemas/product.schema';
 import { Branch, BranchSchema } from 'src/branch/schemas/branch.schema';
+import {
+  Inventory,
+  InventorySchema,
+} from 'src/inventory/schemas/inventory.schema';
 
 @Module({
   imports: [
@@ -15,6 +19,7 @@ import { Branch, BranchSchema } from 'src/branch/schemas/branch.schema';
       { name: Order.name, schema: OrderSchema },
       { name: Products.name, schema: ProductSchema },
       { name: Branch.name, schema: BranchSchema },
+      { name: Inventory.name, schema: InventorySchema },
     ]),
   ],
   controllers: [DashboardController],
