@@ -32,6 +32,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const configService = app.get(ConfigService);
+
   app.enableCors({
     origin: configService.get<string>('URL_REACT_FRONTEND'),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -42,7 +43,7 @@ async function bootstrap() {
 
   await app.listen(configService.get<string>('PORT'));
   console.log(
-    `Application is running on: ${configService.get<string>('PORT')}`,
+    `Application is running on: ${configService.get<string>('URL_REACT_FRONTEND')}`,
   );
 }
 bootstrap();

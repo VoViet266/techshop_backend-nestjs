@@ -13,7 +13,6 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 
-
 @Controller('/api/v1/roles')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

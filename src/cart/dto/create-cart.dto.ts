@@ -1,12 +1,8 @@
 import { Types } from 'mongoose';
 import {
-  IsArray,
-  IsMongoId,
-  IsNumber,
-  IsOptional,
-  IsString,
+
   Min,
-  ValidateNested,
+
 } from 'class-validator';
 
 import { Type } from 'class-transformer';

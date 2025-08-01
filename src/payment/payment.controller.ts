@@ -13,14 +13,16 @@ import {
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
-
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 import { Public } from 'src/decorator/publicDecorator';
+import { ConfigService } from '@nestjs/config';
 @Controller('api/v1/payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
-
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('create-payment')
   async create(@Body() dto: CreatePaymentDto, @User() user: IUser) {
@@ -36,10 +38,12 @@ export class PaymentController {
     const result = await this.paymentService.handleMoMoRedirect(query);
 
     if (result.success) {
-      return res.redirect(`http://localhost:5173/payment-success`);
+      return res.redirect(
+        `${this.configService.get<string>('URL_REACT_FRONTEND')}/payment-success`,
+      );
     } else {
       return res.redirect(
-        `http://localhost:5173/payment-failure?message=${encodeURIComponent(result.message)}`,
+        `${this.configService.get<string>('URL_REACT_FRONTEND')}/payment-failure?message=${encodeURIComponent(result.message)}`,
       );
     }
   }

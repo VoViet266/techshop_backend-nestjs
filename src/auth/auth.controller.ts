@@ -23,7 +23,6 @@ import { LoginDto, RegisterUserDto } from 'src/user/dto/create-user.dto';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
-
 import ms from 'ms';
 import { ConfigService } from '@nestjs/config';
 import { VerifyOtpDto } from 'src/user/dto/verify-otp.dto';

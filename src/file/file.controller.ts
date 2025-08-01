@@ -1,21 +1,17 @@
 import {
   Controller,
   Post,
-  Param,
-  Delete,
+
   UseInterceptors,
   UploadedFile,
-  ParseFilePipeBuilder,
-  HttpStatus,
+
   Req,
-  NotFoundException,
+ 
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
-import * as path from 'path';
 import { ResponseMessage } from 'src/decorator/messageDecorator';
 import { Public } from 'src/decorator/publicDecorator';
 

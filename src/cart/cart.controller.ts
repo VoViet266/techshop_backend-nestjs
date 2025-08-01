@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
+
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';

@@ -22,7 +22,6 @@ import { Actions, Subjects } from 'src/constant/permission.enum';
 import { User } from 'src/decorator/userDecorator';
 
 import { IUser } from 'src/user/interface/user.interface';
-
 @Controller('api/v1/inventories')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
