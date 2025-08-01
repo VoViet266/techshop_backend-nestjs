@@ -1,25 +1,20 @@
 import {
   Controller,
   Post,
-  Param,
-  Delete,
+
   UseInterceptors,
   UploadedFile,
-  ParseFilePipeBuilder,
-  HttpStatus,
+
   Req,
-  NotFoundException,
+ 
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as XLSX from 'xlsx';
+
 import { ResponseMessage } from 'src/decorator/messageDecorator';
 import { Public } from 'src/decorator/publicDecorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('api/v1/upload')
 export class FileController {
@@ -75,16 +70,16 @@ export class FileController {
   //   }
   // }
 
-  @Post('excel')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadExcel(@UploadedFile() file: Express.Multer.File) {
-    const workbook = XLSX.readFile(file.path);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+  // @Post('excel')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async uploadExcel(@UploadedFile() file: Express.Multer.File) {
+  //   const workbook = XLSX.readFile(file.path);
+  //   const sheetName = workbook.SheetNames[0];
+  //   const sheet = workbook.Sheets[sheetName];
 
-    // Chuyển dữ liệu từ Excel thành JSON
-    const data = XLSX.utils.sheet_to_json(sheet);
+  //   // Chuyển dữ liệu từ Excel thành JSON
+  //   const data = XLSX.utils.sheet_to_json(sheet);
 
-    return { message: 'Upload thành công', data };
-  }
+  //   return { message: 'Upload thành công', data };
+  // }
 }

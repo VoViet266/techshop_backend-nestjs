@@ -11,14 +11,14 @@ import {
 import { BannerService } from './banner.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+
 import { Public } from 'src/decorator/publicDecorator';
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 
 @Controller('api/v1/banners')
-@ApiBearerAuth('access-token')
+
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
 

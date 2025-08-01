@@ -6,17 +6,16 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
+
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
-import { Public } from 'src/decorator/publicDecorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+
 import { ResponseMessage } from 'src/decorator/messageDecorator';
-@ApiBearerAuth('access-token')
+
 @Controller('api/v1/carts')
 export class CartController {
   constructor(private readonly cartService: CartService) {}

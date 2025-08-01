@@ -11,7 +11,7 @@ import cookieParser = require('cookie-parser');
 import * as express from 'express';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 // import { PermissionsGuard } from './common/guards/permission.guard';
 
 async function bootstrap() {
@@ -32,6 +32,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   const configService = app.get(ConfigService);
+
   app.enableCors({
     origin: configService.get<string>('URL_REACT_FRONTEND'),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -40,27 +41,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('API TechShop')
-    .setDescription('API mô tả Techshop')
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Nhập JWT token',
-      },
-      'access-token',
-    )
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
   await app.listen(configService.get<string>('PORT'));
   console.log(
-    `Application is running on: ${configService.get<string>('PORT')}`,
+    `Application is running on: ${configService.get<string>('URL_REACT_FRONTEND')}`,
   );
 }
 bootstrap();

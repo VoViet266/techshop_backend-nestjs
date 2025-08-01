@@ -277,9 +277,9 @@ export class DashboardService {
   async updateDailyStats() {
     this.logger.log('Updating daily stats...');
     const dailyData = await this.aggregateDailyData();
-    console.log('Daily data: ', dailyData);
-    const result = await this.createOrUpdateStats('daily', dailyData);
-    console.log('Result: ', result);
+
+    await this.createOrUpdateStats('daily', dailyData);
+
     this.logger.log('Daily stats updated successfully');
   }
 
@@ -576,7 +576,7 @@ export class DashboardService {
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
     const data = await this.aggregateDataFromRange(startOfDay, endOfDay);
-    console.log('data: ', data);
+
     return {
       ...data,
       period: 'daily',

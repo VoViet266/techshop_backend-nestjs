@@ -1,32 +1,8 @@
-import {
-  IsString,
-  IsOptional,
-  IsUrl,
-  IsEmail,
-  IsNumber,
-  Min,
-  Max,
-  IsObject,
-} from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
 
 export class CreateBrandDto {
-  @ApiProperty({ example: 'Apple', description: 'Tên thương hiệu' })
- 
-  name: string;
-
-  @ApiPropertyOptional({
-    example: 'Thương hiệu điện tử hàng đầu thế giới',
-    description: 'Mô tả thương hiệu',
-  })
-
+  name: string
   description?: string;
-
-  @ApiPropertyOptional({
-    example: 'https://example.com/logo.png',
-    description: 'URL logo thương hiệu',
-  })
-
   logo?: string;
 
   

@@ -13,7 +13,7 @@ import {
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 import { PaymentStatus } from 'src/constant/payment.enum';
@@ -22,9 +22,13 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Order, OrderDocument } from 'src/order/schemas/order.schema';
 import { Payment, PaymentDocument } from './schemas/payment.schema';
 import { Public } from 'src/decorator/publicDecorator';
+import { ConfigService } from '@nestjs/config';
 @Controller('api/v1/payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly configService: ConfigService,
+  ) {}
 
   // @Post()
   // create(@Body() createPaymentDto: CreatePaymentDto) {
@@ -44,10 +48,12 @@ export class PaymentController {
     const result = await this.paymentService.handleMoMoRedirect(query);
 
     if (result.success) {
-      return res.redirect(`http://localhost:5173/payment-success`);
+      return res.redirect(
+        `${this.configService.get<string>('URL_REACT_FRONTEND')}/payment-success`,
+      );
     } else {
       return res.redirect(
-        `http://localhost:5173/payment-failure?message=${encodeURIComponent(result.message)}`,
+        `${this.configService.get<string>('URL_REACT_FRONTEND')}/payment-failure?message=${encodeURIComponent(result.message)}`,
       );
     }
   }
