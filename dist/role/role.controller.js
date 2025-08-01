@@ -18,7 +18,6 @@ const role_service_1 = require("./role.service");
 const create_role_dto_1 = require("./dto/create-role.dto");
 const update_role_dto_1 = require("./dto/update-role.dto");
 const userDecorator_1 = require("../decorator/userDecorator");
-const swagger_1 = require("@nestjs/swagger");
 let RoleController = class RoleController {
     constructor(roleService) {
         this.roleService = roleService;
@@ -78,7 +77,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RoleController.prototype, "remove", null);
 exports.RoleController = RoleController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('/api/v1/roles'),
     __metadata("design:paramtypes", [role_service_1.RoleService])
 ], RoleController);

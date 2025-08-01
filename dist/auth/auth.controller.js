@@ -25,7 +25,6 @@ const local_guard_1 = require("../common/guards/local.guard");
 const create_user_dto_1 = require("../user/dto/create-user.dto");
 const user_service_1 = require("../user/user.service");
 const passport_1 = require("@nestjs/passport");
-const swagger_1 = require("@nestjs/swagger");
 const ms_1 = __importDefault(require("ms"));
 const config_1 = require("@nestjs/config");
 const verify_otp_dto_1 = require("../user/dto/verify-otp.dto");
@@ -135,7 +134,6 @@ __decorate([
     (0, messageDecorator_1.ResponseMessage)('Đăng nhập thành công'),
     (0, publicDecorator_1.Public)(),
     (0, common_1.Post)('/login'),
-    (0, swagger_1.ApiBody)({ type: create_user_dto_1.LoginDto }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),

@@ -1,39 +1,26 @@
 import { Min } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+
 
 export class VariantDto {
-  @ApiProperty({
-    example: '64a2b3c4d5e6f7890a1b2c3d',
-    description: 'ID biến thể sản phẩm',
-  })
+ 
   variantId: string;
 
-  @ApiProperty({ example: 100, description: 'Số lượng tồn kho của biến thể' })
+ 
   @Min(0)
   stock: number;
 
-  @ApiProperty({ example: 50000, description: 'Giá vốn của biến thể' })
   @Min(0)
   cost: number;
 }
 
 export class CreateInventoryDto {
-  @ApiProperty({
-    example: '64a2b3c4d5e6f7890a1b2c3e',
-    description: 'ID cửa hàng',
-  })
+  
   branch: string;
 
-  @ApiProperty({
-    example: '64a2b3c4d5e6f7890a1b2c3f',
-    description: 'ID sản phẩm',
-  })
+  
   product: string;
 
-  @ApiProperty({
-    type: [VariantDto],
-    description: 'Danh sách biến thể sản phẩm',
-  })
+  
   variants: VariantDto[];
 }
 export class CreateStockMovementDto {

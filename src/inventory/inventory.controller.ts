@@ -16,7 +16,6 @@ import {
   CreateTransferDto,
 } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
@@ -24,7 +23,6 @@ import { User } from 'src/decorator/userDecorator';
 
 import { IUser } from 'src/user/interface/user.interface';
 
-@ApiBearerAuth('access-token')
 @Controller('api/v1/inventories')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}

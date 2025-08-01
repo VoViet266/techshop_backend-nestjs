@@ -30,6 +30,14 @@ export declare class DashboardService {
             ordersChange: number;
             aovChange: number;
             returnRateChange: number;
+            totalProfitChange: number;
+        };
+        profit: {
+            revenueChange: number;
+            ordersChange: number;
+            aovChange: number;
+            returnRateChange: number;
+            totalProfitChange: number;
         };
     }>;
     getBranchStats(period: string, date?: Date): Promise<any[]>;

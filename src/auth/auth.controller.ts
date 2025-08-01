@@ -23,7 +23,7 @@ import { LoginDto, RegisterUserDto } from 'src/user/dto/create-user.dto';
 import { Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+
 import ms from 'ms';
 import { ConfigService } from '@nestjs/config';
 import { VerifyOtpDto } from 'src/user/dto/verify-otp.dto';
@@ -40,7 +40,6 @@ export class AuthController {
   @ResponseMessage('Đăng nhập thành công')
   @Public()
   @Post('/login')
-  @ApiBody({ type: LoginDto })
   handleLogin(@Request() req: any, @Res({ passthrough: true }) res: Response) {
     return this.authService.login(req.user, res);
   }

@@ -1,1 +1,1 @@
-{"version":3,"file":"update-dashboard.dto.js","sourceRoot":"","sources":["../../../src/dashboard/dto/update-dashboard.dto.ts"],"names":[],"mappings":";;;AAAA,6CAA8C;AAC9C,iEAAiE;AAEjE,MAAa,kBAAmB,SAAQ,IAAA,qBAAW,EAAC,8CAAuB,CAAC;CAAG;AAA/E,gDAA+E"}
+{"version":3,"file":"update-dashboard.dto.js","sourceRoot":"","sources":["../../../src/dashboard/dto/update-dashboard.dto.ts"],"names":[],"mappings":";;;AACA,uDAAmD;AACnD,iEAAiE;AAEjE,MAAa,kBAAmB,SAAQ,IAAA,0BAAW,EAAC,8CAAuB,CAAC;CAAG;AAA/E,gDAA+E"}

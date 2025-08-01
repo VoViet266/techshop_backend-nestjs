@@ -1,33 +1,3 @@
-export declare class ProductSpecsDto {
-    displaySize?: string;
-    displayType?: string;
-    processor?: string;
-    operatingSystem?: string;
-    battery?: string;
-    weight?: string;
-}
-export declare class ConnectivityDto {
-    wifi?: string;
-    bluetooth?: string;
-    cellular?: string;
-    nfc?: boolean;
-    gps?: boolean;
-    ports?: string[];
-}
-export declare class CameraFrontDto {
-    resolution: string;
-    features: string[];
-}
-export declare class CameraRearDto {
-    resolution: string;
-    features: string[];
-    lensCount: number;
-    videoRecording?: string[];
-}
-export declare class CameraDto {
-    front: CameraFrontDto;
-    rear: CameraRearDto;
-}
 export declare class VariantColorDto {
     name: string;
     hex: string;

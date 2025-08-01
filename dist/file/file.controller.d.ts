@@ -9,8 +9,4 @@ export declare class FileController {
         filePath: string;
         filename: string;
     };
-    uploadExcel(file: Express.Multer.File): Promise<{
-        message: string;
-        data: unknown[];
-    }>;
 }

@@ -11,51 +11,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateTransferDto = exports.CreateStockMovementDto = exports.CreateInventoryDto = exports.VariantDto = void 0;
 const class_validator_1 = require("class-validator");
-const swagger_1 = require("@nestjs/swagger");
 class VariantDto {
 }
 exports.VariantDto = VariantDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: '64a2b3c4d5e6f7890a1b2c3d',
-        description: 'ID biến thể sản phẩm',
-    }),
-    __metadata("design:type", String)
-], VariantDto.prototype, "variantId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 100, description: 'Số lượng tồn kho của biến thể' }),
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], VariantDto.prototype, "stock", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 50000, description: 'Giá vốn của biến thể' }),
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], VariantDto.prototype, "cost", void 0);
 class CreateInventoryDto {
 }
 exports.CreateInventoryDto = CreateInventoryDto;
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        example: '64a2b3c4d5e6f7890a1b2c3e',
-        description: 'ID cửa hàng',
-    }),
-    __metadata("design:type", String)
-], CreateInventoryDto.prototype, "branch", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        example: '64a2b3c4d5e6f7890a1b2c3f',
-        description: 'ID sản phẩm',
-    }),
-    __metadata("design:type", String)
-], CreateInventoryDto.prototype, "product", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        type: [VariantDto],
-        description: 'Danh sách biến thể sản phẩm',
-    }),
-    __metadata("design:type", Array)
-], CreateInventoryDto.prototype, "variants", void 0);
 class CreateStockMovementDto {
 }
 exports.CreateStockMovementDto = CreateStockMovementDto;

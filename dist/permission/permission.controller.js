@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const permission_service_1 = require("./permission.service");
 const create_permission_dto_1 = require("./dto/create-permission.dto");
 const update_permission_dto_1 = require("./dto/update-permission.dto");
-const swagger_1 = require("@nestjs/swagger");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const policies_decorator_1 = require("../decorator/policies.decorator");
 const permission_enum_1 = require("../constant/permission.enum");
@@ -82,7 +81,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PermissionController.prototype, "remove", null);
 exports.PermissionController = PermissionController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/permissions'),
     __metadata("design:paramtypes", [permission_service_1.PermissionService])
 ], PermissionController);

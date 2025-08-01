@@ -11,13 +11,12 @@ import {
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+
 import { Public } from 'src/decorator/publicDecorator';
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 
-@ApiBearerAuth('access-token')
 @Controller('api/v1/categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

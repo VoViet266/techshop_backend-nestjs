@@ -74,6 +74,7 @@ let DashboardService = DashboardService_1 = class DashboardService {
             current: currentStats,
             previous: previousStats,
             comparison: this.calculateComparison(currentStats, previousStats),
+            profit: this.calculateComparison(currentStats, previousStats),
         };
     }
     async getBranchStats(period, date) {
@@ -211,9 +212,7 @@ let DashboardService = DashboardService_1 = class DashboardService {
     async updateDailyStats() {
         this.logger.log('Updating daily stats...');
         const dailyData = await this.aggregateDailyData();
-        console.log('Daily data: ', dailyData);
         const result = await this.createOrUpdateStats('daily', dailyData);
-        console.log('Result: ', result);
         this.logger.log('Daily stats updated successfully');
     }
     async updateWeeklyStats() {
@@ -307,6 +306,7 @@ let DashboardService = DashboardService_1 = class DashboardService {
             ordersChange: this.calculatePercentageChange(current.totalOrders, previous.totalOrders),
             aovChange: this.calculatePercentageChange(current.averageOrderValue, previous.averageOrderValue),
             returnRateChange: this.calculatePercentageChange(current.returnRate, previous.returnRate),
+            totalProfitChange: this.calculatePercentageChange(current.totalProfit, previous.totalProfit),
         };
     }
     calculatePercentageChange(current, previous) {

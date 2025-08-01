@@ -18,7 +18,6 @@ const order_service_1 = require("./order.service");
 const create_order_dto_1 = require("./dto/create-order.dto");
 const update_order_dto_1 = require("./dto/update-order.dto");
 const userDecorator_1 = require("../decorator/userDecorator");
-const swagger_1 = require("@nestjs/swagger");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const policies_decorator_1 = require("../decorator/policies.decorator");
 const permission_enum_1 = require("../constant/permission.enum");
@@ -133,7 +132,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], OrderController.prototype, "confirmReturn", null);
 exports.OrderController = OrderController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/orders'),
     __metadata("design:paramtypes", [order_service_1.OrderService])
 ], OrderController);

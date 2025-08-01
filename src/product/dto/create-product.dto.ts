@@ -11,178 +11,55 @@ import {
   ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class ProductSpecsDto {
-  @ApiPropertyOptional({
-    example: '6.5 inch',
-    description: 'Kích thước màn hình',
-  })
-  @IsString()
-  @IsOptional()
-  displaySize?: string;
 
-  @ApiPropertyOptional({ example: 'OLED', description: 'Loại màn hình' })
-  @IsString()
-  @IsOptional()
-  displayType?: string;
 
-  @ApiPropertyOptional({ example: 'Snapdragon 888', description: 'Bộ xử lý' })
-  @IsString()
-  @IsOptional()
-  processor?: string;
 
-  @ApiPropertyOptional({ example: 'Android 11', description: 'Hệ điều hành' })
-  @IsString()
-  @IsOptional()
-  operatingSystem?: string;
 
-  @ApiPropertyOptional({ example: '4000mAh', description: 'Dung lượng pin' })
-  @IsString()
-  @IsOptional()
-  battery?: string;
 
-  @ApiPropertyOptional({ example: '180g', description: 'Trọng lượng' })
-  @IsString()
-  @IsOptional()
-  weight?: string;
-}
 
-export class ConnectivityDto {
-  @ApiPropertyOptional({
-    example: '802.11 a/b/g/n/ac',
-    description: 'Chuẩn WiFi',
-  })
-  @IsString()
-  @IsOptional()
-  wifi?: string;
 
-  @ApiPropertyOptional({ example: '5.0', description: 'Phiên bản Bluetooth' })
-  @IsString()
-  @IsOptional()
-  bluetooth?: string;
-
-  @ApiPropertyOptional({ example: '4G LTE', description: 'Kết nối di động' })
-  @IsString()
-  @IsOptional()
-  cellular?: string;
-
-  @ApiPropertyOptional({ example: true, description: 'Hỗ trợ NFC hay không' })
-  @IsBoolean()
-  @IsOptional()
-  nfc?: boolean;
-
-  @ApiPropertyOptional({ example: true, description: 'Hỗ trợ GPS hay không' })
-  @IsBoolean()
-  @IsOptional()
-  gps?: boolean;
-
-  @ApiPropertyOptional({
-    example: ['USB-C', '3.5mm jack'],
-    description: 'Cổng kết nối',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  ports?: string[];
-}
-
-export class CameraFrontDto {
-  @ApiProperty({ example: '12MP', description: 'Độ phân giải camera trước' })
-  @IsString()
-  resolution: string;
-
-  @ApiProperty({
-    example: ['HDR', 'Panorama'],
-    description: 'Tính năng camera trước',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  features: string[];
-}
-
-export class CameraRearDto {
-  @ApiProperty({ example: '48MP', description: 'Độ phân giải camera sau' })
-  @IsString()
-  resolution: string;
-
-  @ApiProperty({
-    example: ['OIS', 'Night mode'],
-    description: 'Tính năng camera sau',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  features: string[];
-
-  @ApiProperty({ example: 3, description: 'Số lượng ống kính' })
-  @IsNumber()
-  lensCount: number;
-
-  @ApiPropertyOptional({
-    example: ['4K', 'Slow motion'],
-    description: 'Tính năng quay video',
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  videoRecording?: string[];
-}
-
-export class CameraDto {
-  @ApiProperty({ type: CameraFrontDto, description: 'Thông số camera trước' })
-  @ValidateNested()
-  @Type(() => CameraFrontDto)
-  front: CameraFrontDto;
-
-  @ApiProperty({ type: CameraRearDto, description: 'Thông số camera sau' })
-  @ValidateNested()
-  @Type(() => CameraRearDto)
-  rear: CameraRearDto;
-}
 
 export class VariantColorDto {
-  @ApiProperty({ example: 'Red', description: 'Tên màu sắc' })
+ 
   @IsString()
   name: string;
 
-  @ApiProperty({ example: '#FF0000', description: 'Mã màu hex' })
+
   @IsString()
   hex: string;
 }
 
 export class VariantMemoryDto {
-  @ApiProperty({ example: '8GB', description: 'Dung lượng RAM' })
+  
   @IsString()
   ram: string;
 
-  @ApiProperty({ example: '128GB', description: 'Dung lượng lưu trữ' })
+ 
   @IsString()
   storage: string;
 }
 
 export class VariantDto {
-  @ApiProperty({ example: 'Standard', description: 'Tên biến thể' })
+
   name?: string;
 
-  @ApiProperty({ example: 999, description: 'Giá bán' })
+
   price?: number;
 
-  @ApiProperty({ type: VariantColorDto, description: 'Thông tin màu sắc' })
+  
   color?: VariantColorDto;
 
-  @ApiProperty({ type: VariantMemoryDto, description: 'Thông tin bộ nhớ' })
+ 
   memory?: VariantMemoryDto;
 
-  @ApiProperty({
-    example: ['image1.jpg', 'image2.jpg'],
-    description: 'Danh sách hình ảnh',
-  })
+ 
   images: string[];
 
-  @ApiPropertyOptional({ example: 200, description: 'Trọng lượng (gram)' })
   weight?: number;
+  
 
-  @ApiPropertyOptional({ example: true, description: 'Trạng thái kích hoạt' })
+
   isActive?: boolean;
 }
 

@@ -10,41 +10,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreatePermissionDto = void 0;
-const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 const permission_enum_1 = require("../../constant/permission.enum");
 class CreatePermissionDto {
 }
 exports.CreatePermissionDto = CreatePermissionDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: 'READ',
-        description: 'Tên permission, ví dụ: "READ", "WRITE"',
-    }),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePermissionDto.prototype, "name", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: 'Quyền đọc dữ liệu người dùng',
-        description: 'Mô tả quyền',
-    }),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePermissionDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: 'USER',
-        description: 'Module của permission, ví dụ: "USER", "POST"',
-    }),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePermissionDto.prototype, "module", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({
-        example: 'READ',
-        description: 'Action của permission, ví dụ: "READ", "WRITE"',
-    }),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreatePermissionDto.prototype, "action", void 0);

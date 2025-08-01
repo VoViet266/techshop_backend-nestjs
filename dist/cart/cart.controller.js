@@ -18,7 +18,6 @@ const cart_service_1 = require("./cart.service");
 const create_cart_dto_1 = require("./dto/create-cart.dto");
 const update_cart_dto_1 = require("./dto/update-cart.dto");
 const userDecorator_1 = require("../decorator/userDecorator");
-const swagger_1 = require("@nestjs/swagger");
 const messageDecorator_1 = require("../decorator/messageDecorator");
 let CartController = class CartController {
     constructor(cartService) {
@@ -83,7 +82,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CartController.prototype, "removeItem", null);
 exports.CartController = CartController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/carts'),
     __metadata("design:paramtypes", [cart_service_1.CartService])
 ], CartController);

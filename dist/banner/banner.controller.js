@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const banner_service_1 = require("./banner.service");
 const create_banner_dto_1 = require("./dto/create-banner.dto");
 const update_banner_dto_1 = require("./dto/update-banner.dto");
-const swagger_1 = require("@nestjs/swagger");
 const publicDecorator_1 = require("../decorator/publicDecorator");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const policies_decorator_1 = require("../decorator/policies.decorator");
@@ -88,7 +87,6 @@ __decorate([
 ], BannerController.prototype, "remove", null);
 exports.BannerController = BannerController = __decorate([
     (0, common_1.Controller)('api/v1/banners'),
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     __metadata("design:paramtypes", [banner_service_1.BannerService])
 ], BannerController);
 //# sourceMappingURL=banner.controller.js.map

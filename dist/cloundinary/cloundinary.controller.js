@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const cloundinary_service_1 = require("./cloundinary.service");
 const platform_express_1 = require("@nestjs/platform-express");
 const publicDecorator_1 = require("../decorator/publicDecorator");
-const swagger_1 = require("@nestjs/swagger");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const permission_enum_1 = require("../constant/permission.enum");
 const policies_decorator_1 = require("../decorator/policies.decorator");
@@ -74,7 +73,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CloundinaryController.prototype, "deleteFile", null);
 exports.CloundinaryController = CloundinaryController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/upload'),
     __metadata("design:paramtypes", [cloundinary_service_1.CloundinaryService])
 ], CloundinaryController);

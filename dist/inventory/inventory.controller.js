@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const inventory_service_1 = require("./inventory.service");
 const create_inventory_dto_1 = require("./dto/create-inventory.dto");
 const update_inventory_dto_1 = require("./dto/update-inventory.dto");
-const swagger_1 = require("@nestjs/swagger");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const policies_decorator_1 = require("../decorator/policies.decorator");
 const permission_enum_1 = require("../constant/permission.enum");
@@ -209,7 +208,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], InventoryController.prototype, "updateTransfer", null);
 exports.InventoryController = InventoryController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/inventories'),
     __metadata("design:paramtypes", [inventory_service_1.InventoryService])
 ], InventoryController);

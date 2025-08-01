@@ -43,7 +43,6 @@ const cookieParser = require("cookie-parser");
 const express = __importStar(require("express"));
 const common_1 = require("@nestjs/common");
 const http_exception_filter_1 = require("./common/filter/http-exception.filter");
-const swagger_1 = require("@nestjs/swagger");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.useStaticAssets((0, path_1.join)(__dirname, '..', 'public'));
@@ -64,19 +63,6 @@ async function bootstrap() {
         optionsSuccessStatus: 204,
         credentials: true,
     });
-    const config = new swagger_1.DocumentBuilder()
-        .setTitle('API TechShop')
-        .setDescription('API mô tả Techshop')
-        .setVersion('1.0')
-        .addBearerAuth({
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Nhập JWT token',
-    }, 'access-token')
-        .build();
-    const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('api', app, document);
     await app.listen(configService.get('PORT'));
     console.log(`Application is running on: ${configService.get('PORT')}`);
 }

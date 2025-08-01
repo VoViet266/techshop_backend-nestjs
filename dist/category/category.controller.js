@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const category_service_1 = require("./category.service");
 const create_category_dto_1 = require("./dto/create-category.dto");
 const update_category_dto_1 = require("./dto/update-category.dto");
-const swagger_1 = require("@nestjs/swagger");
 const publicDecorator_1 = require("../decorator/publicDecorator");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const policies_decorator_1 = require("../decorator/policies.decorator");
@@ -87,7 +86,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CategoryController.prototype, "remove", null);
 exports.CategoryController = CategoryController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/categories'),
     __metadata("design:paramtypes", [category_service_1.CategoryService])
 ], CategoryController);

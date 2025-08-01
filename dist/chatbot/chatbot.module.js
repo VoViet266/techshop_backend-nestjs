@@ -12,9 +12,6 @@ const chatbot_service_1 = require("./chatbot.service");
 const chatbot_controller_1 = require("./chatbot.controller");
 const product_module_1 = require("../product/product.module");
 const config_1 = require("@nestjs/config");
-const mongoose_1 = require("@nestjs/mongoose");
-const create_product_dto_1 = require("../product/dto/create-product.dto");
-const product_schema_1 = require("../product/schemas/product.schema");
 let ChatbotModule = class ChatbotModule {
 };
 exports.ChatbotModule = ChatbotModule;
@@ -24,9 +21,6 @@ exports.ChatbotModule = ChatbotModule = __decorate([
         providers: [chatbot_service_1.ChatBotService],
         imports: [
             product_module_1.ProductModule,
-            mongoose_1.MongooseModule.forFeature([
-                { name: create_product_dto_1.ProductSpecsDto.name, schema: product_schema_1.ProductSchema },
-            ]),
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
                 envFilePath: '.env.development.local',

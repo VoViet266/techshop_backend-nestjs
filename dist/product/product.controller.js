@@ -19,7 +19,6 @@ const create_product_dto_1 = require("./dto/create-product.dto");
 const update_product_dto_1 = require("./dto/update-product.dto");
 const publicDecorator_1 = require("../decorator/publicDecorator");
 const messageDecorator_1 = require("../decorator/messageDecorator");
-const swagger_1 = require("@nestjs/swagger");
 const policies_guard_1 = require("../common/guards/policies.guard");
 const review_service_1 = require("../review/review.service");
 let ProductController = class ProductController {
@@ -134,7 +133,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProductController.prototype, "setOrderCount", null);
 exports.ProductController = ProductController = __decorate([
-    (0, swagger_1.ApiBearerAuth)('access-token'),
     (0, common_1.Controller)('api/v1/products'),
     __metadata("design:paramtypes", [product_service_1.ProductService,
         review_service_1.ReviewService])
