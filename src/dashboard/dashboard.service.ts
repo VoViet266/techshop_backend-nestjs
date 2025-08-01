@@ -108,6 +108,7 @@ export class DashboardService {
       current: currentStats,
       previous: previousStats,
       comparison: this.calculateComparison(currentStats, previousStats),
+      profit: this.calculateComparison(currentStats, previousStats),
     };
   }
 
@@ -277,9 +278,7 @@ export class DashboardService {
   async updateDailyStats() {
     this.logger.log('Updating daily stats...');
     const dailyData = await this.aggregateDailyData();
-    console.log('Daily data: ', dailyData);
     const result = await this.createOrUpdateStats('daily', dailyData);
-    console.log('Result: ', result);
     this.logger.log('Daily stats updated successfully');
   }
 
@@ -415,6 +414,10 @@ export class DashboardService {
       returnRateChange: this.calculatePercentageChange(
         current.returnRate,
         previous.returnRate,
+      ),
+      totalProfitChange: this.calculatePercentageChange(
+        current.totalProfit,
+        previous.totalProfit,
       ),
     };
   }
