@@ -34,7 +34,7 @@ export class VariantDto {
   };
 
   @IsArray()
-  colors: VariantColorDto[];
+  color: VariantColorDto[];
 
   @IsString()
   imagesMain: string;
