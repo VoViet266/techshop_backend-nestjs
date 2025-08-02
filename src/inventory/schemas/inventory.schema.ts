@@ -44,23 +44,7 @@ export class Inventory {
     cost?: number;
   }[];
 
-  // Mức tồn kho tối thiểu để cảnh báo
-  @Prop({
-    default: 0,
-    min: 0, 
-  })
-  minStockLevel: number;
 
-  // Mức tồn kho tối đa
-  @Prop({
-    default: 0,
-    min: 0,
-  })
-  maxStockLevel: number;
-
-  // Thời gian nhập hàng gần nhất
-  @Prop({ type: Date })
-  lastRestockedAt: Date;
 
   // Trạng thái hoạt động của tồn kho
   @Prop({
@@ -68,18 +52,6 @@ export class Inventory {
     index: true,
   })
   isActive: boolean;
-
-  // Thông tin người cập nhật cuối cùng
-  @Prop({
-    type: {
-      email: String,
-      name: String,
-    },
-  })
-  lastUpdatedBy: {
-    email: string;
-    name: string;
-  };
 
   @Prop({
     type: {

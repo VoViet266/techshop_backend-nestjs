@@ -10,6 +10,7 @@ export class Role {
 
   @Prop()
   description: string;
+
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: Permission.name }],
   })

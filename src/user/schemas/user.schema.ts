@@ -18,7 +18,7 @@ const AddressSchema = new mongoose.Schema(
 );
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, index: true })
   email: string;
 
   @Prop({ required: true })
@@ -48,11 +48,11 @@ export class User {
     default: boolean;
   }[];
 
-  @Prop({
-    enum: ['GUEST', 'NEW', 'MEMBER', 'VIP'],
-    default: 'GUEST',
-  })
-  userType: string;
+  // @Prop({
+  //   enum: ['GUEST', 'NEW', 'MEMBER', 'VIP'],
+  //   default: 'GUEST',
+  // })
+  // userType: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Branch.name })
   branch: mongoose.Schema.Types.ObjectId;
@@ -62,12 +62,6 @@ export class User {
 
   @Prop()
   isActive: boolean;
-
-  @Prop()
-  totalSpent: string;
-
-  @Prop()
-  totalOrders: number;
 
   @Prop()
   refreshToken: string;

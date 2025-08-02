@@ -84,11 +84,11 @@ export class Products {
   })
   name: string;
 
-  @Prop({
-    index: true,
-    trim: true,
-  })
-  slug: string;
+  // @Prop({
+  //   index: true,
+  //   trim: true,
+  // })
+  // slug: string;
 
   // @Prop({
   //   required: true,
@@ -124,7 +124,6 @@ export class Products {
     ref: Variant.name,
   })
   variants?: Variant[];
-  
 
   @Prop({ type: mongoose.Schema.Types.Mixed, default: {} })
   attributes: Record<string, any>;
@@ -162,47 +161,30 @@ export class Products {
 
   @Prop({
     default: true,
-    index: true,
   })
   isActive: boolean;
-
-  @Prop({
-    default: false,
-    index: true,
-  })
-  isFeatured: boolean;
-
-  @Prop({
-    default: false,
-    index: true,
-  })
-  isDeleted: boolean;
 
   @Prop({ type: Date })
   deletedAt: Date;
 
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   createdBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };
 
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   updatedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };
@@ -210,9 +192,8 @@ export class Products {
 
 export const ProductSchema = SchemaFactory.createForClass(Products);
 
-// Compound indexes for better query performance
-ProductSchema.index({ category: 1, brand: 1, isActive: 1 });
-ProductSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
+// Compound indexes for better query performanc
+ProductSchema.index({ isActive: 1, createdAt: -1 });
 ProductSchema.index({ tags: 1, isActive: 1 });
 ProductSchema.index({ slug: 1 }, { unique: true });
 

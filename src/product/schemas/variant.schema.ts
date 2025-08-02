@@ -6,15 +6,16 @@ export type VariantDocument = HydratedDocument<Variant>;
   strict: true,
 })
 export class Variant {
-  @Prop()
+  @Prop({
+    required: true,
+    index: true,
+  })
   name: string;
 
   @Prop({
     min: 0,
   })
   price: number;
-
-
 
   @Prop({
     type: Object,

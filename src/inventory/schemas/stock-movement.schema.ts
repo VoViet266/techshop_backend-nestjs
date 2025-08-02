@@ -48,11 +48,7 @@ export class StockMovement {
     required: true,
   })
   type: string;
-
-  @Prop() note: string;
-
   
-
   @Prop({ type: String, enum: TransactionSource })
   source: string;
 

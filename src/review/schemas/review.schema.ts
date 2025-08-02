@@ -36,23 +36,17 @@ export class Review {
   @Prop({ min: 1, max: 5, default: 5 })
   rating: number;
 
-  @Prop({ default: 0 })
-  likes?: number;
+  // @Prop({ default: 0 })
+  // likes?: number;
 
-  @Prop({ default: 0 })
-  dislikes?: number;
-
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
-  likedBy?: Types.ObjectId[];
-
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
-  dislikedBy?: Types.ObjectId[];
+  // @Prop({ default: 0 })
+  // dislikes?: number;
 
   @Prop({ type: [ReplySchema], default: [] })
   replies: Reply[];
 
-  @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
-  status?: string;
+  // @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+  // status?: string;
 
   @Prop({ default: Date.now })
   createdAt: Date;
