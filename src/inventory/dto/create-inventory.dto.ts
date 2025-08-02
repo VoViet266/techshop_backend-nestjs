@@ -28,6 +28,7 @@ export class CreateStockMovementDto {
   productId: string; // id sản phẩm
   variants: {
     variantId: string; // id biến thể sản phẩm
+    variantColor: string;
     quantity: number; // số lượng tương ứng
     cost?: number; // giá vốn của biến thể (tùy chọn)
   }[]; // danh sách biến thể và số lượng tương ứng
@@ -42,6 +43,7 @@ export class CreateTransferDto {
   items: {
     productId: string; // id sản phẩm
     variantId: string; // id biến thể sản phẩm
+    variantColor: string;
     quantity: number; // số lượng chuyển
     unit?: string;
   }[]; // danh sách sản phẩm và số lượng tương ứng

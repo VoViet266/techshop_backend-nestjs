@@ -41,7 +41,7 @@ export class VariantDto {
 
   @IsBoolean()
   @IsOptional()
-  isActive?: boolean;
+  isActive?: boolean; 
 }
 
 export class CreateProductDto {

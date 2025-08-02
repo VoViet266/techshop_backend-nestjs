@@ -77,6 +77,7 @@ export class Order {
     quantity: number;
     price: number;
     variant: mongoose.Schema.Types.ObjectId;
+    variantColor: string;
     branch: mongoose.Schema.Types.ObjectId;
   }[];
 

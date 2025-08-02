@@ -33,6 +33,7 @@ export class Inventory {
     type: [
       {
         variantId: { type: mongoose.Types.ObjectId, ref: Variant.name },
+        variantColor: { type: String },
         stock: { type: Number },
         cost: { type: Number, default: 0, min: 0 },
       },
@@ -40,6 +41,7 @@ export class Inventory {
   })
   variants: {
     variantId: mongoose.Types.ObjectId;
+    variantColor: string;
     stock: number;
     cost?: number;
   }[];

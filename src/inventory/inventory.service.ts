@@ -220,7 +220,7 @@ export class InventoryService {
     }
 
     // Cập nhật variants
-    variants.forEach(({ variantId, quantity, cost }) => {
+    variants.forEach(({ variantId, variantColor, quantity, cost }) => {
       const variant = inventory.variants.find(
         (v) => v.variantId.toString() === variantId,
       );
@@ -230,6 +230,7 @@ export class InventoryService {
       } else {
         inventory.variants.push({
           variantId: new mongoose.Types.ObjectId(variantId),
+          variantColor: variantColor,
           stock: quantity,
           cost: cost,
         });
@@ -241,7 +242,6 @@ export class InventoryService {
     await inventory.save();
     await this.movementModel.create({
       type: TransactionType.IMPORT,
-
       branchId,
       productId,
       variants,
@@ -380,7 +380,9 @@ export class InventoryService {
             variants: [
               {
                 variantId: item.variantId,
+                variantColor: item.variantColor,
                 quantity: item.quantity,
+
               },
             ],
           },
@@ -395,6 +397,7 @@ export class InventoryService {
             variants: [
               {
                 variantId: item.variantId,
+                variantColor: item.variantColor,
                 quantity: item.quantity,
               },
             ],
