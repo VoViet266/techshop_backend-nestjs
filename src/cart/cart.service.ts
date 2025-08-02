@@ -104,7 +104,7 @@ export class CartService {
       })
       .populate({
         path: 'items.variant',
-        select: 'sku images name price color memory',
+        select: 'sku imagesMain name price color memory',
       });
     return cart;
   }
@@ -167,7 +167,6 @@ export class CartService {
   }
 
   async remove(@User() user: IUser) {
-   
     const cart = await this.cartModel.findOne({ user: user._id });
     if (cart.items.length === 0) {
       throw new NotFoundException(

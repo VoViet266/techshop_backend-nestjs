@@ -316,7 +316,7 @@ export class RecommendationService implements OnModuleInit {
       .findById(productId)
       .populate('category', 'name')
       .populate('brand', 'name')
-      .populate('variants', 'price images')
+      .populate('variants', 'price imagesMain')
       .select(
         'name discount category brand variants description attributes isActive',
       )
@@ -363,7 +363,7 @@ export class RecommendationService implements OnModuleInit {
             .findById(otherProductId)
             .populate('category', 'name')
             .populate('brand', 'name')
-            .populate('variants', 'price images')
+            .populate('variants', 'price imagesMain')
             .select(
               'name category brand discount variants description attributes isActive',
             )
@@ -473,7 +473,7 @@ export class RecommendationService implements OnModuleInit {
       .sort({ viewCount: -1, soldCount: -1 })
       .populate('category', 'name')
       .populate('brand', 'name')
-      .populate('variants', 'price images')
+      .populate('variants', 'price imagesMain')
       .select('name discount category brand variants description isActive')
       .limit(limit)
       .lean()
@@ -632,7 +632,7 @@ export class RecommendationService implements OnModuleInit {
       .sort({ viewCount: -1, soldCount: -1 })
       .populate('category', 'name')
       .populate('brand', 'name')
-      .populate('variants', 'price images')
+      .populate('variants', 'price imagesMain')
       .select('name discount category brand variants description isActive')
       .limit(limit)
       .lean()
@@ -653,7 +653,7 @@ export class RecommendationService implements OnModuleInit {
       .sort({ viewCount: -1, soldCount: -1 })
       .populate('category', 'name')
       .populate('brand', 'name')
-      .populate('variants', 'price images')
+      .populate('variants', 'price imagesMain')
       .limit(limit)
       .lean()
       .exec();

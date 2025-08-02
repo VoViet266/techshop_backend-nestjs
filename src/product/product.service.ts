@@ -287,7 +287,7 @@ export class ProductService {
 
         .populate({
           path: 'variants',
-          select: 'name price color memory images',
+          select: 'name price color memory imagesMain',
         })
         .populate('category', 'name description logo configFields')
         .populate('brand', 'name description logo')
@@ -322,7 +322,7 @@ export class ProductService {
       .findById({ _id: id })
       .populate({
         path: 'variants',
-        select: 'name price color memory images',
+        select: 'name price color memory imagesMain',
       })
       .populate('brand', 'name description logo')
       .populate('category', 'name description configFields ');

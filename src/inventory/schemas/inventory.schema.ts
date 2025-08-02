@@ -44,7 +44,9 @@ export class Inventory {
     cost?: number;
   }[];
 
-
+  // Thời gian nhập hàng gần nhất
+  @Prop({ type: Date })
+  lastRestockedAt: Date;
 
   // Trạng thái hoạt động của tồn kho
   @Prop({
@@ -52,6 +54,18 @@ export class Inventory {
     index: true,
   })
   isActive: boolean;
+
+  // Thông tin người cập nhật cuối cùng
+  @Prop({
+    type: {
+      email: String,
+      name: String,
+    },
+  })
+  lastUpdatedBy: {
+    email: string;
+    name: string;
+  };
 
   @Prop({
     type: {

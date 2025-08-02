@@ -5,7 +5,6 @@ import { ProductModule } from 'src/product/product.module';
 import { ConfigModule } from '@nestjs/config';
 
 import { MongooseModule } from '@nestjs/mongoose';
-import { ProductSpecsDto } from 'src/product/dto/create-product.dto';
 import { ProductSchema } from 'src/product/schemas/product.schema';
 
 @Module({
@@ -14,9 +13,7 @@ import { ProductSchema } from 'src/product/schemas/product.schema';
   // exports: [ChatBotService],
   imports: [
     ProductModule,
-    MongooseModule.forFeature([
-      { name: ProductSpecsDto.name, schema: ProductSchema },
-    ]),
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env.development.local',
