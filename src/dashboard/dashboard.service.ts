@@ -579,7 +579,6 @@ export class DashboardService {
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
     const data = await this.aggregateDataFromRange(startOfDay, endOfDay);
-
     return {
       ...data,
       period: 'daily',
