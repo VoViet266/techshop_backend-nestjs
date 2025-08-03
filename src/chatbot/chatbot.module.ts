@@ -4,6 +4,9 @@ import { ChatBotController } from './chatbot.controller';
 import { ProductModule } from 'src/product/product.module';
 import { ConfigModule } from '@nestjs/config';
 
+import { MongooseModule } from '@nestjs/mongoose';
+import { ProductSchema } from 'src/product/schemas/product.schema';
+
 @Module({
   controllers: [ChatBotController],
   providers: [ChatBotService],

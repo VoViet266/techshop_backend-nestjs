@@ -32,6 +32,7 @@ export class StockMovement {
     type: [
       {
         variantId: { type: mongoose.Types.ObjectId, ref: Variant.name },
+        variantColor: { type: String },
         quantity: { type: Number },
         cost: { type: Number, default: 0, min: 0 },
       },
@@ -39,6 +40,7 @@ export class StockMovement {
   })
   variants?: {
     variantId: mongoose.Types.ObjectId;
+    variantColor: string;
     quantity: number;
     cost?: number;
   }[];
@@ -48,10 +50,6 @@ export class StockMovement {
     required: true,
   })
   type: string;
-
-  @Prop() note: string;
-
-  
 
   @Prop({ type: String, enum: TransactionSource })
   source: string;

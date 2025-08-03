@@ -10,69 +10,6 @@ import { Promotion } from 'src/benefit/schemas/promotion.schema';
 import { WarrantyPolicy } from 'src/benefit/schemas/warrantypolicy.schema';
 export type ProductDocument = HydratedDocument<Products>;
 
-export type CamerasDocument = HydratedDocument<Camera>;
-export type ConnectivitiesDocument = HydratedDocument<Connectivity>;
-
-@Schema({ _id: false, strict: true })
-export class ProductSpecs {
-  @Prop()
-  displaySize: string;
-
-  @Prop()
-  displayType: string;
-
-  @Prop()
-  processor: string;
-
-  @Prop()
-  operatingSystem: string;
-
-  @Prop()
-  battery: string;
-
-  @Prop()
-  weight: string;
-}
-
-@Schema({ _id: false, strict: true })
-export class Connectivity {
-  @Prop()
-  wifi: string;
-
-  @Prop()
-  bluetooth: string;
-
-  @Prop()
-  cellular: string;
-
-  @Prop({ default: false })
-  nfc: boolean;
-
-  @Prop({ default: false })
-  gps: boolean;
-
-  @Prop()
-  ports: string[];
-}
-
-@Schema({ _id: false, strict: true })
-export class Camera {
-  @Prop({ type: Object })
-  front: {
-    resolution: string;
-    features: string[];
-    videoRecording: string[];
-  };
-
-  @Prop({ type: Object })
-  rear: {
-    resolution: string;
-    features: string[];
-    lensCount: number;
-    videoRecording: string[];
-  };
-}
-
 @Schema({
   timestamps: true,
 })
@@ -84,11 +21,11 @@ export class Products {
   })
   name: string;
 
-  @Prop({
-    index: true,
-    trim: true,
-  })
-  slug: string;
+  // @Prop({
+  //   index: true,
+  //   trim: true,
+  // })
+  // slug: string;
 
   // @Prop({
   //   required: true,
@@ -124,7 +61,6 @@ export class Products {
     ref: Variant.name,
   })
   variants?: Variant[];
-  
 
   @Prop({ type: mongoose.Schema.Types.Mixed, default: {} })
   attributes: Record<string, any>;
@@ -162,47 +98,30 @@ export class Products {
 
   @Prop({
     default: true,
-    index: true,
   })
   isActive: boolean;
-
-  @Prop({
-    default: false,
-    index: true,
-  })
-  isFeatured: boolean;
-
-  @Prop({
-    default: false,
-    index: true,
-  })
-  isDeleted: boolean;
 
   @Prop({ type: Date })
   deletedAt: Date;
 
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   createdBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };
 
   @Prop({
     type: {
-      _id: mongoose.Schema.Types.ObjectId,
       email: String,
       name: String,
     },
   })
   updatedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
     email: string;
     name: string;
   };
@@ -210,9 +129,8 @@ export class Products {
 
 export const ProductSchema = SchemaFactory.createForClass(Products);
 
-// Compound indexes for better query performance
-ProductSchema.index({ category: 1, brand: 1, isActive: 1 });
-ProductSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
+// Compound indexes for better query performanc
+ProductSchema.index({ isActive: 1, createdAt: -1 });
 ProductSchema.index({ tags: 1, isActive: 1 });
 ProductSchema.index({ slug: 1 }, { unique: true });
 

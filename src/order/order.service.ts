@@ -94,6 +94,7 @@ export class OrderService {
         product: item.product.toString(),
         quantity: item.quantity,
         variant: item.variant.toString(),
+        color: item.color,
         price: item.price,
         branch: item.branch.toString(),
       }));
@@ -233,9 +234,8 @@ export class OrderService {
     await newOrder.save();
 
     // 8. Nếu là đặt hàng online thì xoá giỏ hàng
-   
+
     if (createOrderDto.items || createOrderDto.items.length === 0) {
-      
       await this.cartService.remove(user);
     }
 
@@ -323,6 +323,7 @@ export class OrderService {
             variants: [
               {
                 variantId: item.variant.toString(),
+                variantColor: item.variantColor,
                 quantity: item.quantity,
               },
             ],
@@ -407,7 +408,6 @@ export class OrderService {
       returnReason: string;
     },
   ) {
-    console.log(dto);
     const order = await this.orderModel.findById(orderId);
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
 
@@ -470,6 +470,7 @@ export class OrderService {
             variants: [
               {
                 variantId: item.variant?.toString(),
+                variantColor: item.variantColor,
                 quantity: item.quantity,
               },
             ],

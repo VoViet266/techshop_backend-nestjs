@@ -5,10 +5,6 @@ import {
   IsNumber,
   IsArray,
   ValidateNested,
-  IsMongoId,
-  Min,
-  Max,
-  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -68,22 +64,54 @@ export class CreateProductDto {
   description?: string;
   galleryImages: string;
   slug: string;
-  promotions?: string[];
-  warranties?: string[];
-  category: string;
-  brand: string;
-  variants?: VariantDto[];
-  discount: number;
-  attributes?: Record<string, any>;
-  tags?: string[];
 
+  // @IsArray()
+  // @IsOptional()
+  // @IsString({ each: true })
+  // promotions?: string[];
+
+  // @IsArray()
+  // @IsOptional()
+  // @IsString({ each: true })
+  // warranties?: string[];
+
+  @IsString()
+  category: string;
+
+  @IsString()
+  brand: string;
+
+  @IsArray()
+  variants?: VariantDto[];
+
+  @IsNumber()
+  discount: number;
+
+  @IsOptional()
+  attributes?: Record<string, any>;
+
+  // @IsArray()
+  // @IsOptional()
+  // @IsString({ each: true })
+  // tags?: string[];
+
+  @IsNumber()
+  @IsOptional()
   viewCount?: number;
 
+  @IsNumber()
+  @IsOptional()
   averageRating?: number;
 
+  @IsNumber()
+  @IsOptional()
   reviewCount?: number;
 
+  @IsBoolean()
+  @IsOptional()
   isActive?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
   isFeatured?: boolean;
 }

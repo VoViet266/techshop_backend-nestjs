@@ -6,7 +6,10 @@ export type VariantDocument = HydratedDocument<Variant>;
   strict: true,
 })
 export class Variant {
-  @Prop()
+  @Prop({
+    required: true,
+    index: true,
+  })
   name: string;
 
   @Prop({
@@ -14,15 +17,20 @@ export class Variant {
   })
   price: number;
 
-
-
   @Prop({
-    type: Object,
+    type: [
+      {
+        colorName: String,
+        colorHex: String,
+        images: [String], // mỗi màu có thể có bộ ảnh riêng
+      },
+    ],
   })
   color: {
     colorName: string;
     colorHex: string;
-  };
+    images: string[];
+  }[];
   @Prop({ type: Object })
   memory: {
     ram: string;
@@ -30,9 +38,9 @@ export class Variant {
   };
 
   @Prop({
-    type: [String],
+    type: String,
   })
-  images: string[];
+  imagesMain: string;
 
   @Prop({ default: 0 })
   weight: number; // For shipping calculations
