@@ -37,11 +37,6 @@ export class Variant {
     storage: string;
   };
 
-  @Prop({
-    type: String,
-  })
-  imagesMain: string;
-
   @Prop({ default: 0 })
   weight: number; // For shipping calculations
 
