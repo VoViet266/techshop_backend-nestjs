@@ -89,7 +89,7 @@ export class ChatBotService implements OnModuleInit {
     const products = await this.ProductModel.find()
       .populate({ path: 'category', select: 'name' })
       .populate({ path: 'brand', select: 'name' })
-      .populate({ path: 'variants', select: 'price imagesMain' });
+      .populate({ path: 'variants', select: 'price color memory ' });
 
     if (!products?.length) {
       this.logger.warn('Không tìm thấy sản phẩm nào.');
@@ -108,13 +108,14 @@ export class ChatBotService implements OnModuleInit {
         const brand = this.getNameFromPopulatedField(product.brand);
 
         const productInfo = this.formatProductInfo(product, category, brand);
+
         const vector = await this.getEmbedding(productInfo.searchText);
         this.productData.push({
           productId: product._id.toString(),
           productName: product.name,
           description: productInfo.fullDescription,
           price: product.variants[0]?.price,
-          imagesMain: product.variants[0]?.imagesMain,
+          imagesMain: product.variants[0]?.color[0]?.images[0],
           category,
           brand,
           isActive: product.isActive,
