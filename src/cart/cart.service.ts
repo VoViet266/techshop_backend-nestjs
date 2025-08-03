@@ -31,7 +31,6 @@ export class CartService {
         totalPrice: 0,
       });
     }
-
     for (const newItem of createCartDto.items) {
       // Lấy sản phẩm theo productId
       const product = await this.productModel.findById(newItem.product).exec();
@@ -58,7 +57,8 @@ export class CartService {
       const itemIndex = cart.items.findIndex(
         (item) =>
           item.product.toString() === newItem.product &&
-          item.variant.toString() === newItem.variant,
+          item.variant.toString() === newItem.variant &&
+          item.color === newItem.color,
       );
 
       if (itemIndex > -1) {
@@ -67,10 +67,12 @@ export class CartService {
           cart.items[itemIndex].quantity * variant.price -
           (variant.price * product.discount) / 100;
       } else {
+        /// nếu không tìm thấy sử dụng push
         cart.items.push({
           product: new Types.ObjectId(newItem.product),
           variant: new Types.ObjectId(newItem.variant),
           quantity: newItem.quantity,
+          color: newItem.color,
           price:
             variant.price -
             ((variant.price * product.discount) / 100) * newItem.quantity,
@@ -104,7 +106,7 @@ export class CartService {
       })
       .populate({
         path: 'items.variant',
-        select: 'sku images name price color memory',
+        select: 'sku imagesMain name price color memory',
       });
     return cart;
   }
@@ -167,7 +169,6 @@ export class CartService {
   }
 
   async remove(@User() user: IUser) {
-   
     const cart = await this.cartModel.findOne({ user: user._id });
     if (cart.items.length === 0) {
       throw new NotFoundException(

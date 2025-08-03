@@ -5,159 +5,108 @@ import {
   IsNumber,
   IsArray,
   ValidateNested,
-  IsMongoId,
-  Min,
-  Max,
-  ArrayMinSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class ProductSpecsDto {
- 
-  @IsString()
-  @IsOptional()
-  displaySize?: string;
-
-
-  @IsString()
-  @IsOptional()
-  displayType?: string;
-
-  @IsString()
-  @IsOptional()
-  processor?: string;
-
-  @IsString()
-  @IsOptional()
-  operatingSystem?: string;
-
-  @IsString()
-  @IsOptional()
-  battery?: string;
-
-  @IsString()
-  @IsOptional()
-  weight?: string;
-}
-
-export class ConnectivityDto {
-  
-  @IsString()
-  @IsOptional()
-  wifi?: string;
-
-  @IsString()
-  @IsOptional()
-  bluetooth?: string;
-
-  @IsString()
-  @IsOptional()
-  cellular?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  nfc?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  gps?: boolean;
-
- 
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  ports?: string[];
-}
-
-export class CameraFrontDto {
-  @IsString()
-  resolution: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  features: string[];
-}
-
-export class CameraRearDto {
-  @IsString()
-  resolution: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  features: string[];
-
-  @IsNumber()
-  lensCount: number;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  videoRecording?: string[];
-}
-
-export class CameraDto {
-  @ValidateNested()
-  @Type(() => CameraFrontDto)
-  front: CameraFrontDto;
-
-  @ValidateNested()
-  @Type(() => CameraRearDto)
-  rear: CameraRearDto;
-}
-
 export class VariantColorDto {
   @IsString()
-  name: string;
+  colorName: string;
 
   @IsString()
-  hex: string;
-}
+  colorHex: string;
 
-export class VariantMemoryDto {
-  @IsString()
-  ram: string;
-
-  @IsString()
-  storage: string;
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images?: string[];
 }
 
 export class VariantDto {
-  name?: string;
+  @IsString()
+  name: string;
 
-  price?: number;
+  @IsNumber()
+  price: number;
 
-  color?: VariantColorDto;
+  memory: {
+    ram: string;
+    storage: string;
+  };
 
-  memory?: VariantMemoryDto;
+  @IsArray()
+  color: VariantColorDto[];
 
-  images: string[];
+  @IsString()
+  imagesMain: string;
 
-  weight?: number;
-
-  isActive?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean; 
 }
 
 export class CreateProductDto {
+  @IsString()
   name: string;
-  description?: string;
-  galleryImages: string;
-  slug: string;
-  promotions?: string[];
-  warranties?: string[];
-  category: string;
-  brand: string;
-  variants?: VariantDto[];
-  discount: number;
-  attributes?: Record<string, any>;
-  tags?: string[];
 
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  galleryImages?: string[];
+
+  @IsString()
+  slug: string;
+
+  // @IsArray()
+  // @IsOptional()
+  // @IsString({ each: true })
+  // promotions?: string[];
+
+  // @IsArray()
+  // @IsOptional()
+  // @IsString({ each: true })
+  // warranties?: string[];
+
+  @IsString()
+  category: string;
+
+  @IsString()
+  brand: string;
+
+  @IsArray()
+  variants?: VariantDto[];
+
+  @IsNumber()
+  discount: number;
+
+  @IsOptional()
+  attributes?: Record<string, any>;
+
+  // @IsArray()
+  // @IsOptional()
+  // @IsString({ each: true })
+  // tags?: string[];
+
+  @IsNumber()
+  @IsOptional()
   viewCount?: number;
 
+  @IsNumber()
+  @IsOptional()
   averageRating?: number;
 
+  @IsNumber()
+  @IsOptional()
   reviewCount?: number;
 
+  @IsBoolean()
+  @IsOptional()
   isActive?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
   isFeatured?: boolean;
 }

@@ -35,6 +35,7 @@ export class Transfer {
           type: mongoose.Schema.Types.ObjectId,
           ref: Variant.name,
         },
+        variantColor: { type: String },
         unit: { type: String },
       },
     ],
@@ -42,6 +43,7 @@ export class Transfer {
   items: {
     productId: mongoose.Schema.Types.ObjectId;
     variantId: mongoose.Schema.Types.ObjectId;
+    variantColor: string;
     quantity: number;
     unit?: string;
   }[];

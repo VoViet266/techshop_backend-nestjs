@@ -33,6 +33,7 @@ export class Inventory {
     type: [
       {
         variantId: { type: mongoose.Types.ObjectId, ref: Variant.name },
+        variantColor: { type: String },
         stock: { type: Number },
         cost: { type: Number, default: 0, min: 0 },
       },
@@ -40,11 +41,14 @@ export class Inventory {
   })
   variants: {
     variantId: mongoose.Types.ObjectId;
+    variantColor: string;
     stock: number;
     cost?: number;
   }[];
 
-
+  // Thời gian nhập hàng gần nhất
+  @Prop({ type: Date })
+  lastRestockedAt: Date;
 
   // Trạng thái hoạt động của tồn kho
   @Prop({
@@ -52,6 +56,18 @@ export class Inventory {
     index: true,
   })
   isActive: boolean;
+
+  // Thông tin người cập nhật cuối cùng
+  @Prop({
+    type: {
+      email: String,
+      name: String,
+    },
+  })
+  lastUpdatedBy: {
+    email: string;
+    name: string;
+  };
 
   @Prop({
     type: {

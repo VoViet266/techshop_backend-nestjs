@@ -23,6 +23,9 @@ export class CartItem {
   })
   variant: Types.ObjectId;
 
+  @Prop()
+  color: string;
+
   @Prop({ required: true, default: 1 })
   quantity: number;
 
