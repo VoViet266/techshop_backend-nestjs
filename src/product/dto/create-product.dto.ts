@@ -36,12 +36,9 @@ export class VariantDto {
   @IsArray()
   color: VariantColorDto[];
 
-  @IsString()
-  imagesMain: string;
-
   @IsBoolean()
   @IsOptional()
-  isActive?: boolean; 
+  isActive?: boolean;
 }
 
 export class CreateProductDto {
