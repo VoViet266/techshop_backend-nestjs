@@ -87,7 +87,6 @@ let DashboardService = DashboardService_1 = class DashboardService {
                 current: currentStats,
                 previous: previousStats,
                 comparison: this.calculateComparison(currentStats, previousStats),
-                profit: this.calculateComparison(currentStats, previousStats),
             };
         }
         catch (error) {
@@ -209,10 +208,6 @@ let DashboardService = DashboardService_1 = class DashboardService {
         catch (error) {
             this.logger.error('Error updating daily stats:', error);
         }
-        this.logger.log('Updating daily stats...');
-        const dailyData = await this.aggregateDailyData();
-        const result = await this.createOrUpdateStats('daily', dailyData);
-        this.logger.log('Daily stats updated successfully');
     }
     async updateWeeklyStats() {
         try {
@@ -321,7 +316,6 @@ let DashboardService = DashboardService_1 = class DashboardService {
             profitChange: this.calculatePercentageChange(current.totalProfit || 0, previous.totalProfit || 0),
             aovChange: this.calculatePercentageChange(current.averageOrderValue, previous.averageOrderValue),
             returnRateChange: this.calculatePercentageChange(current.returnRate || 0, previous.returnRate || 0),
-            totalProfitChange: this.calculatePercentageChange(current.totalProfit, previous.totalProfit),
         };
     }
     calculatePercentageChange(current, previous) {
@@ -473,12 +467,6 @@ let DashboardService = DashboardService_1 = class DashboardService {
         const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
         return await this.aggregateDataFromRange(startOfDay, endOfDay, 'daily');
-        const data = await this.aggregateDataFromRange(startOfDay, endOfDay);
-        return {
-            ...data,
-            period: 'daily',
-            date: startOfDay,
-        };
     }
     async aggregateWeeklyData() {
         const today = new Date();

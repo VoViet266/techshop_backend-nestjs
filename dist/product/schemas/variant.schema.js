@@ -44,12 +44,6 @@ __decorate([
     __metadata("design:type", Object)
 ], Variant.prototype, "memory", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({
-        type: String,
-    }),
-    __metadata("design:type", String)
-], Variant.prototype, "imagesMain", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)
 ], Variant.prototype, "weight", void 0);

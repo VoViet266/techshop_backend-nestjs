@@ -32,15 +32,6 @@ export declare class DashboardService {
             profitChange: number;
             aovChange: number;
             returnRateChange: number;
-            totalProfitChange: number;
-        };
-        profit: {
-            revenueChange: number;
-            ordersChange: number;
-            profitChange: number;
-            aovChange: number;
-            returnRateChange: number;
-            totalProfitChange: number;
         };
     }>;
     getBranchStats(period: string, date?: Date): Promise<any[]>;

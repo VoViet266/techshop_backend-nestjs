@@ -11,7 +11,6 @@ export declare class VariantDto {
         storage: string;
     };
     color: VariantColorDto[];
-    imagesMain: string;
     isActive?: boolean;
 }
 export declare class CreateProductDto {

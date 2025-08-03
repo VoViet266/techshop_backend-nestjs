@@ -44,10 +44,6 @@ __decorate([
     __metadata("design:type", Array)
 ], VariantDto.prototype, "color", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], VariantDto.prototype, "imagesMain", void 0);
-__decorate([
     (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)

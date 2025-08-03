@@ -168,8 +168,6 @@ export class ChatBotService implements OnModuleInit {
       (variant: any) => variant.color?.length > 0,
     )?.color[0]?.images[0];
 
-    console.log('firstImage', firstImage);
-
     const fullDescription = `
 ${
   firstImage

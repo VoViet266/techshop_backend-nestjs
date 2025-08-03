@@ -11,15 +11,6 @@ export declare class DashboardController {
             profitChange: number;
             aovChange: number;
             returnRateChange: number;
-            totalProfitChange: number;
-        };
-        profit: {
-            revenueChange: number;
-            ordersChange: number;
-            profitChange: number;
-            aovChange: number;
-            returnRateChange: number;
-            totalProfitChange: number;
         };
     }>;
     getCurrentStats(period: string, date?: string): Promise<import("./schemas/dashboard.schema").Dashboard>;
@@ -39,15 +30,6 @@ export declare class DashboardController {
             profitChange: number;
             aovChange: number;
             returnRateChange: number;
-            totalProfitChange: number;
-        };
-        profit: {
-            revenueChange: number;
-            ordersChange: number;
-            profitChange: number;
-            aovChange: number;
-            returnRateChange: number;
-            totalProfitChange: number;
         };
     }>;
     getTopSellingProducts(period?: string, limit?: string, date?: string): Promise<import("./schemas/dashboard.schema").ProductStats[]>;

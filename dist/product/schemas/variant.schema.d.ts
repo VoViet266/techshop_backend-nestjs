@@ -12,7 +12,6 @@ export declare class Variant {
         ram: string;
         storage: string;
     };
-    imagesMain: string;
     weight: number;
     isActive: boolean;
 }
