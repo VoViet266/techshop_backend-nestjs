@@ -59,29 +59,9 @@ __decorate([
     __metadata("design:type", Number)
 ], Review.prototype, "rating", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: 0 }),
-    __metadata("design:type", Number)
-], Review.prototype, "likes", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: 0 }),
-    __metadata("design:type", Number)
-], Review.prototype, "dislikes", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: 'User', default: [] }),
-    __metadata("design:type", Array)
-], Review.prototype, "likedBy", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: [mongoose_2.Types.ObjectId], ref: 'User', default: [] }),
-    __metadata("design:type", Array)
-], Review.prototype, "dislikedBy", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ type: [exports.ReplySchema], default: [] }),
     __metadata("design:type", Array)
 ], Review.prototype, "replies", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ enum: ['pending', 'approved', 'rejected'], default: 'pending' }),
-    __metadata("design:type", String)
-], Review.prototype, "status", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: Date.now }),
     __metadata("design:type", Date)

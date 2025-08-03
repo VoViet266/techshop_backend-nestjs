@@ -47,7 +47,8 @@ let CartService = class CartService {
             }
             const variant = await this.variantModel.findById(newItem.variant);
             const itemIndex = cart.items.findIndex((item) => item.product.toString() === newItem.product &&
-                item.variant.toString() === newItem.variant);
+                item.variant.toString() === newItem.variant &&
+                item.color === newItem.color);
             if (itemIndex > -1) {
                 cart.items[itemIndex].quantity += newItem.quantity;
                 cart.totalPrice =
@@ -59,6 +60,7 @@ let CartService = class CartService {
                     product: new mongoose_2.Types.ObjectId(newItem.product),
                     variant: new mongoose_2.Types.ObjectId(newItem.variant),
                     quantity: newItem.quantity,
+                    color: newItem.color,
                     price: variant.price -
                         ((variant.price * product.discount) / 100) * newItem.quantity,
                     branch: new mongoose_2.Types.ObjectId(newItem.branch),
@@ -83,7 +85,7 @@ let CartService = class CartService {
         })
             .populate({
             path: 'items.variant',
-            select: 'sku images name price color memory',
+            select: 'sku imagesMain name price color memory',
         });
         return cart;
     }

@@ -47,6 +47,7 @@ __decorate([
         type: [
             {
                 variantId: { type: mongoose_2.default.Types.ObjectId, ref: variant_schema_1.Variant.name },
+                variantColor: { type: String },
                 quantity: { type: Number },
                 cost: { type: Number, default: 0, min: 0 },
             },
@@ -61,10 +62,6 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], StockMovement.prototype, "type", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], StockMovement.prototype, "note", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: String, enum: transaction_enum_1.TransactionSource }),
     __metadata("design:type", String)

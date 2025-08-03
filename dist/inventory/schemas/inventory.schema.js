@@ -46,6 +46,7 @@ __decorate([
         type: [
             {
                 variantId: { type: mongoose_2.default.Types.ObjectId, ref: variant_schema_1.Variant.name },
+                variantColor: { type: String },
                 stock: { type: Number },
                 cost: { type: Number, default: 0, min: 0 },
             },
@@ -53,20 +54,6 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], Inventory.prototype, "variants", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({
-        default: 0,
-        min: 0,
-    }),
-    __metadata("design:type", Number)
-], Inventory.prototype, "minStockLevel", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({
-        default: 0,
-        min: 0,
-    }),
-    __metadata("design:type", Number)
-], Inventory.prototype, "maxStockLevel", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: Date }),
     __metadata("design:type", Date)

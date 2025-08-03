@@ -6,6 +6,7 @@ export declare class Transfer {
     items: {
         productId: mongoose.Schema.Types.ObjectId;
         variantId: mongoose.Schema.Types.ObjectId;
+        variantColor: string;
         quantity: number;
         unit?: string;
     }[];

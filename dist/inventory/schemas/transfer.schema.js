@@ -82,6 +82,7 @@ __decorate([
                     type: mongoose_2.default.Schema.Types.ObjectId,
                     ref: variant_schema_1.Variant.name,
                 },
+                variantColor: { type: String },
                 unit: { type: String },
             },
         ],

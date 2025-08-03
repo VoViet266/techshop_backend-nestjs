@@ -30,7 +30,7 @@ let User = class User {
 };
 exports.User = User;
 __decorate([
-    (0, mongoose_2.Prop)({ required: true, unique: true }),
+    (0, mongoose_2.Prop)({ required: true, unique: true, index: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
@@ -64,13 +64,6 @@ __decorate([
     __metadata("design:type", Array)
 ], User.prototype, "addresses", void 0);
 __decorate([
-    (0, mongoose_2.Prop)({
-        enum: ['GUEST', 'NEW', 'MEMBER', 'VIP'],
-        default: 'GUEST',
-    }),
-    __metadata("design:type", String)
-], User.prototype, "userType", void 0);
-__decorate([
     (0, mongoose_2.Prop)({ type: mongoose_1.default.Schema.Types.ObjectId, ref: branch_schema_1.Branch.name }),
     __metadata("design:type", mongoose_1.default.Schema.Types.ObjectId)
 ], User.prototype, "branch", void 0);
@@ -82,14 +75,6 @@ __decorate([
     (0, mongoose_2.Prop)(),
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
-__decorate([
-    (0, mongoose_2.Prop)(),
-    __metadata("design:type", String)
-], User.prototype, "totalSpent", void 0);
-__decorate([
-    (0, mongoose_2.Prop)(),
-    __metadata("design:type", Number)
-], User.prototype, "totalOrders", void 0);
 __decorate([
     (0, mongoose_2.Prop)(),
     __metadata("design:type", String)

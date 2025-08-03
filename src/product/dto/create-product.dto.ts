@@ -8,61 +8,58 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-
-
-
-
-
-
-
-
 export class VariantColorDto {
  
   @IsString()
-  name: string;
+  colorName: string;
 
 
   @IsString()
-  hex: string;
-}
+  colorHex: string;
 
-export class VariantMemoryDto {
-  
-  @IsString()
-  ram: string;
-
- 
-  @IsString()
-  storage: string;
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images?: string[];
 }
 
 export class VariantDto {
+  @IsString()
+  name: string;
 
-  name?: string;
+  @IsNumber()
+  price: number;
 
+  memory: {
+    ram: string;
+    storage: string;
+  };
 
-  price?: number;
+  @IsArray()
+  color: VariantColorDto[];
 
-  
-  color?: VariantColorDto;
+  @IsString()
+  imagesMain: string;
 
- 
-  memory?: VariantMemoryDto;
-
- 
-  images: string[];
-
-  weight?: number;
-  
-
-
-  isActive?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean; 
 }
 
 export class CreateProductDto {
+  @IsString()
   name: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
-  galleryImages: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  galleryImages?: string[];
+
+  @IsString()
   slug: string;
 
   // @IsArray()

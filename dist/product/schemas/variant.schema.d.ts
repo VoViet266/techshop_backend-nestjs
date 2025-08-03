@@ -6,12 +6,13 @@ export declare class Variant {
     color: {
         colorName: string;
         colorHex: string;
-    };
+        images: string[];
+    }[];
     memory: {
         ram: string;
         storage: string;
     };
-    images: string[];
+    imagesMain: string;
     weight: number;
     isActive: boolean;
 }

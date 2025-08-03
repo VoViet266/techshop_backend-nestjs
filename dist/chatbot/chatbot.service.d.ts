@@ -5,7 +5,7 @@ interface ProductWithEmbedding {
     productName: string;
     description: string;
     price: number;
-    images: string;
+    imagesMain: string;
     category: string;
     brand: string;
     isActive: boolean;

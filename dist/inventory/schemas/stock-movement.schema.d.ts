@@ -6,11 +6,11 @@ export declare class StockMovement {
     quantity?: number;
     variants?: {
         variantId: mongoose.Types.ObjectId;
+        variantColor: string;
         quantity: number;
         cost?: number;
     }[];
     type: string;
-    note: string;
     source: string;
     relatedId?: string;
     createdBy: {

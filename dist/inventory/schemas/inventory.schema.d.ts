@@ -5,11 +5,10 @@ export declare class Inventory {
     product: mongoose.Schema.Types.ObjectId;
     variants: {
         variantId: mongoose.Types.ObjectId;
+        variantColor: string;
         stock: number;
         cost?: number;
     }[];
-    minStockLevel: number;
-    maxStockLevel: number;
     lastRestockedAt: Date;
     isActive: boolean;
     lastUpdatedBy: {

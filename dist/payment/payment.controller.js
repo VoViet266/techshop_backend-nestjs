@@ -18,9 +18,11 @@ const payment_service_1 = require("./payment.service");
 const create_payment_dto_1 = require("./dto/create-payment.dto");
 const userDecorator_1 = require("../decorator/userDecorator");
 const publicDecorator_1 = require("../decorator/publicDecorator");
+const config_1 = require("@nestjs/config");
 let PaymentController = class PaymentController {
-    constructor(paymentService) {
+    constructor(paymentService, configService) {
         this.paymentService = paymentService;
+        this.configService = configService;
     }
     async create(dto, user) {
         const result = await this.paymentService.createPayment(dto, user);
@@ -31,10 +33,10 @@ let PaymentController = class PaymentController {
     async handleMomoRedirect(query, res) {
         const result = await this.paymentService.handleMoMoRedirect(query);
         if (result.success) {
-            return res.redirect(`http://localhost:5173/payment-success`);
+            return res.redirect(`${this.configService.get('URL_REACT_FRONTEND')}/payment-success`);
         }
         else {
-            return res.redirect(`http://localhost:5173/payment-failure?message=${encodeURIComponent(result.message)}`);
+            return res.redirect(`${this.configService.get('URL_REACT_FRONTEND')}/payment-failure?message=${encodeURIComponent(result.message)}`);
         }
     }
 };
@@ -58,6 +60,7 @@ __decorate([
 ], PaymentController.prototype, "handleMomoRedirect", null);
 exports.PaymentController = PaymentController = __decorate([
     (0, common_1.Controller)('api/v1/payment'),
-    __metadata("design:paramtypes", [payment_service_1.PaymentService])
+    __metadata("design:paramtypes", [payment_service_1.PaymentService,
+        config_1.ConfigService])
 ], PaymentController);
 //# sourceMappingURL=payment.controller.js.map

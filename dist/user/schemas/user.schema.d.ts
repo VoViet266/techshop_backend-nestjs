@@ -13,12 +13,9 @@ export declare class User {
         addressDetail: string;
         default: boolean;
     }[];
-    userType: string;
     branch: mongoose.Schema.Types.ObjectId;
     age: number;
     isActive: boolean;
-    totalSpent: string;
-    totalOrders: number;
     refreshToken: string;
     resetPasswordToken: string;
     resetPasswordExpires: Date;

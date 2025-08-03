@@ -8,6 +8,7 @@ export declare class DashboardController {
         comparison: {
             revenueChange: number;
             ordersChange: number;
+            profitChange: number;
             aovChange: number;
             returnRateChange: number;
             totalProfitChange: number;
@@ -15,6 +16,7 @@ export declare class DashboardController {
         profit: {
             revenueChange: number;
             ordersChange: number;
+            profitChange: number;
             aovChange: number;
             returnRateChange: number;
             totalProfitChange: number;
@@ -34,6 +36,7 @@ export declare class DashboardController {
         comparison: {
             revenueChange: number;
             ordersChange: number;
+            profitChange: number;
             aovChange: number;
             returnRateChange: number;
             totalProfitChange: number;
@@ -41,6 +44,7 @@ export declare class DashboardController {
         profit: {
             revenueChange: number;
             ordersChange: number;
+            profitChange: number;
             aovChange: number;
             returnRateChange: number;
             totalProfitChange: number;

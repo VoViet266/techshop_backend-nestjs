@@ -65,6 +65,7 @@ let OrderService = class OrderService {
                 product: item.product.toString(),
                 quantity: item.quantity,
                 variant: item.variant.toString(),
+                color: item.color,
                 price: item.price,
                 branch: item.branch.toString(),
             }));
@@ -238,6 +239,7 @@ let OrderService = class OrderService {
                     variants: [
                         {
                             variantId: item.variant.toString(),
+                            variantColor: item.variantColor,
                             quantity: item.quantity,
                         },
                     ],
@@ -293,7 +295,6 @@ let OrderService = class OrderService {
         return { message: 'Đơn hàng đã được hủy thành công' };
     }
     async requestReturn(orderId, dto) {
-        console.log(dto);
         const order = await this.orderModel.findById(orderId);
         if (!order)
             throw new common_1.NotFoundException('Không tìm thấy đơn hàng');
@@ -340,6 +341,7 @@ let OrderService = class OrderService {
                     variants: [
                         {
                             variantId: item.variant?.toString(),
+                            variantColor: item.variantColor,
                             quantity: item.quantity,
                         },
                     ],

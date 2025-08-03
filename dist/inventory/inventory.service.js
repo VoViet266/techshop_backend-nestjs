@@ -174,7 +174,7 @@ let InventoryService = class InventoryService {
                 throw new common_1.BadRequestException('Không thể tạo tồn kho mới');
             }
         }
-        variants.forEach(({ variantId, quantity, cost }) => {
+        variants.forEach(({ variantId, variantColor, quantity, cost }) => {
             const variant = inventory.variants.find((v) => v.variantId.toString() === variantId);
             if (variant) {
                 variant.stock += quantity;
@@ -182,6 +182,7 @@ let InventoryService = class InventoryService {
             else {
                 inventory.variants.push({
                     variantId: new mongoose_2.default.Types.ObjectId(variantId),
+                    variantColor: variantColor,
                     stock: quantity,
                     cost: cost,
                 });
@@ -303,6 +304,7 @@ let InventoryService = class InventoryService {
                     variants: [
                         {
                             variantId: item.variantId,
+                            variantColor: item.variantColor,
                             quantity: item.quantity,
                         },
                     ],
@@ -314,6 +316,7 @@ let InventoryService = class InventoryService {
                     variants: [
                         {
                             variantId: item.variantId,
+                            variantColor: item.variantColor,
                             quantity: item.quantity,
                         },
                     ],

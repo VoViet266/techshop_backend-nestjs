@@ -15,7 +15,10 @@ let Variant = class Variant {
 };
 exports.Variant = Variant;
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({
+        required: true,
+        index: true,
+    }),
     __metadata("design:type", String)
 ], Variant.prototype, "name", void 0);
 __decorate([
@@ -26,9 +29,15 @@ __decorate([
 ], Variant.prototype, "price", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
-        type: Object,
+        type: [
+            {
+                colorName: String,
+                colorHex: String,
+                images: [String],
+            },
+        ],
     }),
-    __metadata("design:type", Object)
+    __metadata("design:type", Array)
 ], Variant.prototype, "color", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: Object }),
@@ -36,10 +45,10 @@ __decorate([
 ], Variant.prototype, "memory", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
-        type: [String],
+        type: String,
     }),
-    __metadata("design:type", Array)
-], Variant.prototype, "images", void 0);
+    __metadata("design:type", String)
+], Variant.prototype, "imagesMain", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: 0 }),
     __metadata("design:type", Number)

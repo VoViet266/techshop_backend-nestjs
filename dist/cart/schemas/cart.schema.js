@@ -69,6 +69,10 @@ __decorate([
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], CartItem.prototype, "variant", void 0);
 __decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], CartItem.prototype, "color", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true, default: 1 }),
     __metadata("design:type", Number)
 ], CartItem.prototype, "quantity", void 0);

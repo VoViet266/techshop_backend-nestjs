@@ -17,12 +17,7 @@ export declare class Review {
     content: string;
     productId: string;
     rating: number;
-    likes?: number;
-    dislikes?: number;
-    likedBy?: Types.ObjectId[];
-    dislikedBy?: Types.ObjectId[];
     replies: Reply[];
-    status?: string;
     createdAt: Date;
     updatedAt: Date;
 }

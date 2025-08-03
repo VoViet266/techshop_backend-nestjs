@@ -72,7 +72,7 @@ let ChatBotService = ChatBotService_1 = class ChatBotService {
         const products = await this.ProductModel.find()
             .populate({ path: 'category', select: 'name' })
             .populate({ path: 'brand', select: 'name' })
-            .populate({ path: 'variants', select: 'price images' });
+            .populate({ path: 'variants', select: 'price imagesMain' });
         if (!products?.length) {
             this.logger.warn('Không tìm thấy sản phẩm nào.');
             return;
@@ -91,7 +91,7 @@ let ChatBotService = ChatBotService_1 = class ChatBotService {
                     productName: product.name,
                     description: productInfo.fullDescription,
                     price: product.variants[0]?.price,
-                    images: product.variants[0]?.images[0],
+                    imagesMain: product.variants[0]?.imagesMain,
                     category,
                     brand,
                     isActive: product.isActive,
@@ -122,7 +122,7 @@ let ChatBotService = ChatBotService_1 = class ChatBotService {
             .filter(Boolean)
             .join(' ');
         const statusColor = product.isActive ? '#4CAF50' : '#f44336';
-        const firstImage = product.variants?.find((variant) => variant.images?.length > 0)?.images?.[0];
+        const firstImage = product.variants?.find((variant) => variant.imagesMain?.length > 0)?.imagesMain?.[0];
         const fullDescription = `
 ${firstImage
             ? `

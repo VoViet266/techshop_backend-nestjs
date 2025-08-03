@@ -29,14 +29,11 @@ export declare class ProductService {
         variants: import("mongoose").Types.ObjectId[];
         name: string;
         description?: string;
-        galleryImages: string;
-        promotions?: string[];
-        warranties?: string[];
+        galleryImages?: string[];
         category: string;
         brand: string;
         discount: number;
         attributes?: Record<string, any>;
-        tags?: string[];
         viewCount?: number;
         averageRating?: number;
         reviewCount?: number;

@@ -13,6 +13,7 @@ export declare class CreateStockMovementDto {
     productId: string;
     variants: {
         variantId: string;
+        variantColor: string;
         quantity: number;
         cost?: number;
     }[];
@@ -25,6 +26,7 @@ export declare class CreateTransferDto {
     items: {
         productId: string;
         variantId: string;
+        variantColor: string;
         quantity: number;
         unit?: string;
     }[];

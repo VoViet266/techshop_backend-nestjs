@@ -3,6 +3,7 @@ export type CartDocument = HydratedDocument<Cart>;
 export declare class CartItem {
     product: Types.ObjectId;
     variant: Types.ObjectId;
+    color: string;
     quantity: number;
     price: number;
     branch: Types.ObjectId;
