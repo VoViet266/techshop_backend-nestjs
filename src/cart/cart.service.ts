@@ -106,7 +106,7 @@ export class CartService {
       })
       .populate({
         path: 'items.variant',
-        select: 'sku imagesMain name price color memory',
+        select: 'sku color name price color memory',
       });
     return cart;
   }
