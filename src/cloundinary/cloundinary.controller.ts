@@ -15,7 +15,6 @@ import {
 import { CloundinaryService } from './cloundinary.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Public } from 'src/decorator/publicDecorator';
-import { v2 as cloudinary } from 'cloudinary';
 
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { Actions, Subjects } from 'src/constant/permission.enum';
