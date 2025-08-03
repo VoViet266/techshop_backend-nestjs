@@ -102,7 +102,7 @@ export class AuthController {
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
     });
     res.redirect(
-      `http://localhost:5173/oauth-success?access_token=${access_token}`,
+      `${this.configService.get<string>('URL_REACT_FRONTEND')}/oauth-success?access_token=${access_token}`,
     );
     return {
       message: 'Đăng nhập thành công!',
