@@ -28,7 +28,7 @@ export class CaslAbilityFactory {
         can(action, module);
       }
     });
-    console.log('user', user.role);
+ 
     if (user.role === RolesUser.Admin) {
       can(Actions.Manage, 'all');
     }

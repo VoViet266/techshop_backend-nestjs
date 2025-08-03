@@ -42,9 +42,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
       if (existingUser) {
         user = existingUser;
-        console.log('User already exists:', user.email);
+       
       } else {
-        console.log('User does not exist, creating new user:', email);
+     
         user = await this.userService.create({
           email,
           name: `${name.givenName} ${name.familyName}`,

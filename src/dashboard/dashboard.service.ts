@@ -58,8 +58,7 @@ export class DashboardService {
     period: string,
     data: CreateDashboardStatsDto,
   ): Promise<Dashboard> {
-    const today = new Date();
-    const dateKey = this.getDateKey(today, period);
+    const dateKey = this.getDateKey(data.date, period);
     const existingStats = await this.dashboardModel.findOne({
       date: dateKey,
       period: period,
@@ -573,9 +572,9 @@ export class DashboardService {
       );
 
       const branchOverview = await this.getBranchOverview(period, start);
-
+      const dateKey = this.getDateKey(start, period);
       return {
-        date: start,
+        date: dateKey,
         period: 'daily',
         totalRevenue,
         totalProfit,
@@ -594,8 +593,9 @@ export class DashboardService {
   }
 
   private getEmptyStats(date: Date, period: string): CreateDashboardStatsDto {
+    const dateKey = this.getDateKey(date, period);
     return {
-      date,
+      date: dateKey,
       period: 'daily',
       totalRevenue: 0,
       totalProfit: 0,

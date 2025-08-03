@@ -256,6 +256,6 @@ export class AuthService {
       },
     );
     await this.userService.updateUserToken(user._id.toString(), null);
-    console.log('Mật khẩu đã được cập nhật thành công.');
+
   }
 }
