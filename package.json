@@ -22,10 +22,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/cli": "^11.0.10",
     "@casl/ability": "^6.7.3",
     "@casl/mongoose": "^8.0.3",
     "@google/generative-ai": "^0.24.1",
+    "@nestjs/cli": "^11.0.10",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -35,6 +35,8 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.2",
     "@nestjs/schedule": "^6.0.0",
+    "@types/express": "^5.0.3",
+    "@types/multer": "^2.0.0",
     "api-query-params": "^5.4.0",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
@@ -66,17 +68,14 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
-    
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.8",
-    "@types/express": "^5.0.2",
     "@types/jest": "^29.5.14",
     "@types/ms": "^0.7.34",
-    "@types/multer": "^1.4.12",
     "@types/natural": "^5.1.5",
     "@types/node": "^22.10.7",
     "@types/otp-generator": "^4.0.2",
