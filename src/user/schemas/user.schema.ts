@@ -28,7 +28,7 @@ export class User {
   name: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
-  role: mongoose.Schema.Types.ObjectId;
+  role: Role;
 
   @Prop()
   avatar?: string;

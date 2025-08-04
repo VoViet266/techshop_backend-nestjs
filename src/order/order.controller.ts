@@ -31,6 +31,7 @@ export class OrderController {
   @UseGuards(PoliciesGuard)
   @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Order))
   findAllByStaff(@User() user: IUser) {
+    console.log('asdasdas', user);
     return this.orderService.findAllByStaff(user);
   }
 

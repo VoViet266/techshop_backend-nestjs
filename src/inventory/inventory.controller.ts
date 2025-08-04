@@ -76,11 +76,9 @@ export class InventoryController {
   }
 
   @Get('getimport')
-  // @UseGuards(PoliciesGuard)
-  // @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.StockMovement))
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.StockMovement))
   async getAllImport(@User() user: IUser) {
-    console.log('user');
-    console.log(' user', user);
     return this.inventoryService.findImport(user);
   }
 
