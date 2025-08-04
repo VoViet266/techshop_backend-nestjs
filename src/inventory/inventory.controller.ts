@@ -68,35 +68,39 @@ export class InventoryController {
 
   @Post('import')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Actions.Create, Subjects.Inventory))
+  @CheckPolicies((ability) =>
+    ability.can(Actions.Create, Subjects.StockMovement),
+  )
   async importStock(@Body() dto: CreateStockMovementDto, @User() user: IUser) {
     return this.inventoryService.importStock(dto, user);
   }
 
   @Get('getimport')
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
+  // @UseGuards(PoliciesGuard)
+  // @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.StockMovement))
   async getAllImport(@User() user: IUser) {
+    console.log('user');
+    console.log(' user', user);
     return this.inventoryService.findImport(user);
   }
 
   @Get('getimport/:id')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.StockMovement))
   async getImport(@Param('id') id: string) {
     return this.inventoryService.getImportDetail(id);
   }
 
   @Get('getexport')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.StockMovement))
   async getAllExport(@User() user: IUser) {
     return this.inventoryService.findExport(user);
   }
 
   @Get('getexport/:id')
   @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Inventory))
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.StockMovement))
   async getExport(@Param('id') id: string) {
     return this.inventoryService.getExportDetail(id);
   }

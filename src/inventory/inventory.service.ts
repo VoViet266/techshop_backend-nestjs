@@ -113,7 +113,7 @@ export class InventoryService {
         .find()
         .populate('product', 'name')
         .populate('branch', 'name location')
-        .populate('variants.variantId', 'name sku') // Populate the variantId field inside variants
+        .populate('variants.variantId', 'name sku')
         .sort({ createdAt: -1 })
         .lean();
     }
@@ -122,10 +122,10 @@ export class InventoryService {
       .populate('product', 'name  ')
       .populate('branch', 'name location')
       .populate('variants.variantId', 'name sku')
+      .sort({ createdAt: -1 })
       .lean();
   }
   findImport(user: any) {
-    console.log(user);
     if (user.role === RolesUser.Admin) {
       return this.movementModel
         .find({ type: TransactionType.IMPORT })
@@ -136,7 +136,7 @@ export class InventoryService {
         .lean();
     }
     return this.movementModel
-      .find({ branch: user.branch, type: TransactionType.IMPORT })
+      .find({ branchId: user.branch, type: TransactionType.IMPORT })
       .populate('productId', 'name  ')
       .populate('branchId', 'name location')
       .populate('variants.variantId', 'name sku')
@@ -155,7 +155,7 @@ export class InventoryService {
         .lean();
     }
     return this.movementModel
-      .find({ branch: user.branch, type: TransactionType.EXPORT })
+      .find({ branchId: user.branch, type: TransactionType.EXPORT })
       .populate('productId', 'name  ')
       .populate('branchId', 'name location')
       .populate('variants.variantId', 'name sku')
@@ -167,7 +167,7 @@ export class InventoryService {
     return this.inventoryModel
       .findById(id)
       .populate('product', 'name')
-      .populate('branch', 'name location')
+      .populate('branchId', 'name ')
       .lean();
   }
 
@@ -382,7 +382,6 @@ export class InventoryService {
                 variantId: item.variantId,
                 variantColor: item.variantColor,
                 quantity: item.quantity,
-
               },
             ],
           },
