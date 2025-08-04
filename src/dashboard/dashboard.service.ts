@@ -299,21 +299,26 @@ export class DashboardService {
   // Helper methods
   private getDateKey(date: Date, period: string): Date {
     const d = new Date(date);
+
     switch (period) {
       case 'daily':
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        return new Date(
+          Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+        );
       case 'weekly':
         const weekStart = new Date(d);
-        weekStart.setDate(d.getDate() - d.getDay());
+        weekStart.setUTCDate(d.getUTCDate() - d.getUTCDay());
         return new Date(
-          weekStart.getFullYear(),
-          weekStart.getMonth(),
-          weekStart.getDate(),
+          Date.UTC(
+            weekStart.getUTCFullYear(),
+            weekStart.getUTCMonth(),
+            weekStart.getUTCDate(),
+          ),
         );
       case 'monthly':
-        return new Date(d.getFullYear(), d.getMonth(), 1);
+        return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
       case 'yearly':
-        return new Date(d.getFullYear(), 0, 1);
+        return new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
       default:
         return d;
     }
@@ -328,32 +333,44 @@ export class DashboardService {
     let end: Date;
 
     switch (period) {
-      case 'daily':
+      case 'daily': {
+        const d = new Date(targetDate);
         start = new Date(
-          targetDate.getFullYear(),
-          targetDate.getMonth(),
-          targetDate.getDate(),
+          Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
         );
         end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
         break;
-      case 'weekly':
-        start = new Date(targetDate);
-        start.setDate(targetDate.getDate() - targetDate.getDay());
-        start.setHours(0, 0, 0, 0);
-        end = new Date(start);
-        end.setDate(start.getDate() + 7);
+      }
+      case 'weekly': {
+        const d = new Date(targetDate);
+        const startOfWeek = new Date(d);
+        startOfWeek.setUTCDate(d.getUTCDate() - d.getUTCDay()); // bắt đầu từ Chủ nhật
+        start = new Date(
+          Date.UTC(
+            startOfWeek.getUTCFullYear(),
+            startOfWeek.getUTCMonth(),
+            startOfWeek.getUTCDate(),
+          ),
+        );
+        end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
         break;
-      case 'monthly':
-        start = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-        end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+      }
+      case 'monthly': {
+        const d = new Date(targetDate);
+        start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+        end = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1));
         break;
-      case 'yearly':
-        start = new Date(targetDate.getFullYear(), 0, 1);
-        end = new Date(targetDate.getFullYear() + 1, 0, 1);
+      }
+      case 'yearly': {
+        const d = new Date(targetDate);
+        start = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        end = new Date(Date.UTC(d.getUTCFullYear() + 1, 0, 1));
         break;
-      default:
+      }
+      default: {
         start = new Date(0);
         end = new Date();
+      }
     }
 
     return { start, end };
