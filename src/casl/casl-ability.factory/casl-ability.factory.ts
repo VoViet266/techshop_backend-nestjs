@@ -39,7 +39,7 @@ export class CaslAbilityFactory {
     permissions.forEach((perm: any) => {
       const action = perm.action.toLowerCase();
       const module = perm.module.toLowerCase();
-      console.log(action, module);
+
       if (
         Object.values(Actions).includes(action) &&
         Object.values(Subjects).includes(module)

@@ -34,7 +34,7 @@ export class Products {
   // })
   // sku: string;
 
-  @Prop({ trim: true })
+  @Prop({ type: String })
   description: string;
 
   @Prop({ type: Number, default: 0 })
