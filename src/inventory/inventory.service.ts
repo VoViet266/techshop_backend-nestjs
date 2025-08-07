@@ -196,6 +196,7 @@ export class InventoryService {
 
   async importStock(dto: CreateStockMovementDto, user: IUser) {
     const { branchId, productId, variants } = dto;
+    console.log('importStock', dto);
     let inventory = await this.inventoryModel.findOne({
       branch: branchId,
       product: productId,
@@ -222,7 +223,9 @@ export class InventoryService {
     // Cập nhật variants
     variants.forEach(({ variantId, variantColor, quantity, cost }) => {
       const variant = inventory.variants.find(
-        (v) => v.variantId.toString() === variantId,
+        (v) =>
+          v.variantId.toString() === variantId &&
+          v.variantColor === variantColor,
       );
 
       if (variant) {
@@ -371,7 +374,6 @@ export class InventoryService {
 
     if (updateTransferDto.status === TransactionStatus.RECEIVED) {
       for (const item of updateTransferDto.items) {
-        console.log(item);
         await this.exportStock(
           {
             branchId: updateTransferDto.fromBranchId,
