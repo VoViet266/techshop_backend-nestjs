@@ -315,7 +315,7 @@ ${
       <div style="margin-bottom: 4px;"><strong>Thương hiệu:</strong> ${brand}</div>
       <div style="margin-bottom: 4px;"><strong>Danh mục:</strong> ${category}</div>
       ${product.averageRating > 0 ? `<div style="margin-bottom: 4px;"><strong>Đánh giá:</strong> ${ratingStars} (${product.averageRating}/5) - ${product.reviewCount} đánh giá</div>` : ''}
-      ${variantInfo ? `<div><strong>Variants:</strong>${variantInfo}</div>` : ''}
+      ${variantInfo ? `<div><strong>Biến thể:</strong>${variantInfo}</div>` : ''}
     </div>
   </div>
 </div>
