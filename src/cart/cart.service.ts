@@ -128,15 +128,14 @@ export class CartService {
       });
   }
 
-  update(id: string, updateCartDto: UpdateCartDto) {
-    return this.cartModel.updateOne(
-      {
-        _id: id,
-      },
-      {
-        ...updateCartDto,
-      },
-    );
+  async update(id: string, updateCartDto: UpdateCartDto) {
+  
+    const cartExists = await this.cartModel.findById(id);
+    if (!cartExists) {
+      throw new NotFoundException(`Không tìm thấy giỏ hàng với id ${id}`);
+    }
+  
+    return await this.cartModel.updateOne({ _id: id }, { $set: updateCartDto });
   }
 
   async removeItemFromCart(user: IUser, productId: string, variantId: string) {
