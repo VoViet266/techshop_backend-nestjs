@@ -196,7 +196,7 @@ export class InventoryService {
 
   async importStock(dto: CreateStockMovementDto, user: IUser) {
     const { branchId, productId, variants } = dto;
-    console.log('importStock', dto);
+  
     let inventory = await this.inventoryModel.findOne({
       branch: branchId,
       product: productId,

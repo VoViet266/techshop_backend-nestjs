@@ -71,13 +71,13 @@ export class RegisterUserDto {
 
   email: string;
 
-  addresses: AddressDto[];
+  addresses?: AddressDto[];
 
   phone?: string;
 
   age?: number;
 
-  role: string[];
+  role?: string[];
 
   gender?: string;
 }

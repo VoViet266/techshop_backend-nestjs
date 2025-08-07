@@ -153,7 +153,7 @@ export class UserService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      console.log(error);
+     
 
       throw new InternalServerErrorException('Lỗi hệ thống khi xác thực OTP');
     }

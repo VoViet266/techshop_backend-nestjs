@@ -25,8 +25,7 @@ export class OrderController {
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @User() user: IUser) {
-    console.log('User:', user);
-    console.log('Create Order DTO:', createOrderDto);
+
     return this.orderService.create(createOrderDto, user);
   }
 
@@ -108,7 +107,7 @@ export class OrderController {
     @User() user: IUser,
     @Body('returnStatus') returnStatus: string,
   ) {
-    console.log(returnStatus);
+   
     return this.orderService.confirmReturn(id, returnStatus, user);
   }
 }
