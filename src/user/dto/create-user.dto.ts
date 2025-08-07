@@ -6,6 +6,7 @@ import {
   IsNumber,
   ValidateNested,
   IsArray,
+  IsMongoId,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -28,8 +29,7 @@ export class CreateUserDto {
   @IsString()
   name: string;
 
-  @IsString()
-  branch: string;
+  branch?: string;
 
   @IsNotEmpty({ message: 'Email không được để trống' })
   @IsEmail({}, { message: 'Email không hợp lệ' })

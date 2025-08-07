@@ -1,3 +1,5 @@
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
 import {
   Controller,
   Get,
@@ -9,8 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
 
@@ -24,6 +25,8 @@ export class OrderController {
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @User() user: IUser) {
+    console.log('User:', user);
+    console.log('Create Order DTO:', createOrderDto);
     return this.orderService.create(createOrderDto, user);
   }
 

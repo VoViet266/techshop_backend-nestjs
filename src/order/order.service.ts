@@ -6,8 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+
 import { InjectModel } from '@nestjs/mongoose';
 import { Order, OrderDocument } from './schemas/order.schema';
 import { ProductDocument, Products } from 'src/product/schemas/product.schema';
@@ -37,6 +36,8 @@ import {
   WarrantyPolicyDocument,
 } from 'src/benefit/schemas/warrantypolicy.schema';
 import { UserService } from 'src/user/user.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrderService {

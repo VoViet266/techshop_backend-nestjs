@@ -42,9 +42,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
       if (existingUser) {
         user = existingUser;
-       
       } else {
-     
         user = await this.userService.create({
           email,
           name: `${name.givenName} ${name.familyName}`,
@@ -54,7 +52,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           address: [],
           age: 0,
           refreshToken: '',
-          branch: '',
+          branch: null,
         });
       }
 
