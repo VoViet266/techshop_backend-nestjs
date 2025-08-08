@@ -129,12 +129,11 @@ export class CartService {
   }
 
   async update(id: string, updateCartDto: UpdateCartDto) {
-  
     const cartExists = await this.cartModel.findById(id);
     if (!cartExists) {
       throw new NotFoundException(`Không tìm thấy giỏ hàng với id ${id}`);
     }
-  
+
     return await this.cartModel.updateOne({ _id: id }, { $set: updateCartDto });
   }
 
@@ -148,8 +147,8 @@ export class CartService {
 
     const itemIndex = cart.items.findIndex(
       (item) =>
-        item.product.toString() === productId &&
-        item.variant.toString() === variantId,
+        item.product._id.toString() === productId &&
+        item.variant._id.toString() === variantId,
     );
 
     if (itemIndex === -1) {
