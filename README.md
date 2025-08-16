@@ -14,6 +14,8 @@ TechShop E-commerce Backend is a REST API service built with NestJS framework th
 - Product management
 - Order processing
 - Cart management
+- Recommendation system
+- Chat system
 - Payment integration
 - Admin dashboard APIs
 
@@ -53,32 +55,30 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## API Documentation
+<!-- ## API Documentation
 
-The API documentation is available at `/api/docs` when running the application locally. It provides detailed information about all available endpoints, request/response formats, and authentication requirements.
+The API documentation is available at `/api/docs` when running the application locally. It provides detailed information about all available endpoints, request/response formats, and authentication requirements. -->
 
 ## Features
 
 - REST API endpoints following best practices
 - JWT authentication
 - Role based access control
-- Database integration with PostgreSQL
-- Swagger API documentation
+- Database integration with MongoDB
 - Input validation
 - Error handling
 - Logging
-- Unit and E2E testing
 
 ## Tech Stack
 
 - NestJS
 - TypeScript
-- PostgreSQL
-- TypeORM
+- MongoDB
+- Mongoose
 - Passport JWT
 - Class Validator
 - Swagger
 
-## License
+<!-- ## License
 
-This project is [MIT licensed](LICENSE).
+This project is [MIT licensed](LICENSE). -->
