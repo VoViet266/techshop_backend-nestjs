@@ -10,7 +10,7 @@ export class ChatBotController {
   @Post()
   @Public()
   async sendMessage(@Body('message') message: string) {
-    const reply = await this.chatService.sendMessage(message);
+    const reply = await this.chatService.askRasa(message);
     return { reply };
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@google/generative-ai';
 
 import { Products, ProductDocument } from 'src/product/schemas/product.schema';
+import axios from 'axios';
 
 interface ProductWithEmbedding {
   productId: string;
@@ -33,7 +34,7 @@ export class ChatBotService implements OnModuleInit {
   @InjectModel(Products.name)
   private readonly ProductModel: SoftDeleteModel<ProductDocument>;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   private readonly SYSTEM_PROMPT = `
   Vai trò của bạn: Là một trợ lý AI chuyên nghiệp của công ty ABC, chỉ tư vấn sản phẩm dựa trên dữ liệu context cung cấp. Câu trả lời được hiển thị gọn gàng.
@@ -171,9 +172,8 @@ export class ChatBotService implements OnModuleInit {
     console.log('firstImage', firstImage);
 
     const fullDescription = `
-${
-  firstImage
-    ? `
+${firstImage
+        ? `
 <div style="display: flex; align-items: center; border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; margin: 8px 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
   <div style="flex-shrink: 0; margin-right: 16px;">
     <img src="${firstImage}" alt="${product.name}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;" />
@@ -189,7 +189,7 @@ ${
   </div>
 </div>
 `
-    : `
+        : `
 <div style="border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; margin: 12px 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
   <h3 style="margin: 0 0 8px 0; color: #333; font-size: 18px; font-weight: 600;">${product.name}</h3>
   <div style="color: #666; font-size: 14px; line-height: 1.5;">
@@ -200,7 +200,7 @@ ${
   </div>
 </div>
 `
-}
+      }
 
     `.trim();
 
@@ -211,6 +211,18 @@ ${
     return Array.isArray(field)
       ? field.map((f) => f?.name || 'Không rõ').join(', ')
       : field?.name || 'Không rõ';
+  }
+
+  async askRasa(message: string): Promise<string> {
+    try {
+      const response = await axios.post(`${this.configService.get<string>('RASA_URL') || 'http://localhost:5005'}/webhooks/rest/webhook`, { message: message });
+      if (response.status === 200) {
+        return response.data[0].text;
+      }
+    } catch (error) {
+      this.logger.error(`Lỗi Rasa: ${error.message}`);
+      return 'Đã xảy ra lỗi, vui lòng thử lại sau.';
+    }
   }
 
   async sendMessage(userInput: string): Promise<string> {
