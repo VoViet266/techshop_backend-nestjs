@@ -34,7 +34,7 @@ export class ReviewController {
     @Query('limit') limit: string,
     @Query() qs: string,
   ) {
-    console.log('csca', currentPage, limit);
+    
     const result = await this.reviewService.findByProduct(
       productId,
       +currentPage,

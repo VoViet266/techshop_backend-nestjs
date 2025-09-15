@@ -34,7 +34,7 @@ export class RoleController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    console.log(updateRoleDto);
+
     return this.roleService.update(id, updateRoleDto);
   }
 

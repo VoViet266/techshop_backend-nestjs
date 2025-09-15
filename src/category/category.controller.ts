@@ -17,7 +17,6 @@ import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 
-
 @Controller('api/v1/categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

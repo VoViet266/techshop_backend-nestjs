@@ -24,7 +24,6 @@ import { Actions, Subjects } from 'src/constant/permission.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ReviewService } from 'src/review/review.service';
 
-
 @Controller('api/v1/products')
 export class ProductController {
   constructor(
@@ -34,6 +33,7 @@ export class ProductController {
 
   @Post()
   @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Read, Subjects.Product))
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }
@@ -87,21 +87,27 @@ export class ProductController {
     };
   }
   @Patch('/:id')
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Update, Subjects.Product))
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(id, updateProductDto);
   }
 
   @Delete(':id')
+  @UseGuards(PoliciesGuard)
+  @CheckPolicies((ability) => ability.can(Actions.Delete, Subjects.Product))
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
   }
 
   @Patch('/:id/view-count')
+  @Public()
   setViewCount(@Param('id') id: string) {
     return this.productService.countViews(id);
   }
 
   @Patch('/:id/order-count')
+  @Public()
   setOrderCount(@Param('id') id: string) {
     return this.productService.countOrders(id);
   }

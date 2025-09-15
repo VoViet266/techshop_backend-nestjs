@@ -1,26 +1,20 @@
 import { Min } from 'class-validator';
 
 export class VariantDto {
- 
   variantId: string;
-
 
   @Min(0)
   stock: number;
 
- 
   @Min(0)
   cost: number;
 }
 
 export class CreateInventoryDto {
-
   branch: string;
 
- 
   product: string;
 
-  
   variants: VariantDto[];
 }
 export class CreateStockMovementDto {
@@ -48,7 +42,7 @@ export class CreateTransferDto {
     unit?: string;
   }[]; // danh sách sản phẩm và số lượng tương ứng
   approvedBy?: string;
-  approvedAt?: Date;
+  approvedDate?: Date;
   rejectNote?: string;
   status: string;
   note?: string; // ghi chú chuyển kho (tùy chọn)

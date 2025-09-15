@@ -153,18 +153,17 @@ export class UserService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      console.log(error);
+     
 
       throw new InternalServerErrorException('Lỗi hệ thống khi xác thực OTP');
     }
   }
 
   async resendOtp(email: string) {
-   
     try {
       const tempUserKey = `temp_user:${email}`;
       const tempUserData = await this.redisClient.get(tempUserKey);
-      
+
       if (!tempUserData) {
         throw new BadRequestException(
           'Không tìm thấy thông tin đăng ký, vui lòng đăng ký lại',
@@ -254,7 +253,7 @@ export class UserService {
       .exec();
   }
   findOneByID(id: string) {
-    return this.userModel.findById(id);
+    return this.userModel.findById(id); // Trả về Query
   }
   findOneByEmail(username: string) {
     return this.userModel.findOne({ email: username });

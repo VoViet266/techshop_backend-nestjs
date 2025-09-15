@@ -367,6 +367,7 @@ export class RecommendationService implements OnModuleInit {
             .select(
               'name category brand discount variants description attributes isActive',
             )
+
             .lean()
             .exec();
 
@@ -469,7 +470,7 @@ export class RecommendationService implements OnModuleInit {
 
   async getPopularProducts(limit: number): Promise<Products[]> {
     return this.productModel
-      .find({ isActive: { $ne: false } })
+      .find({ isActive: { $ne: false }, isDelete: { $ne: true } })
       .sort({ viewCount: -1, soldCount: -1 })
       .populate('category', 'name')
       .populate('brand', 'name')
@@ -648,6 +649,7 @@ export class RecommendationService implements OnModuleInit {
       .find({
         brand: brandId,
         isActive: { $ne: false },
+        isDelete: { $ne: true },
         _id: { $nin: excludeIds },
       })
       .sort({ viewCount: -1, soldCount: -1 })

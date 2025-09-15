@@ -18,7 +18,6 @@ import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
 
 @Controller('api/v1/banners')
-
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
 
