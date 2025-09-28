@@ -1,14 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import {
   GoogleGenerativeAI,
-  GenerativeModel,
   ChatSession,
 } from '@google/generative-ai';
-
-import { Products, ProductDocument } from 'src/product/schemas/product.schema';
 import axios from 'axios';
 
 @Injectable()
@@ -17,7 +12,7 @@ export class ChatBotService implements OnModuleInit {
   private genAI: GoogleGenerativeAI;
   private chatSession: ChatSession;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   private readonly SYSTEM_PROMPT = `
   Vai trò của bạn: Là một trợ lý AI chuyên nghiệp của hệ thống thương mại điện tử kinh doanh sản phẩm công nghệ TechShop, chỉ tư vấn sản phẩm dựa trên dữ liệu được cung cấp. Câu trả lời được hiển thị gọn gàng.
@@ -32,7 +27,12 @@ export class ChatBotService implements OnModuleInit {
       7. Nếu người dùng hỏi câu hỏi có thể trả lời theo nhiều cách hãy hỏi lại.
       8. Khi được hỏi về nhãn hiệu hoặc danh mục, chỉ sử dụng thông tin từ dữ liệu lớn của bạn để cung cấp thông tin.
       9. Luôn sử dụng ngôn ngữ tiếng Việt trong câu trả lời.
-      10. Tôi chỉ cung cấp dữ liệu, còn thêm các thẻ HTML, rồi các thuộc tính CSS để bố cục trở nên đẹp mắt là do bạn.
+      10. Phần tôi cung cấp cho bạn sẽ có dạng như sau:
+            Câu hỏi của người dùng: "..."
+            Câu trả lời của Rasa: "..."
+            Dữ liệu liên quan:
+            {dữ liệu}
+      Nếu có câu trả lời của Rasa, hãy trả lời lại theo văn phong của bạn cho mượt mà và chuyên nghiệp hơn! Còn nếu có dữ liệu liên quan, hãy thêm các thẻ HTML, rồi các thuộc tính CSS để bố cục trở nên đẹp mắt hơn.
     `.trim();
 
   async onModuleInit() {
@@ -51,7 +51,7 @@ export class ChatBotService implements OnModuleInit {
     this.genAI = new GoogleGenerativeAI(apiKey);
 
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-pro',
     });
 
     this.chatSession = model.startChat({
@@ -86,19 +86,16 @@ export class ChatBotService implements OnModuleInit {
 
   async sendMessage(
     userInput: string,
-    data: object | string | any[],
+    rasaResponse: object | string | any[],
   ): Promise<string> {
     if (!userInput?.trim()) return 'Vui lòng nhập câu hỏi.';
 
     try {
       const prompt = `
-Câu hỏi của khách hàng: "${userInput}"
-
-Dữ liệu liên quan:
-${data}
-
-Hãy trả lời dựa vào thông tin sản phẩm trên. Nếu có nhiều sản phẩm phù hợp, hãy so sánh và đưa ra lời khuyên. Luôn hiển thị hình ảnh của sản phẩm được đề cập.
-      `.trim();
+        Câu hỏi của người dùng: "${userInput}"
+        ${typeof rasaResponse === "string" && `Câu trả lời của Rasa: "${rasaResponse}"`}
+        ${typeof rasaResponse === "object" || Array.isArray(rasaResponse) && `Dữ liệu liên quan: "${JSON.stringify(rasaResponse)}"`}
+      `;
 
       const result = await this.chatSession.sendMessage(prompt);
       return result.response.text();

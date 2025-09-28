@@ -12,7 +12,8 @@ export class ChatBotController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async sendMessage(@Body('message') message: string, @User() user: IUser) {
-    const reply = await this.chatService.askRasa(message, user._id);
+    const response = await this.chatService.askRasa(message, user._id);
+    const reply = await this.chatService.sendMessage(message, response);
     return { reply };
   }
 }
