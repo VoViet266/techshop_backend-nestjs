@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { TfidfModeService } from './tfidf-mode.service';
 import { CreateTfidfModeDto } from './dto/create-tfidf-mode.dto';
 import { UpdateTfidfModeDto } from './dto/update-tfidf-mode.dto';
@@ -23,7 +31,10 @@ export class TfidfModeController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTfidfModeDto: UpdateTfidfModeDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateTfidfModeDto: UpdateTfidfModeDto,
+  ) {
     return this.tfidfModeService.update(+id, updateTfidfModeDto);
   }
 

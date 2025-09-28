@@ -99,7 +99,6 @@ export class AuthService {
       maxAge: ms(this.configService.get<string>('JWT_REFRESH_EXPIRE')),
     });
 
-
     return {
       access_token: this.jwtService.sign(payload),
       _id,

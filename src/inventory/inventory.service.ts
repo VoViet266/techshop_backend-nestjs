@@ -382,7 +382,6 @@ export class InventoryService {
                 variantId: item.variantId,
                 variantColor: item.variantColor,
                 quantity: item.quantity,
-
               },
             ],
           },

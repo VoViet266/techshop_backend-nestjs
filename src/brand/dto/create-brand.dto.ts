@@ -1,11 +1,7 @@
-
-
 export class CreateBrandDto {
-  name: string
+  name: string;
   description?: string;
   logo?: string;
-
-  
 
   // Nếu cần mở thêm các trường khác, bạn có thể thêm như sau:
 

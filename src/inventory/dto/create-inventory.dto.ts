@@ -1,26 +1,20 @@
 import { Min } from 'class-validator';
 
 export class VariantDto {
- 
   variantId: string;
-
 
   @Min(0)
   stock: number;
 
- 
   @Min(0)
   cost: number;
 }
 
 export class CreateInventoryDto {
-
   branch: string;
 
- 
   product: string;
 
-  
   variants: VariantDto[];
 }
 export class CreateStockMovementDto {

@@ -160,11 +160,10 @@ export class UserService {
   }
 
   async resendOtp(email: string) {
-   
     try {
       const tempUserKey = `temp_user:${email}`;
       const tempUserData = await this.redisClient.get(tempUserKey);
-      
+
       if (!tempUserData) {
         throw new BadRequestException(
           'Không tìm thấy thông tin đăng ký, vui lòng đăng ký lại',

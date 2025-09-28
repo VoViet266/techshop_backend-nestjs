@@ -12,20 +12,15 @@ import {
 
 import { Type } from 'class-transformer';
 
-
 export class CartItemDto {
-
   product?: string;
-
 
   quantity?: number;
 
- 
   branch?: string;
 
   price?: number;
 
- 
   variant?: string;
 }
 class RecipientDto {
@@ -47,7 +42,6 @@ class RecipientDto {
   note?: string;
 }
 export class CreateOrderDto {
-
   user?: string;
 
   @ValidateNested()
@@ -56,23 +50,18 @@ export class CreateOrderDto {
   @IsOptional()
   recipient: RecipientDto;
 
-
   @ValidateNested()
   @Type(() => RecipientDto)
   @IsObject()
   @IsOptional()
   buyer?: RecipientDto;
 
- 
   items?: CartItemDto[];
-
 
   totalPrice?: number;
 
-
   branch: string[];
 
- 
   status?: string;
 
   source?: string;
@@ -83,14 +72,12 @@ export class CreateOrderDto {
 
   isReturn: boolean;
 
-
   returnStatus?: string;
 
   returnProcessedBy?: any;
 
   returnReason?: string;
 
- 
   paymentMethod: string;
 
   phone: string;

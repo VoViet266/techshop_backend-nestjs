@@ -21,7 +21,10 @@ import {
   Promotion,
   PromotionSchema,
 } from 'src/benefit/schemas/promotion.schema';
-import { WarrantyPolicy, WarrantyPolicySchema } from 'src/benefit/schemas/warrantypolicy.schema';
+import {
+  WarrantyPolicy,
+  WarrantyPolicySchema,
+} from 'src/benefit/schemas/warrantypolicy.schema';
 
 @Module({
   controllers: [OrderController],
@@ -36,7 +39,7 @@ import { WarrantyPolicy, WarrantyPolicySchema } from 'src/benefit/schemas/warran
       { name: Payment.name, schema: PaymentSchema },
       { name: User.name, schema: UserSchema },
       { name: Promotion.name, schema: PromotionSchema },
-      {name : WarrantyPolicy.name, schema : WarrantyPolicySchema}
+      { name: WarrantyPolicy.name, schema: WarrantyPolicySchema },
     ]),
     ProductModule,
     CartModule,

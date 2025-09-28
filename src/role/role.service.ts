@@ -55,7 +55,6 @@ export class RoleService {
       }
     }
 
-
     if (permissionsToRemove.length) {
       await this.roleModel.updateOne(
         { _id: id },
@@ -63,7 +62,6 @@ export class RoleService {
       );
     }
 
-  
     if (permissionsToAdd.length) {
       await this.roleModel.updateOne(
         { _id: id },

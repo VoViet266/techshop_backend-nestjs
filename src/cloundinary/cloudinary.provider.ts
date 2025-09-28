@@ -1,4 +1,3 @@
-
 import { ConfigService } from '@nestjs/config';
 import { v2 } from 'cloudinary';
 
@@ -11,5 +10,5 @@ export const CloudinaryProvider = {
       api_secret: configService.get<string>('CLOUDINARY_API_SECRET'),
     });
   },
-  inject: [ConfigService]
+  inject: [ConfigService],
 };

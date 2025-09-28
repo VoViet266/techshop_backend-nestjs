@@ -24,7 +24,6 @@ import { Actions, Subjects } from 'src/constant/permission.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ReviewService } from 'src/review/review.service';
 
-
 @Controller('api/v1/products')
 export class ProductController {
   constructor(

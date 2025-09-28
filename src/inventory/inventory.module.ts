@@ -25,7 +25,6 @@ import { Branch, BranchSchema } from 'src/branch/schemas/branch.schema';
       { name: Transfer.name, schema: TransferSchema },
       { name: Variant.name, schema: VariantSchema },
       { name: Branch.name, schema: BranchSchema },
-      
     ]),
 
     CaslModule,
