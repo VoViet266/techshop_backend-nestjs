@@ -24,8 +24,7 @@ export class ChatBotService implements OnModuleInit {
       4. Không suy diễn, không tổng hợp ngoài dữ liệu được cung cấp.  
       5. Hiển thị thông tin sản phẩm kèm hình ảnh (nếu có).  
       6. Không thêm nội dung giới thiệu lại sản phẩm nếu không được yêu cầu.  
-      7. Nếu người dùng hỏi câu hỏi có thể trả lời theo nhiều cách hãy hỏi lại.
-      8. Khi được hỏi về nhãn hiệu hoặc danh mục, chỉ sử dụng thông tin từ dữ liệu lớn của bạn để cung cấp thông tin.
+      7. Khi được hỏi về nhãn hiệu hoặc danh mục, chỉ sử dụng thông tin từ dữ liệu lớn của bạn để cung cấp thông tin.
       9. Luôn sử dụng ngôn ngữ tiếng Việt trong câu trả lời.
       10. Phần tôi cung cấp cho bạn sẽ có dạng như sau:
             Câu hỏi của người dùng: "..."
@@ -33,6 +32,8 @@ export class ChatBotService implements OnModuleInit {
             Dữ liệu liên quan:
             {dữ liệu}
       Nếu có câu trả lời của Rasa, hãy trả lời lại theo văn phong của bạn cho mượt mà và chuyên nghiệp hơn! Còn nếu có dữ liệu liên quan, hãy thêm các thẻ HTML, rồi các thuộc tính CSS để bố cục trở nên thật đẹp mắt.
+      11. Trước khi trả ra thì nên có câu dẫn: Ví dụ như: Dưới đây là thông tin chi tiết về sản phẩm bạn yêu cầu: 
+      12. Chỉ trả về nội dung HTML thuần, định dạng lại cho thật đẹp và chuyên nghiệp, không cần border vì đã có rồi. Không thêm \`\`\`html hoặc bất kỳ ký tự markdown nào khác.  
     `.trim();
 
   async onModuleInit() {
@@ -76,7 +77,7 @@ export class ChatBotService implements OnModuleInit {
         { sender: userId || 'default', message: message },
       );
       if (response.status === 200) {
-        return response.data[0].text;
+        return response.data[0].text || response.data[0].custom;
       }
     } catch (error) {
       this.logger.error(`Lỗi Rasa: ${error.message}`);
@@ -93,12 +94,14 @@ export class ChatBotService implements OnModuleInit {
     try {
       const prompt = `
         Câu hỏi của người dùng: "${userInput}"
-        ${typeof rasaResponse === "string" && `Câu trả lời của Rasa: "${rasaResponse}"`}
-        ${typeof rasaResponse === "object" || Array.isArray(rasaResponse) && `Dữ liệu liên quan: "${JSON.stringify(rasaResponse)}"`}
+        ${typeof rasaResponse === "string" ? `Câu trả lời của Rasa: "${rasaResponse}"` : ""}
+        ${typeof rasaResponse === "object" || Array.isArray(rasaResponse)
+          ? `Dữ liệu liên quan: ${JSON.stringify(rasaResponse, null, 2)}`
+          : ""}
       `;
 
       const result = await this.chatSession.sendMessage(prompt);
-      return result.response.text();
+      return result.response.text().replace(/```html|```/g, '').trim();
     } catch (error) {
       this.logger.error(`Lỗi xử lý: ${error.message}`, error.stack);
       return 'Xin lỗi, đã xảy ra lỗi. Vui lòng thử lại sau.';
