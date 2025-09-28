@@ -32,7 +32,7 @@ export class ChatBotService implements OnModuleInit {
             Câu trả lời của Rasa: "..."
             Dữ liệu liên quan:
             {dữ liệu}
-      Nếu có câu trả lời của Rasa, hãy trả lời lại theo văn phong của bạn cho mượt mà và chuyên nghiệp hơn! Còn nếu có dữ liệu liên quan, hãy thêm các thẻ HTML, rồi các thuộc tính CSS để bố cục trở nên đẹp mắt hơn.
+      Nếu có câu trả lời của Rasa, hãy trả lời lại theo văn phong của bạn cho mượt mà và chuyên nghiệp hơn! Còn nếu có dữ liệu liên quan, hãy thêm các thẻ HTML, rồi các thuộc tính CSS để bố cục trở nên thật đẹp mắt.
     `.trim();
 
   async onModuleInit() {
@@ -51,7 +51,7 @@ export class ChatBotService implements OnModuleInit {
     this.genAI = new GoogleGenerativeAI(apiKey);
 
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-pro',
+      model: 'gemini-2.0-flash',
     });
 
     this.chatSession = model.startChat({
