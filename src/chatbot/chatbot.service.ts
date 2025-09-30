@@ -33,7 +33,65 @@ export class ChatBotService implements OnModuleInit {
             {dữ liệu}
       Nếu có câu trả lời của Rasa, hãy trả lời lại theo văn phong của bạn cho mượt mà và chuyên nghiệp hơn! Còn nếu có dữ liệu liên quan, hãy thêm các thẻ HTML, rồi các thuộc tính CSS để bố cục trở nên thật đẹp mắt.
       11. Trước khi trả ra thì nên có câu dẫn: Ví dụ như: Dưới đây là thông tin chi tiết về sản phẩm bạn yêu cầu: 
-      12. Chỉ trả về nội dung HTML thuần, định dạng lại cho thật đẹp và chuyên nghiệp, không cần border vì đã có rồi. Không thêm \`\`\`html hoặc bất kỳ ký tự markdown nào khác.  
+      12. Chỉ trả về nội dung HTML theo khung tôi gợi ý cho bạn. Không thêm \`\`\`html hoặc bất kỳ ký tự markdown nào khác.  
+
+      Đây là mẫu HTML:
+        div id="product-template" role="group" aria-label="Sản phẩm" 
+    style="margin-top: 12px; display:flex;justify-content:flex-start;align-items:flex-start;box-sizing:border-box;
+          padding:0;margin:0;gap:8px;max-width:520px;border-radius:6px;font-family:Arial,Helvetica,sans-serif;">
+
+    <!-- Ảnh sản phẩm -->
+    <div dir="ltr" 
+      style="display:flex;flex-direction:column;justify-content:flex-start;align-items:center;flex:0 0 auto;
+            padding:0;margin:0;">
+      <img src="[Link ảnh]" alt="[Tên sản phẩm]" 
+          style="width:80px;height:70px;object-fit:contain;object-position:center;">
+    </div>
+
+    <!-- Nội dung sản phẩm -->
+    <div dir="ltr" 
+      style="display:flex;flex-direction:column;justify-content:flex-start;flex:1 1 50px;
+            padding:0;margin:0;min-width:0;">
+
+      <!-- Tên sản phẩm -->
+      <p aria-hidden="false" 
+        style="font-size:12px;color:#101519;line-height:1.33;margin:0 0 4px 0;overflow-wrap:break-word;">
+        [Tên sản phẩm]
+      </p>
+
+      <!-- Giá tiền hiện tại -->
+      <p aria-live="polite" 
+        style="font-size:14px;color:#dc2626;font-weight:600;white-space:nowrap;text-overflow:ellipsis;
+                overflow:hidden;margin:0 0 6px 0;line-height:1.33;">
+        [Giá tiền]
+      </p>
+
+      <!-- Giá gốc và giảm giá -->
+      <div aria-hidden="true" 
+          style="display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+        <span style="font-size:12px;color:#767676;text-decoration:line-through;line-height:1.33;">
+          [Giá gốc]
+        </span>
+        <span style="font-size:12px;color:red;line-height:1.33;">
+          [Giảm giá]
+        </span>
+      </div>
+
+      <!-- Nút hành động -->
+      <div role="toolbar" aria-label="Hành động" 
+          style="display:flex;gap:4px;margin-top:4px;">
+          <a href="${this.configService.get<string>('URL_REACT_FRONTEND') || 'http://localhost:5173'}/product/[id_san_pham]" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+          
+          <button type="button" tabindex="0" role="button"
+            style="display:inline-flex;align-items:center;justify-content:center;padding:6px 8px;
+                  font-size:12px;color:#101519;background:transparent;border:none;cursor:pointer;
+                  border-radius:4px;user-select:none;">
+            Xem ưu đãi
+          </button>
+          </a>
+      </div>
+    </div>
+  </div>
     `.trim();
 
   async onModuleInit() {
