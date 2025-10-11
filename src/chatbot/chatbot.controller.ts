@@ -1,5 +1,5 @@
 // src/chat/chat.controller.ts
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Headers } from '@nestjs/common';
 import { ChatBotService } from './chatbot.service';
 import { User } from 'src/decorator/userDecorator';
 import { IUser } from 'src/user/interface/user.interface';
@@ -11,9 +11,18 @@ export class ChatBotController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async sendMessage(@Body('message') message: string, @User() user: IUser) {
-    const response = await this.chatService.askRasa(message, user._id);
-    const reply = await this.chatService.sendMessage(message, response);
+  async sendMessage(
+    @Body('message') message: string,
+    @Headers('authorization') authHeader: string,
+    @User() user: IUser,
+  ) {
+    const userToken = authHeader.split(' ')[1]; // Lấy token từ header Authorization
+    const response = await this.chatService.askRasa(
+      message,
+      user._id,
+      userToken,
+    );
+    const reply = await this.chatService.getGeminiResponse(message, response);
     return { reply };
   }
 }
