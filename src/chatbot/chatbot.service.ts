@@ -145,7 +145,7 @@ export class ChatBotService implements OnModuleInit {
     try {
       const response = await axios.post<RasaResponse[]>(
         `${rasaUrl}/webhooks/rest/webhook`,
-        { sender: userId || 'default', message, access_token: accessToken },
+        { sender: userId || 'default', message },
       );
       console.log('Rasa response data:', response.data);
       // Kiểm tra kỹ hơn nếu Rasa trả về dữ liệu

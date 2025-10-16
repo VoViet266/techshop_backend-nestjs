@@ -67,7 +67,6 @@ export class Order {
         branch: {
           type: mongoose.Schema.Types.ObjectId,
           ref: Branch.name,
-          required: true,
         },
       },
     ],

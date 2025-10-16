@@ -78,6 +78,10 @@ export class OrderService {
 
     // 2. Lấy items từ giỏ hàng hoặc từ POS (tạo tại quầy)
     let itemsToOrder = [];
+    const orderSource =
+      createOrderDto.items && createOrderDto.items.length > 0
+        ? OrderSource.POS // Đơn hàng tạo từ payload (Rasa, POS)
+        : OrderSource.ONLINE; // Đơn hàng tạo từ giỏ hàng
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       const userCart = await this.cartModel.findOne({ user: user._id });
       if (!userCart || userCart.items.length === 0) {
@@ -183,18 +187,15 @@ export class OrderService {
 
     // Tính tổng tiền sau khi áp dụng promotion
     totalPriceWithPromotion = Math.max(0, totalPrice - finalDiscount);
-    if (!createOrderDto.recipient) {
-      throw new HttpException(
-        'Thông tin người nhận không được để trống',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
 
     // 5. Tạo đơn hàng
     const newOrder = await this.orderModel.create({
       phone: createOrderDto.phone,
       items: itemsToOrder,
-      recipient: createOrderDto.recipient,
+      recipient: createOrderDto?.recipient || {
+        name: findUser?.name,
+        phone: createOrderDto.phone || findUser?.phone || '',
+      },
       buyer: createOrderDto.buyer || {
         name: findUser?.name,
         phone: findUser?.phone || '',
@@ -235,7 +236,7 @@ export class OrderService {
 
     // 8. Nếu là đặt hàng online thì xoá giỏ hàng
 
-    if (createOrderDto.items || createOrderDto.items.length === 0) {
+    if (orderSource === OrderSource.ONLINE) {
       await this.cartService.remove(user);
     }
 

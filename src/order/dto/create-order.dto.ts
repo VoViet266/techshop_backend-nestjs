@@ -44,23 +44,15 @@ class RecipientDto {
 export class CreateOrderDto {
   user?: string;
 
-  @ValidateNested()
-  @Type(() => RecipientDto)
-  @IsObject()
-  @IsOptional()
   recipient: RecipientDto;
 
-  @ValidateNested()
-  @Type(() => RecipientDto)
-  @IsObject()
-  @IsOptional()
   buyer?: RecipientDto;
 
   items?: CartItemDto[];
 
   totalPrice?: number;
 
-  branch: string[];
+  branch?: string[];
 
   status?: string;
 
