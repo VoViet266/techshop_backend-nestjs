@@ -42,7 +42,7 @@ export class CreateTransferDto {
     unit?: string;
   }[]; // danh sách sản phẩm và số lượng tương ứng
   approvedBy?: string;
-  approvedAt?: Date;
+  approvedDate?: Date;
   rejectNote?: string;
   status: string;
   note?: string; // ghi chú chuyển kho (tùy chọn)

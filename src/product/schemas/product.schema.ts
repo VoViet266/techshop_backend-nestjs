@@ -1,13 +1,10 @@
 import mongoose, { HydratedDocument, Types } from 'mongoose';
-
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Brand } from 'src/brand/schemas/brand.schema';
 import { Category } from 'src/category/schemas/category.schema';
 import { Variant } from './variant.schema';
 import { softDeletePlugin } from 'soft-delete-plugin-mongoose';
-import { Type } from '@nestjs/common';
-import { Promotion } from 'src/benefit/schemas/promotion.schema';
-import { WarrantyPolicy } from 'src/benefit/schemas/warrantypolicy.schema';
+
 export type ProductDocument = HydratedDocument<Products>;
 
 @Schema({
@@ -21,20 +18,8 @@ export class Products {
   })
   name: string;
 
-  // @Prop({
-  //   index: true,
-  //   trim: true,
-  // })
-  // slug: string;
 
-  // @Prop({
-  //   required: true,
-  //   unique: true,
-  //   trim: true,
-  // })
-  // sku: string;
-
-  @Prop({ trim: true })
+  @Prop({ type: String })
   description: string;
 
   @Prop({ type: Number, default: 0 })
@@ -128,10 +113,7 @@ export class Products {
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Products);
-
-// Compound indexes for better query performanc
 ProductSchema.index({ isActive: 1, createdAt: -1 });
 ProductSchema.index({ tags: 1, isActive: 1 });
 ProductSchema.index({ slug: 1 }, { unique: true });
-
 ProductSchema.plugin(softDeletePlugin); // Không cần options

@@ -28,7 +28,7 @@ export class User {
   name: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
-  role: mongoose.Schema.Types.ObjectId;
+  role: Role;
 
   @Prop()
   avatar?: string;  
@@ -55,10 +55,10 @@ export class User {
   // userType: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Branch.name })
-  branch: mongoose.Schema.Types.ObjectId;
+  branch?: mongoose.Schema.Types.ObjectId;
 
   @Prop()
-  age: number;
+  age?: number;
 
   @Prop()
   isActive: boolean;

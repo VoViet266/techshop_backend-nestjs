@@ -25,7 +25,6 @@ export class VariantDto {
   @IsString()
   name: string;
 
-  @IsNumber()
   price: number;
 
   memory: {
@@ -35,26 +34,14 @@ export class VariantDto {
 
   @IsArray()
   color: VariantColorDto[];
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
 }
 
 export class CreateProductDto {
   @IsString()
   name: string;
-
-  @IsString()
-  @IsOptional()
   description?: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
   galleryImages?: string[];
 
-  @IsString()
   slug: string;
 
   // @IsArray()
@@ -67,19 +54,14 @@ export class CreateProductDto {
   // @IsString({ each: true })
   // warranties?: string[];
 
-  @IsString()
   category: string;
 
-  @IsString()
   brand: string;
 
-  @IsArray()
   variants?: VariantDto[];
 
-  @IsNumber()
   discount: number;
 
-  @IsOptional()
   attributes?: Record<string, any>;
 
   // @IsArray()

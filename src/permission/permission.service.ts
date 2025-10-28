@@ -24,7 +24,7 @@ export class PermissionService {
   }
 
   update(id: string, updatePermissionDto: UpdatePermissionDto) {
-    console.log(updatePermissionDto);
+  
     return this.permissionModel.updateOne(
       { _id: id },
       { $set: updatePermissionDto },

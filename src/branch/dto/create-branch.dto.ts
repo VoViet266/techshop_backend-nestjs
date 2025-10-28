@@ -31,6 +31,17 @@ export class CreateBranchDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Số điện thoại không được để trống' })
+  IsOptional,
+  IsBoolean,
+  IsEmail,
+  IsPhoneNumber,
+} from 'class-validator';
+
+export class CreateBranchDto {
+  name: string;
+
+  address: string;
+
   phone: string;
 
   @IsObject()

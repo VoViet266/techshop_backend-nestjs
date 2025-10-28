@@ -5,7 +5,7 @@ import {
   Injectable,
   Param,
 } from '@nestjs/common';
-import * as fs from 'fs';
+
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,7 +15,7 @@ import {
   Inventory,
   InventoryDocument,
 } from 'src/inventory/schemas/inventory.schema';
-import { console } from 'inspector';
+
 import slugify from 'slugify';
 import aqp from 'api-query-params';
 import { Variant, VariantDocument } from './schemas/variant.schema';

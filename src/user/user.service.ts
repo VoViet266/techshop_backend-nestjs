@@ -153,7 +153,7 @@ export class UserService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      console.log(error);
+     
 
       throw new InternalServerErrorException('Lỗi hệ thống khi xác thực OTP');
     }
@@ -253,7 +253,7 @@ export class UserService {
       .exec();
   }
   findOneByID(id: string) {
-    return this.userModel.findById(id);
+    return this.userModel.findById(id); // Trả về Query
   }
   findOneByEmail(username: string) {
     return this.userModel.findOne({ email: username });

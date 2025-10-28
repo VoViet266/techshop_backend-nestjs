@@ -21,6 +21,7 @@ export class CreateCartDto {
 
   items: CartItemDto[];
 
+ 
   totalQuantity?: number;
 
   totalPrice?: number;
