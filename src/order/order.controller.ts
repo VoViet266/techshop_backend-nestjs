@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -17,6 +18,7 @@ import { IUser } from 'src/user/interface/user.interface';
 import { PoliciesGuard } from 'src/common/guards/policies.guard';
 import { CheckPolicies } from 'src/decorator/policies.decorator';
 import { Actions, Subjects } from 'src/constant/permission.enum';
+import { JwtAuthGuard } from 'src/common/guards/jwt.auth.guard';
 
 @Controller('api/v1/orders')
 export class OrderController {
@@ -24,6 +26,7 @@ export class OrderController {
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @User() user: IUser) {
+   
     return this.orderService.create(createOrderDto, user);
   }
 
@@ -33,7 +36,28 @@ export class OrderController {
   findAllByStaff(@User() user: IUser) {
     return this.orderService.findAllByStaff(user);
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('tracking/latest')
+  async getLatestOrderTracking(@Req() req) {
+    const userId = req.user._id; 
 
+    const trackingData =
+      await this.orderService.findLatestTrackingForUser(userId);
+
+    return trackingData;
+  }
+  @Get('tracking/:id')
+
+  async getOrderTrackingDetails(
+    @Param('id') id: string,
+  ) {
+    const trackingData = await this.orderService.findTrackingDetails(id);
+    return {
+      statusCode: 200,
+      message: 'Lấy dữ liệu tracking thành công',
+      data: trackingData,
+    };
+  }
   @Get('user')
   findAllByCustomer(@User() user: IUser) {
     return this.orderService.findAllByCustomer(user);

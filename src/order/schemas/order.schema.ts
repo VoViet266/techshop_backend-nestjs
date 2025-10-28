@@ -17,7 +17,7 @@ import { User } from 'src/user/schemas/user.schema';
 
 export type OrderDocument = HydratedDocument<Order>;
 @Schema({
-  timestamps: true,
+  timestamps: true, // Cái này đã bao gồm createdAt và updatedAt (thay thế cho lastUpdated)
 })
 export class Order {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
@@ -37,6 +37,7 @@ export class Order {
     address: string;
     note?: string;
   };
+
   @Prop({
     type: {
       name: { type: String, required: true },
@@ -102,6 +103,7 @@ export class Order {
     value: number;
     discountAmount: number;
   }[];
+
   @Prop()
   discountAmount: number;
 
@@ -141,6 +143,7 @@ export class Order {
     name: string;
     email: string;
   };
+
   @Prop()
   createdAt: Date;
 
@@ -157,5 +160,54 @@ export class Order {
     name: string;
     email: string;
   };
+
+  @Prop({
+    type: {
+      type: String,
+      enum: ['Point'],
+      required: false,
+    },
+    coordinates: {
+      type: [Number],
+      required: false,
+    },
+  })
+  currentLocation: {
+    type: string;
+    coordinates: number[];
+  };
+
+  @Prop({
+    type: {
+      type: String,
+      enum: ['Point'],
+      required: false,
+    },
+    coordinates: {
+      type: [Number],
+      required: false,
+    },
+  })
+  recipientLocation: {
+    type: string;
+    coordinates: number[];
+  };
+
+  @Prop({
+    type: Array,
+    default: [],
+  })
+  trackingHistory: {
+    location: {
+      type: string;
+      coordinates: number[];
+    };
+    address: string;
+    status: string;
+    timestamp: Date;
+  }[];
 }
+
 export const OrderSchema = SchemaFactory.createForClass(Order);
+OrderSchema.index({ currentLocation: '2dsphere' });
+OrderSchema.index({ recipientLocation: '2dsphere' });

@@ -31,7 +31,7 @@ export class User {
   role: mongoose.Schema.Types.ObjectId;
 
   @Prop()
-  avatar?: string;
+  avatar?: string;  
 
   @Prop({
     trim: true,

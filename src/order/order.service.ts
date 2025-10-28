@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import {
   BadRequestException,
   ForbiddenException,
@@ -37,7 +38,9 @@ import {
   WarrantyPolicyDocument,
 } from 'src/benefit/schemas/warrantypolicy.schema';
 import { UserService } from 'src/user/user.service';
-
+import { Branch, BranchDocument } from 'src/branch/schemas/branch.schema';
+import { HttpService } from '@nestjs/axios'; 
+import { firstValueFrom } from 'rxjs'; 
 @Injectable()
 export class OrderService {
   constructor(
@@ -55,11 +58,39 @@ export class OrderService {
     private readonly warrantyModel: SoftDeleteModel<WarrantyPolicyDocument>,
     @InjectModel(User.name)
     private readonly userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Branch.name)
+    private readonly branchModel: SoftDeleteModel<BranchDocument>,
     private readonly inventoryService: InventoryService,
     private readonly cartService: CartService,
     private readonly userService: UserService,
+    private readonly httpService: HttpService,
+    private configService: ConfigService,
   ) {}
+  private async geocodeAddress(address: string): Promise<number[] | null> {
+    const API_KEY = this.configService.get<string>('GEOAPIFY_SECRET_KEY');
 
+    if (!API_KEY) {
+      console.error('GEOAPIFY_SECRET_KEY chưa được cài đặt.');
+      return null;
+    }
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
+      address,
+    )}&apiKey=${API_KEY}&limit=1&lang=vi`;
+
+    try {
+      const response = await firstValueFrom(this.httpService.get(url));
+      const features = response.data.features;
+
+    
+      if (features && features.length > 0) {
+        return features[0].geometry.coordinates;
+      }
+      return null;
+    } catch (error) {
+      console.error('Lỗi Geocoding (Geoapify):', error.message);
+      return null;
+    }
+  }
   async create(createOrderDto: CreateOrderDto, user: IUser) {
     // 1. Kiểm tra quyền chi nhánh nếu là nhân viên
     if (user.role === RolesUser.Staff) {
@@ -80,8 +111,8 @@ export class OrderService {
     let itemsToOrder = [];
     const orderSource =
       createOrderDto.items && createOrderDto.items.length > 0
-        ? OrderSource.POS // Đơn hàng tạo từ payload (Rasa, POS)
-        : OrderSource.ONLINE; // Đơn hàng tạo từ giỏ hàng
+        ? OrderSource.POS
+        : OrderSource.ONLINE;
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       const userCart = await this.cartModel.findOne({ user: user._id });
       if (!userCart || userCart.items.length === 0) {
@@ -111,6 +142,48 @@ export class OrderService {
     let phone = findUser?.phone || '';
     createOrderDto.phone = createOrderDto.phone || phone;
 
+    const firstBranchId = itemsToOrder[0].branch;
+    const orderBranch = await this.branchModel
+      .findById(firstBranchId)
+      .select('name address location');
+    if (!orderBranch) {
+      throw new NotFoundException(
+        `Không tìm thấy chi nhánh với ID ${firstBranchId}`,
+      );
+    }
+    if (
+      !orderBranch.location ||
+      !orderBranch.location.coordinates ||
+      orderBranch.location.coordinates.length !== 2
+    ) {
+      throw new BadRequestException(
+        `Chi nhánh ${orderBranch.name} chưa được thiết lập vị trí (location). Không thể tạo tracking.`,
+      );
+    }
+
+    // Chuẩn bị dữ liệu tracking ban đầu
+    const initialLocation = orderBranch.location;
+    const initialAddress = orderBranch.address || orderBranch.name; 
+    const initialTrackingEntry = {
+      location: initialLocation,
+      address: initialAddress,
+      status: OrderStatus.PENDING, 
+      timestamp: new Date(),
+    };
+    let recipientLocationData = null;
+    const recipientAddress = createOrderDto.recipient?.address;
+    if (recipientAddress) {
+      const coordinates = await this.geocodeAddress(recipientAddress);
+      
+      if (coordinates) {
+        recipientLocationData = {
+          type: 'Point',
+          coordinates: coordinates,
+        };
+      } else {
+        console.warn(`Không thể geocode địa chỉ: ${recipientAddress}`);
+      }
+    }
     // 4. Tính tổng tiền và áp dụng promotion
     let totalPrice = 0;
     let totalPriceWithPromotion = 0;
@@ -181,7 +254,7 @@ export class OrderService {
           });
         }
 
-        break; // Chỉ áp dụng promotion đầu tiên phù hợp
+        break;
       }
     }
 
@@ -212,10 +285,11 @@ export class OrderService {
         name: user.name,
         email: user.email,
       },
-      source:
-        createOrderDto.items && createOrderDto.items.length > 0
-          ? OrderSource.POS
-          : OrderSource.ONLINE,
+     
+      source: orderSource,
+      currentLocation: initialLocation,
+      trackingHistory: [initialTrackingEntry],
+      recipientLocation: recipientLocationData,
     });
 
     const newPayment = await this.paymentModel.create({
@@ -242,7 +316,43 @@ export class OrderService {
 
     return newOrder;
   }
+  async findTrackingDetails(orderId: string) {
+    // Chỉ chọn (select) những trường cần thiết cho bản đồ
+    const order = await this.orderModel
+      .findById(orderId)
+      .select('trackingHistory recipientLocation recipient.address status');
 
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy đơn hàng');
+    }
+
+    // Trả về dữ liệu đúng định dạng mà component React mong đợi
+    return {
+      trackingHistory: order.trackingHistory,
+      recipientLocation: order.recipientLocation,
+      recipientAddress: order.recipient?.address,
+      status: order.status,
+    };
+  }
+  async findLatestTrackingForUser(userId: string) {
+    const order = await this.orderModel
+      .findOne({
+        user: userId,
+        status: OrderStatus.SHIPPING, // Chỉ tìm đơn đang giao
+      })
+      .sort({ createdAt: -1 }); // Lấy đơn mới nhất
+
+    if (!order) {
+      throw new NotFoundException('Không tìm thấy đơn hàng nào đang giao.');
+    }
+
+    if (!order.currentLocation || !order.currentLocation.coordinates) {
+      throw new NotFoundException('Đơn hàng chưa có thông tin vị trí.');
+    }
+
+    // Chỉ trả về đúng object location
+    return order.currentLocation;
+  }
   findAllByCustomer(user: IUser) {
     return this.orderModel
       .find({ user: user._id })
