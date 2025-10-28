@@ -9,7 +9,7 @@ import { CaslModule } from 'src/casl/casl.module';
   controllers: [BrandController],
   providers: [BrandService],
   imports: [
-    CaslModule  ,
+    CaslModule,
     MongooseModule.forFeature([{ name: Brand.name, schema: BrandSchema }]),
   ],
 })

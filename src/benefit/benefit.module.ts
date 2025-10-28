@@ -4,7 +4,10 @@ import { ProductBenefitController } from './benefit.controller';
 import mongoose from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Promotion, PromotionSchema } from './schemas/promotion.schema';
-import { WarrantyPolicy, WarrantyPolicySchema } from './schemas/warrantypolicy.schema';
+import {
+  WarrantyPolicy,
+  WarrantyPolicySchema,
+} from './schemas/warrantypolicy.schema';
 
 @Module({
   controllers: [ProductBenefitController],

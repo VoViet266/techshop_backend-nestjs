@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { UpdateBranchDto } from './dto/update-branch.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,10 +12,30 @@ export class branchService {
     @InjectModel(Branch.name)
     private readonly branchModel: SoftDeleteModel<BranchDocument>,
   ) {}
-  create(createBranchDto: CreateBranchDto) {
-    // const existingBranch = this.branchModel.findOne({
-    //   name: createBranchDto.name,
-    // });
+  async create(createBranchDto: CreateBranchDto) {
+    const locationForSchema = {
+      type: 'Point',
+      coordinates: [
+        createBranchDto.location.longitude,
+        createBranchDto.location.latitude,
+      ],
+    };
+
+    const newBranch = new this.branchModel({
+      ...createBranchDto,
+      location: locationForSchema, // Ghi đè location bằng dữ liệu đã chuyển đổi
+    });
+
+    try {
+      return await newBranch.save();
+    } catch (error) {
+      if (error.code === 11000) {
+        // Lỗi trùng lặp unique key (ví dụ: name)
+        throw new BadRequestException('Tên chi nhánh này đã tồn tại');
+      }
+      throw error;
+    }
+
     // if (existingBranch) {
     //   throw new Error(
     //     `Branch with name ${createBranchDto.name} already exists`,

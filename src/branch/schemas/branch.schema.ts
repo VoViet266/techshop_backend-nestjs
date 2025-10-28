@@ -17,7 +17,7 @@ export class Branch {
   name: string;
 
   @Prop({
-    // required: true,
+    required: true,
     trim: true,
   })
   address: string;
@@ -25,8 +25,14 @@ export class Branch {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   manager: mongoose.Schema.Types.ObjectId;
 
-  @Prop()
-  location: string;
+  @Prop({
+    type: Object, // Chỉ cần định nghĩa nó là một Object
+    required: true, // Bạn nên yêu cầu trường này là bắt buộc
+  })
+  location: {
+    type: string; // 'Point'
+    coordinates: number[]; // [longitude, latitude]
+  };
 
   @Prop({
     trim: true,
@@ -69,3 +75,4 @@ export const BranchSchema = SchemaFactory.createForClass(Branch);
 // Indexes for better performance
 BranchSchema.index({ name: 1, isActive: 1 });
 BranchSchema.index({ isDeleted: 1, isActive: 1 });
+BranchSchema.index({ location: '2dsphere' });

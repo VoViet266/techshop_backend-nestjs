@@ -1,12 +1,9 @@
 import {
   Controller,
   Post,
-
   UseInterceptors,
   UploadedFile,
-
   Req,
- 
 } from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';

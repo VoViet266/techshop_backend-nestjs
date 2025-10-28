@@ -26,16 +26,16 @@ export class Variant {
       },
     ],
   })
-  color: {
-    colorName: string;
-    colorHex: string;
-    images: string[];
-  }[];
-  @Prop({ type: Object })
-  memory: {
-    ram: string;
-    storage: string;
-  };
+    color: {
+      colorName: string;
+      colorHex: string;
+      images: string[];
+    }[];
+    @Prop({ type: Object })
+    memory: {
+      ram: string;
+      storage: string;
+    };
 
   @Prop({ default: 0 })
   weight: number; // For shipping calculations

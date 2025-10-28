@@ -72,7 +72,6 @@ export class RecommendationController {
     @Param('id') categoryId: string,
     @Query('limit') limit: string = '10',
   ) {
-    
     return this.recommendationService.getCategoryBasedRecommendations(
       categoryId,
       parseInt(limit, 10),

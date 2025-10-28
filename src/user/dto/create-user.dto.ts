@@ -77,7 +77,7 @@ export class RegisterUserDto {
 
   age?: number;
 
-  role?: string[];
+  role: string[];
 
   gender?: string;
 }

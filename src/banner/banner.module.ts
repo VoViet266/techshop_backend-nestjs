@@ -8,7 +8,8 @@ import { CaslModule } from 'src/casl/casl.module';
 @Module({
   controllers: [BannerController],
   providers: [BannerService],
-  imports: [ CaslModule ,
+  imports: [
+    CaslModule,
     MongooseModule.forFeature([{ name: Banner.name, schema: BannerSchemas }]),
   ],
 })

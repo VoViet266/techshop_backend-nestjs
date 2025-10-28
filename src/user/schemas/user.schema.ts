@@ -31,7 +31,7 @@ export class User {
   role: Role;
 
   @Prop()
-  avatar?: string;
+  avatar?: string;  
 
   @Prop({
     trim: true,

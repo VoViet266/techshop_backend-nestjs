@@ -43,7 +43,7 @@ export class CreateOrderDto {
 
   totalPrice?: number;
 
-  branch: string[];
+  branch?: string[];
 
   status?: string;
 

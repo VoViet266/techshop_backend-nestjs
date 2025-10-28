@@ -10,7 +10,7 @@ import { CaslModule } from 'src/casl/casl.module';
   providers: [PermissionService],
   exports: [PermissionService],
   imports: [
-    CaslModule  ,
+    CaslModule,
     MongooseModule.forFeature([
       {
         name: Permission.name,

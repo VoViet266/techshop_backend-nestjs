@@ -21,13 +21,19 @@ import {
   Promotion,
   PromotionSchema,
 } from 'src/benefit/schemas/promotion.schema';
-import { WarrantyPolicy, WarrantyPolicySchema } from 'src/benefit/schemas/warrantypolicy.schema';
+import {
+  WarrantyPolicy,
+  WarrantyPolicySchema,
+} from 'src/benefit/schemas/warrantypolicy.schema';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [OrderController],
   providers: [OrderService],
   exports: [MongooseModule, OrderService],
   imports: [
+    HttpModule,
     MongooseModule.forFeature([
       { name: Order.name, schema: OrderSchema },
       // { name: Inventory.name, schema: InventorySchema },
@@ -36,8 +42,9 @@ import { WarrantyPolicy, WarrantyPolicySchema } from 'src/benefit/schemas/warran
       { name: Payment.name, schema: PaymentSchema },
       { name: User.name, schema: UserSchema },
       { name: Promotion.name, schema: PromotionSchema },
-      {name : WarrantyPolicy.name, schema : WarrantyPolicySchema}
+      { name: WarrantyPolicy.name, schema: WarrantyPolicySchema },
     ]),
+    ConfigModule,
     ProductModule,
     CartModule,
     CaslModule,

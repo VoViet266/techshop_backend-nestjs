@@ -32,4 +32,4 @@ export class BannerService {
   remove(id: string) {
     return this.bannerModel.deleteOne({ _id: id });
   }
-} 
+}

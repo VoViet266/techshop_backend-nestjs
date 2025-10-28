@@ -6,7 +6,7 @@ export class TfidfModel {
   @Prop({ required: true, type: [String] })
   vocabulary: string[];
 
-  @Prop({ required: true, type: Object }) 
+  @Prop({ required: true, type: Object })
   productVectors: Record<string, number[]>;
 
   @Prop({ default: Date.now })
