@@ -22,7 +22,6 @@ import { CloundinaryModule } from './cloundinary/cloundinary.module';
 import { FileModule } from './file/file.module';
 import { CaslModule } from './casl/casl.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
-import { ChatbotModule } from './chatbot/chatbot.module';
 import { ReviewModule } from './review/review.module';
 import { RedisModule } from './redis/redis.module';
 import { DashboardModule } from './dashboard/dashboard.module';
@@ -56,7 +55,6 @@ import { TfidfModeModule } from './tfidf-mode/tfidf-mode.module';
     FileModule,
     CaslModule,
     RecommendationModule,
-    ChatbotModule,
     ReviewModule,
     RedisModule,
     DashboardModule,
