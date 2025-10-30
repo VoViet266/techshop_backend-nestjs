@@ -22,6 +22,7 @@ import { Actions, Subjects } from 'src/constant/permission.enum';
 import { User } from 'src/decorator/userDecorator';
 
 import { IUser } from 'src/user/interface/user.interface';
+import { Public } from 'src/decorator/publicDecorator';
 @Controller('api/v1/inventories')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
@@ -39,6 +40,7 @@ export class InventoryController {
   }
 
   @Get('check-stock')
+  @Public()
   findOne(
     @Query('productId') productId: string,
     @Query('branchId') branchId: string,
