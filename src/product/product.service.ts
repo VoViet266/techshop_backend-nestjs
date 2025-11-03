@@ -99,7 +99,7 @@ export class ProductService {
               {
                 text: {
                   query: query,
-                  path: 'name',
+                  path: ['name', 'brands', 'categories'],
                   fuzzy: { maxEdits: 2 },
                 },
               },
@@ -142,24 +142,10 @@ export class ProductService {
       {
         $project: {
           name: 1,
-          slug: 1,
-          description: 1,
-          discount: 1,
-          tags: 1,
-          category: {
-            _id: '$category._id',
-            name: '$category.name',
-          },
-          brand: {
-            _id: '$brand._id',
-            name: '$brand.name',
-          },
-          attributes: 1,
+          category: '$category.name',
+          brand: '$brand.name',
           variants: 1,
           isActive: 1,
-          isFeatured: 1,
-          averageRating: 1,
-          reviewCount: 1,
         },
       },
     ]);
