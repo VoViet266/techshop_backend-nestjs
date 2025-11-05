@@ -38,8 +38,8 @@ import {
 } from 'src/benefit/schemas/warrantypolicy.schema';
 import { UserService } from 'src/user/user.service';
 import { Branch, BranchDocument } from 'src/branch/schemas/branch.schema';
-import { HttpService } from '@nestjs/axios'; 
-import { firstValueFrom } from 'rxjs'; 
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 
@@ -83,7 +83,6 @@ export class OrderService {
       const response = await firstValueFrom(this.httpService.get(url));
       const features = response.data.features;
 
-    
       if (features && features.length > 0) {
         return features[0].geometry.coordinates;
       }
@@ -93,7 +92,7 @@ export class OrderService {
       return null;
     }
   }
-  
+
   async create(createOrderDto: CreateOrderDto, user: IUser) {
     // 1. Kiểm tra quyền chi nhánh nếu là nhân viên
     if (user.role === RolesUser.Staff) {
@@ -166,18 +165,18 @@ export class OrderService {
 
     // Chuẩn bị dữ liệu tracking ban đầu
     const initialLocation = orderBranch.location;
-    const initialAddress = orderBranch.address || orderBranch.name; 
+    const initialAddress = orderBranch.address || orderBranch.name;
     const initialTrackingEntry = {
       location: initialLocation,
       address: initialAddress,
-      status: OrderStatus.PENDING, 
+      status: OrderStatus.PENDING,
       timestamp: new Date(),
     };
     let recipientLocationData = null;
     const recipientAddress = createOrderDto.recipient?.address;
     if (recipientAddress) {
       const coordinates = await this.geocodeAddress(recipientAddress);
-      
+
       if (coordinates) {
         recipientLocationData = {
           type: 'Point',
@@ -288,7 +287,7 @@ export class OrderService {
         name: user.name,
         email: user.email,
       },
-     
+
       source: orderSource,
       currentLocation: initialLocation,
       trackingHistory: [initialTrackingEntry],
@@ -463,7 +462,6 @@ export class OrderService {
   }
   async cancelOrder(id: string, user: IUser) {
     const order = await this.orderModel.findById(id);
-
     if (!order) {
       throw new HttpException(
         {
@@ -510,12 +508,14 @@ export class OrderService {
 
     return { message: 'Đơn hàng đã được hủy thành công' };
   }
+
   async requestReturn(
     orderId: string,
     dto: {
       returnReason: string;
     },
   ) {
+    console.log(dto);
     const order = await this.orderModel.findById(orderId);
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
 
@@ -530,13 +530,7 @@ export class OrderService {
 
     return { message: 'Yêu cầu trả hàng đã được gửi', order };
   }
-  async confirmReturn(
-    orderId: string,
-
-    returnStatus: string,
-
-    user: IUser,
-  ) {
+  async confirmReturn(orderId: string, returnStatus: string, user: IUser) {
     const order = await this.orderModel.findById(orderId);
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
 
@@ -592,72 +586,4 @@ export class OrderService {
     await order.save();
     return { message: `Đã ${returnStatus} yêu cầu trả hàng`, order };
   }
-
-  // async refundOrder(
-  //   id: string,
-  //   user: IUser,
-  //   dto: {
-  //     returnReason: string;
-  //     returnStatus: string;
-  //     isReturned: boolean;
-  //   },
-  // ) {
-  //   const order = await this.orderModel.findById(id);
-  //   if (!order) {
-  //     throw new HttpException(
-  //       {
-  //         statusCode: HttpStatus.NOT_FOUND,
-  //         message: 'Đơn hàng không tồn tại',
-  //       },
-  //       HttpStatus.NOT_FOUND,
-  //     );
-  //   }
-
-  //   if (order.user.toString() !== user._id.toString()) {
-  //     throw new HttpException(
-  //       {
-  //         statusCode: HttpStatus.FORBIDDEN,
-  //         message: 'Không có quyện hủy đơn hàng nây',
-  //       },
-  //       HttpStatus.FORBIDDEN,
-  //     );
-  //   }
-
-  //   if (
-  //     order.paymentStatus === PaymentStatus.CANCELLED ||
-  //     order.paymentStatus === PaymentStatus.REFUNDED
-  //   ) {
-  //     throw new HttpException(
-  //       {
-  //         statusCode: HttpStatus.BAD_REQUEST,
-  //         message: 'Không thể hủy đơn hàng!!!!',
-  //       },
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
-
-  //   order.paymentStatus = PaymentStatus.REFUNDED;
-  //   order.status = OrderStatus.RETURNED;
-  //   await order.save();
-  //   const payment = await this.paymentModel.findById(order.payment);
-  //   payment.status = PaymentStatus.REFUNDED;
-  //   await payment.save();
-  //   for (const item of order.items) {
-  //     await this.inventoryService.importStock(
-  //       {
-  //         branchId: item.branch.toString(),
-  //         productId: item.product?.toString(),
-  //         variants: [
-  //           {
-  //             variantId: item.variant?.toString(),
-  //             quantity: item.quantity,
-  //           },
-  //         ],
-  //         source: TransactionSource.RETURN,
-  //       },
-  //       user,
-  //     );
-  //   }
-  //   return { message: 'Đơn hàng đã được hoàn' };
-  // }
 }
