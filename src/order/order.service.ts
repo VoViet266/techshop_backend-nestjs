@@ -112,9 +112,11 @@ export class OrderService {
     // 2. Lấy items từ giỏ hàng hoặc từ POS (tạo tại quầy)
     let itemsToOrder = [];
     const orderSource =
-      createOrderDto.items && createOrderDto.items.length > 0
-        ? OrderSource.POS
-        : OrderSource.ONLINE;
+      !createOrderDto.items || createOrderDto.items.length === 0
+        ? OrderSource.ONLINE
+        : OrderSource.POS;
+
+
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       const userCart = await this.cartModel.findOne({ user: user._id });
       if (!userCart || userCart.items.length === 0) {
@@ -311,7 +313,7 @@ export class OrderService {
     await newOrder.save();
 
     // 8. Nếu là đặt hàng online thì xoá giỏ hàng
-
+    console.log('Order source:', orderSource);
     if (orderSource === OrderSource.ONLINE) {
       await this.cartService.remove(user);
     }
