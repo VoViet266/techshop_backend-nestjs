@@ -136,6 +136,8 @@ export class OrderService {
         color: item.color,
         price: item.price,
         branch: item.branch.toString(),
+        warranty: item.warranty ? item.warranty.toString() : null,
+        warrantyPrice: item.warrantyPrice || 0,
       }));
     } else {
       itemsToOrder = createOrderDto.items;
@@ -210,14 +212,48 @@ export class OrderService {
       })
       .sort({ value: -1 }); // Sắp xếp theo giá trị giảm giá từ cao xuống thấp
 
+    // Lấy danh sách category của các sản phẩm trong đơn hàng
+    const productIds = itemsToOrder.map((item) => item.product);
+    const products = await this.productModel
+      .find({ _id: { $in: productIds } })
+      .select('category');
+    
+    const productCategoryMap = new Map<string, string>();
+    products.forEach((p) => {
+      if (p.category) {
+        productCategoryMap.set(p._id.toString(), p.category.toString());
+      }
+    });
+
     // Kiểm tra và áp dụng promotion phù hợp
     let finalDiscount = 0;
     for (const promotion of activePromotions) {
       // Kiểm tra điều kiện của promotion
       let isEligible = true;
+      let eligibleTotal = 0;
 
-      if (promotion.conditions) {
-        // Kiểm tra điều kiện đơn hàng tối thiểu
+      // Tính tổng tiền của các sản phẩm hợp lệ với promotion này
+      if (promotion.categories && promotion.categories.length > 0) {
+        for (const item of itemsToOrder) {
+          const productCat = productCategoryMap.get(item.product.toString());
+          if (
+            productCat &&
+            promotion.categories.some((c) => c.toString() === productCat)
+          ) {
+            eligibleTotal += item.price * item.quantity;
+          }
+        }
+        // Nếu có quy định category mà không có sản phẩm nào khớp -> không hợp lệ
+        if (eligibleTotal === 0) {
+          isEligible = false;
+        }
+      } else {
+        // Nếu không quy định category -> áp dụng cho toàn bộ đơn hàng
+        eligibleTotal = totalPrice;
+      }
+
+      if (isEligible && promotion.conditions) {
+        // Kiểm tra điều kiện đơn hàng tối thiểu (áp dụng trên tổng đơn hàng)
         if (
           promotion.conditions.minOrder &&
           totalPrice < promotion.conditions.minOrder
@@ -226,7 +262,6 @@ export class OrderService {
         }
 
         // Kiểm tra phương thức thanh toán
-
         if (
           promotion.conditions.payment &&
           createOrderDto.paymentMethod.toLocaleLowerCase() !==
@@ -242,7 +277,8 @@ export class OrderService {
         if (promotion.valueType === 'fixed') {
           discountAmount = promotion.value;
         } else if (promotion.valueType === 'percent') {
-          discountAmount = (totalPrice * promotion.value) / 100;
+          // Chỉ giảm giá trên tổng tiền của các sản phẩm hợp lệ
+          discountAmount = (eligibleTotal * promotion.value) / 100;
         }
 
         // Chọn promotion có giá trị giảm giá cao nhất (chỉ áp dụng 1 promotion)
@@ -372,6 +408,10 @@ export class OrderService {
         path: 'items.branch',
         select: 'name',
       })
+      .populate({
+        path: 'items.warranty',
+        select: 'name price durationMonths',
+      })
       .sort({ createdAt: -1 });
   }
 
@@ -382,6 +422,7 @@ export class OrderService {
         .populate({ path: 'items.branch', select: 'name ' })
         .populate({ path: 'items.product', select: 'name ' })
         .populate({ path: 'items.variant', select: 'name ' })
+        .populate({ path: 'items.warranty', select: 'name price durationMonths' })
         .sort({ createdAt: -1 });
     }
     return this.orderModel
@@ -389,6 +430,7 @@ export class OrderService {
       .populate({ path: 'items.branch', select: 'name ' })
       .populate({ path: 'items.product', select: 'name ' })
       .populate({ path: 'items.variant', select: 'name ' })
+      .populate({ path: 'items.warranty', select: 'name price durationMonths' })
       .sort({ createdAt: -1 });
   }
 
@@ -396,7 +438,8 @@ export class OrderService {
     return this.orderModel
       .findById(id)
       .populate('items.product')
-      .populate('items.variant');
+      .populate('items.variant')
+      .populate('items.warranty');
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto, user: any) {

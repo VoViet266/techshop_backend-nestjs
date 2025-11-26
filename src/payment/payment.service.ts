@@ -67,7 +67,12 @@ export class PaymentService {
         };
       }
 
-      if (existingPayment.payUrl && existingPayment.deeplink) {
+      // Chỉ tái sử dụng link nếu đang PENDING và chưa quá 15 phút
+      if (
+        existingPayment.status === PaymentStatus.PENDING &&
+        existingPayment.payUrl &&
+        existingPayment.deeplink
+      ) {
         const now = new Date();
         const diffMinutes =
           (now.getTime() - new Date(existingPayment.updatedAt).getTime()) /

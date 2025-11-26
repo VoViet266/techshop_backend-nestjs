@@ -21,6 +21,10 @@ export class CartItemDto {
   price?: number;
 
   variant?: string;
+
+  warranty?: string;
+
+  warrantyPrice?: number;
 }
 class RecipientDto {
   @IsString()

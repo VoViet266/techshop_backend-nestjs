@@ -27,8 +27,17 @@ export class ProductBenefitService {
     return this.promotionModel.create(data);
   }
 
-  async getAllPromotions() {
-    return this.promotionModel.find();
+  async getAllPromotions(categoryId?: string) {
+    const filter: any = {};
+    if (categoryId) {
+      filter.$or = [
+        { categories: categoryId },
+        { categories: { $size: 0 } },
+        { categories: { $exists: false } },
+        { categories: null },
+      ];
+    }
+    return this.promotionModel.find(filter);
   }
 
   async getPromotionById(id: string) {
@@ -48,8 +57,17 @@ export class ProductBenefitService {
     return this.warrantyModel.create(data);
   }
 
-  async getAllWarranties() {
-    return this.warrantyModel.find();
+  async getAllWarranties(categoryId?: string) {
+    const filter: any = {};
+    if (categoryId) {
+      filter.$or = [
+        { categories: categoryId },
+        { categories: { $size: 0 } },
+        { categories: { $exists: false } },
+        { categories: null },
+      ];
+    }
+    return this.warrantyModel.find(filter);
   }
 
   async getWarrantyById(id: string) {

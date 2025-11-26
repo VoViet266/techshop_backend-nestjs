@@ -38,6 +38,16 @@ export class CartItem {
     required: true,
   })
   branch: Types.ObjectId;
+
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'WarrantyPolicy',
+    required: false,
+  })
+  warranty: Types.ObjectId;
+
+  @Prop({ default: 0 })
+  warrantyPrice: number;
 }
 
 const CartItemSchema = SchemaFactory.createForClass(CartItem);

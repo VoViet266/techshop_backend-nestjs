@@ -69,6 +69,11 @@ export class Order {
           type: mongoose.Schema.Types.ObjectId,
           ref: Branch.name,
         },
+        warranty: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: WarrantyPolicy.name,
+        },
+        warrantyPrice: { type: Number, default: 0 },
       },
     ],
   })

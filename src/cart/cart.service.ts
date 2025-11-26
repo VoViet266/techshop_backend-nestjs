@@ -9,6 +9,10 @@ import { IUser } from 'src/user/interface/user.interface';
 import { Types } from 'mongoose';
 import { Variant, VariantDocument } from 'src/product/schemas/variant.schema';
 import { User } from 'src/decorator/userDecorator';
+import {
+  WarrantyPolicy,
+  WarrantyPolicyDocument,
+} from 'src/benefit/schemas/warrantypolicy.schema';
 
 @Injectable()
 export class CartService {
@@ -19,6 +23,8 @@ export class CartService {
     private readonly productModel: SoftDeleteModel<ProductDocument>,
     @InjectModel(Variant.name)
     private readonly variantModel: SoftDeleteModel<VariantDocument>,
+    @InjectModel(WarrantyPolicy.name)
+    private readonly warrantyModel: SoftDeleteModel<WarrantyPolicyDocument>,
   ) {}
   async create(createCartDto: CreateCartDto, user: IUser) {
     // Tìm giỏ hàng của user
@@ -53,19 +59,38 @@ export class CartService {
       }
       const variant = await this.variantModel.findById(newItem.variant);
 
-      // Tìm xem item trong giỏ hàng đã có sản phẩm + biến thể
+      // Xử lý bảo hành
+      let warrantyPrice = 0;
+      let warrantyId = null;
+      if (newItem.warranty) {
+        const warranty = await this.warrantyModel.findById(newItem.warranty);
+        if (!warranty) {
+          throw new NotFoundException(
+            `Chính sách bảo hành ${newItem.warranty} không tồn tại`,
+          );
+        }
+        warrantyPrice = warranty.price;
+        warrantyId = new Types.ObjectId(newItem.warranty);
+      }
+
+      // Tìm xem item trong giỏ hàng đã có sản phẩm + biến thể + bảo hành
       const itemIndex = cart.items.findIndex(
         (item) =>
           item.product.toString() === newItem.product &&
           item.variant.toString() === newItem.variant &&
-          item.color === newItem.color,
+          item.color === newItem.color &&
+          (item.warranty ? item.warranty.toString() : null) ===
+            (warrantyId ? warrantyId.toString() : null),
       );
+
+      const productPrice =
+        variant.price - (variant.price * product.discount) / 100;
+      const finalPrice = productPrice + warrantyPrice;
 
       if (itemIndex > -1) {
         cart.items[itemIndex].quantity += newItem.quantity;
-        cart.totalPrice =
-          cart.items[itemIndex].quantity * variant.price -
-          (variant.price * product.discount) / 100;
+        cart.items[itemIndex].price = finalPrice; // Cập nhật lại giá (đề phòng giá thay đổi)
+        cart.items[itemIndex].warrantyPrice = warrantyPrice;
       } else {
         /// nếu không tìm thấy sử dụng push
         cart.items.push({
@@ -73,10 +98,10 @@ export class CartService {
           variant: new Types.ObjectId(newItem.variant),
           quantity: newItem.quantity,
           color: newItem.color,
-          price:
-            variant.price -
-            ((variant.price * product.discount) / 100) * newItem.quantity,
+          price: finalPrice,
           branch: new Types.ObjectId(newItem.branch),
+          warranty: warrantyId,
+          warrantyPrice: warrantyPrice,
         });
       }
     }
@@ -107,6 +132,10 @@ export class CartService {
       .populate({
         path: 'items.variant',
         select: 'sku color name price color memory',
+      })
+      .populate({
+        path: 'items.warranty',
+        select: 'name price durationMonths',
       });
     return cart;
   }
@@ -125,6 +154,10 @@ export class CartService {
       .populate({
         path: 'items.variant',
         select: 'name price color memory',
+      })
+      .populate({
+        path: 'items.warranty',
+        select: 'name price durationMonths',
       });
   }
 
@@ -147,8 +180,8 @@ export class CartService {
 
     const itemIndex = cart.items.findIndex(
       (item) =>
-        item.product._id.toString() === productId &&
-        item.variant._id.toString() === variantId,
+        item.product.toString() === productId &&
+        item.variant.toString() === variantId,
     );
 
     if (itemIndex === -1) {
