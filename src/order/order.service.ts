@@ -109,12 +109,17 @@ export class OrderService {
       }
     }
 
-    // 2. Lấy items từ giỏ hàng hoặc từ POS (tạo tại quầy)
+    // 2. Xác định nguồn đơn hàng (ONLINE, POS, CHATBOT)
+    // - Nếu có source gửi lên (vd: 'chatbot', 'pos', 'online') -> dùng source đó
+    // - Nếu không có source:
+    //   + Nếu không có items (lấy từ giỏ hàng) -> mặc định ONLINE
+    //   + Nếu có items (tạo trực tiếp) -> mặc định POS
     let itemsToOrder = [];
-    const orderSource =
-      !createOrderDto.items || createOrderDto.items.length === 0
-        ? OrderSource.ONLINE
-        : OrderSource.POS;
+    const orderSource = createOrderDto.source
+      ? createOrderDto.source.toLowerCase()
+      : !createOrderDto.items || createOrderDto.items.length === 0
+      ? OrderSource.ONLINE
+      : OrderSource.POS;
 
 
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
@@ -264,8 +269,9 @@ export class OrderService {
         // Kiểm tra phương thức thanh toán
         if (
           promotion.conditions.payment &&
-          createOrderDto.paymentMethod.toLocaleLowerCase() !==
-            promotion.conditions.payment.toLocaleLowerCase()
+          (!createOrderDto.paymentMethod ||
+            createOrderDto.paymentMethod.toLocaleLowerCase() !==
+              promotion.conditions.payment.toLocaleLowerCase())
         ) {
           isEligible = false;
         }
@@ -464,7 +470,7 @@ export class OrderService {
       for (const item of orderExist.items) {
         await this.productModel.updateOne(
           { _id: item.product },
-          { $inc: { sold: item.quantity } },
+          { $inc: { soldCount: item.quantity } },
         );
 
         await this.inventoryService.exportStock(
@@ -560,7 +566,6 @@ export class OrderService {
       returnReason: string;
     },
   ) {
-    console.log(dto);
     const order = await this.orderModel.findById(orderId);
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
 

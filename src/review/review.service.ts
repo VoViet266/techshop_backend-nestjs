@@ -8,17 +8,28 @@ import aqp from 'api-query-params';
 import { CreateReplyDto } from 'src/product/dto/create-comment.dto';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 
+import { ProductService } from 'src/product/product.service';
+
 @Injectable()
 export class ReviewService {
   constructor(
     @InjectModel(Review.name)
     private readonly reviewModel: SoftDeleteModel<ReviewDocument>,
+    private readonly productService: ProductService,
   ) {}
 
   async create(createReviewDto: CreateReviewDto) {
     const comment = await this.reviewModel.create({
       ...createReviewDto,
     });
+
+    // Cập nhật averageRating cho product
+    const stats = await this.getProductRatingStats(createReviewDto.productId);
+    await this.productService.updateRating(
+      createReviewDto.productId,
+      stats.averageRating,
+      stats.totalComments,
+    );
 
     return comment;
   }

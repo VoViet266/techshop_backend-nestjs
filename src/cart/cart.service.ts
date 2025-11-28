@@ -208,7 +208,7 @@ export class CartService {
     }
     return await this.cartModel.updateOne(
       { user: user._id },
-      { $set: { items: [] } },
+      { $set: { items: [], totalQuantity: 0, totalPrice: 0 } },
     );
   }
 }

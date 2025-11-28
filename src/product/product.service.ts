@@ -378,6 +378,13 @@ export class ProductService {
     );
   }
 
+  async updateRating(id: string, rating: number, reviewCount: number) {
+    return await this.productModel.updateOne(
+      { _id: id },
+      { $set: { averageRating: rating, reviewCount: reviewCount } },
+    );
+  }
+
   async remove(id: string) {
     const product = await this.productModel.findById(id);
 

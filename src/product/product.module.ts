@@ -16,14 +16,6 @@ import { MulterConfigService } from 'src/config/multer.config';
 import { Review, ReviewSchema } from 'src/review/schemas/review.schema';
 import { ReviewModule } from 'src/review/review.module';
 import { RedisModule } from 'src/redis/redis.module';
-import {
-  Promotion,
-  PromotionSchema,
-} from 'src/benefit/schemas/promotion.schema';
-import {
-  WarrantyPolicy,
-  WarrantyPolicySchema,
-} from 'src/benefit/schemas/warrantypolicy.schema';
 
 @Module({
   controllers: [ProductController],
@@ -44,6 +36,6 @@ import {
     }),
     CaslModule,
   ],
-  exports: [ProductModule, MongooseModule],
+  exports: [ProductModule, MongooseModule, ProductService],
 })
 export class ProductModule {}

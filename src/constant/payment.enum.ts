@@ -22,4 +22,5 @@ export enum RefundStatus {
 export enum OrderSource {
   ONLINE = 'online',
   POS = 'pos',
+  CHATBOT = 'chatbot',
 }
