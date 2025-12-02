@@ -12,7 +12,6 @@ export type ProductDocument = HydratedDocument<Products>;
 })
 export class Products {
   @Prop({
-    unique: true,
     index: true,
     trim: true,
   })

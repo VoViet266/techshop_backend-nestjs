@@ -37,11 +37,13 @@ export class ProductController {
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }
-  // @Post('insert')
-  // @Public()
-  // Insert(@Body() createProductDto: CreateProductDto[]) {
-  //   return this.productService.insertManyProduct(createProductDto);
-  // }
+
+  @Post('insert')
+  @Public()
+  @ResponseMessage('Tạo nhiều sản phẩm thành công')
+  bulkInsert(@Body() createProductDtos: CreateProductDto[]) {
+    return this.productService.insertManyProduct(createProductDtos);
+  }
 
   // @Post('import-csv')
   // @UseInterceptors(FileInterceptor('file'))

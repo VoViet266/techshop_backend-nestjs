@@ -226,15 +226,25 @@ export class RecommendationService implements OnModuleInit {
     }
   }
   // Triển khai hàm tạo vector cho mô tả
+  // Tăng trọng số cho Brand và Category để tăng độ tương đồng content-based
   private extractProductFeatures(product: any): string {
+    const brandName = (product.brand?.name || '').toLowerCase();
+    const categoryName = (product.category?.name || '').toLowerCase();
+    const productName = (product.name || '').toLowerCase();
+
     const features = [
-      product.name || '',
-      product.category?.name || '',
-      product.brand?.name || '',
+      // Brand quan trọng nhất (lặp 5 lần) -> Sản phẩm cùng hãng sẽ có score cao
+      ...Array(5).fill(brandName),
+
+      // Category quan trọng nhì (lặp 3 lần) -> Cùng loại sản phẩm
+      ...Array(3).fill(categoryName),
+
+      // Tên sản phẩm (lặp 2 lần)
+      ...Array(2).fill(productName),
     ]
       .filter(Boolean)
+      .filter((f) => f.trim().length > 0)
       .join(' ')
-      .toLowerCase()
       .trim();
 
     return features;
