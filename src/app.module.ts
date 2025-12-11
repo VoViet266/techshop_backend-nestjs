@@ -28,6 +28,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BenefitModule } from './benefit/benefit.module';
 import { TfidfModeModule } from './tfidf-mode/tfidf-mode.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -60,9 +62,21 @@ import { TfidfModeModule } from './tfidf-mode/tfidf-mode.module';
     DashboardModule,
     BenefitModule,
     TfidfModeModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 600000,
+        limit: 10,
+      },
+    ]),
   ],
 
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
