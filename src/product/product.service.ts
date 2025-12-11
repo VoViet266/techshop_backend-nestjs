@@ -51,6 +51,11 @@ export class ProductService {
       // slug: slug,
       variants: createdVariants?.map((variant) => variant._id) || [],
     });
+    // Xóa cache danh sách sản phẩm khi có sản phẩm mới
+    const keys = await this.redisClient.keys('products-*');
+    if (keys.length > 0) {
+      await this.redisClient.del(...keys);
+    }
     return createdProduct;
   }
 
@@ -78,10 +83,22 @@ export class ProductService {
     );
     const createdProducts =
       await this.productModel.insertMany(productsToInsert);
+    
+    // Xóa cache danh sách sản phẩm
+    const keys = await this.redisClient.keys('products-*');
+    if (keys.length > 0) {
+      await this.redisClient.del(...keys);
+    }
     return createdProducts;
   }
 
   async autocompleteSearch(query: string) {
+    const cacheKey = `search-autocomplete:${query}`;
+    const cached = await this.redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     const result = await this.productModel.aggregate([
       {
         $search: {
@@ -152,20 +169,24 @@ export class ProductService {
     if (result.length === 0) {
       return ` không tìm thấy sản phẩm với query ${query}`;
     }
+    
+    await this.redisClient.set(cacheKey, JSON.stringify(result), 'EX', 300); // cache 5 phút
     return result;
   }
 
-  async findAll(currentPage: number, limit: number, qs: string) {
+  async findAll(currentPage: number, limit: number, qs: string | any) {
     const { filter } = aqp(qs);
 
     delete filter.page;
     delete filter.limit;
     filter.isDeleted = false;
-    // const cacheKey = `products-${qs}`;
-    // const cached = await this.redisClient.get(cacheKey);
-    // if (cached) {
-    //   return JSON.parse(cached);
-    // }
+    
+    const cacheKey = `products-${JSON.stringify(qs)}`;
+    const cached = await this.redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    
     const offset = (currentPage - 1) * limit;
     const defaultLimit = limit;
 
@@ -299,12 +320,18 @@ export class ProductService {
       },
       result,
     };
-    // await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 300);
+    await this.redisClient.set(cacheKey, JSON.stringify(response), 'EX', 300); // Cache 5 phút
     return response;
   }
 
   async findOneById(id: string) {
-    return await this.productModel
+    const cacheKey = `product:${id}`;
+    const cached = await this.redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const product = await this.productModel
       .findById({ _id: id })
       .populate({
         path: 'variants',
@@ -312,6 +339,11 @@ export class ProductService {
       })
       .populate('brand', 'name description logo')
       .populate('category', 'name description configFields ');
+    
+    if (product) {
+      await this.redisClient.set(cacheKey, JSON.stringify(product), 'EX', 600); // Cache 10 phút
+    }
+    return product;
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
@@ -360,7 +392,14 @@ export class ProductService {
         variants: variantIds,
       },
     );
-    this.redisClient.del(`product`);
+    
+    // Invalidate cache
+    await this.redisClient.del(`product:${id}`);
+    const keys = await this.redisClient.keys('products-*');
+    if (keys.length > 0) {
+      await this.redisClient.del(...keys);
+    }
+    
     return { message: 'Cập nhật thành công' };
   }
 
@@ -379,6 +418,8 @@ export class ProductService {
   }
 
   async updateRating(id: string, rating: number, reviewCount: number) {
+    await this.redisClient.del(`product:${id}`);
+    
     return await this.productModel.updateOne(
       { _id: id },
       { $set: { averageRating: rating, reviewCount: reviewCount } },
@@ -401,6 +442,14 @@ export class ProductService {
       return await this.variantModel.findByIdAndDelete(v);
     });
     await this.inventoryModel.deleteMany({ product: id });
+    
+    // Invalidate cache
+    await this.redisClient.del(`product:${id}`);
+    const keys = await this.redisClient.keys('products-*');
+    if (keys.length > 0) {
+      await this.redisClient.del(...keys);
+    }
+    
     return this.productModel.softDelete({ _id: id });
   }
 }

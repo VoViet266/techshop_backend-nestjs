@@ -110,10 +110,10 @@ export class OrderService {
     }
 
     // 2. Xác định nguồn đơn hàng (ONLINE, POS, CHATBOT)
-    // - Nếu có source gửi lên (vd: 'chatbot', 'pos', 'online') -> dùng source đó
-    // - Nếu không có source:
-    //   + Nếu không có items (lấy từ giỏ hàng) -> mặc định ONLINE
-    //   + Nếu có items (tạo trực tiếp) -> mặc định POS
+    // Nếu có source gửi lên (vd: 'chatbot', 'pos', 'online') -> dùng source đó
+    // Nếu không có source:
+    //   Nếu không có items (lấy từ giỏ hàng) -> mặc định ONLINE
+    //   Nếu có items (tạo trực tiếp) -> mặc định POS
     let itemsToOrder = [];
     const orderSource = createOrderDto.source
       ? createOrderDto.source.toLowerCase()
@@ -162,15 +162,15 @@ export class OrderService {
         `Không tìm thấy chi nhánh với ID ${firstBranchId}`,
       );
     }
-    if (
-      !orderBranch.location ||
-      !orderBranch.location.coordinates ||
-      orderBranch.location.coordinates.length !== 2
-    ) {
-      throw new BadRequestException(
-        `Chi nhánh ${orderBranch.name} chưa được thiết lập vị trí (location). Không thể tạo tracking.`,
-      );
-    }
+    // if (
+    //   !orderBranch.location ||
+    //   !orderBranch.location.coordinates ||
+    //   orderBranch.location.coordinates.length !== 2
+    // ) {
+    //   throw new BadRequestException(
+    //     `Chi nhánh ${orderBranch.name} chưa được thiết lập vị trí (location). Không thể tạo tracking.`,
+    //   );
+    // }
 
     // Chuẩn bị dữ liệu tracking ban đầu
     const initialLocation = orderBranch.location;
